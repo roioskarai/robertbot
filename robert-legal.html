@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robert — תנאי שימוש ומדיניות פרטיות</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f4f5f9; --white:#fff;
+  --green:#22c55e; --green-d:#16a34a; --green-p:#dcfce7;
+  --t1:#0f172a; --t2:#334155; --t3:#64748b; --t4:#94a3b8;
+  --bdr:#e2e8f0;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Rubik',sans-serif;background:var(--bg);color:var(--t1);direction:rtl;padding:20px 16px 60px;-webkit-font-smoothing:antialiased;}
+
+.tabs{display:flex;gap:8px;margin-bottom:24px;}
+.tab{padding:9px 22px;border-radius:100px;font-size:13.5px;font-weight:600;cursor:pointer;border:1.5px solid var(--bdr);background:var(--white);color:var(--t3);transition:all .15s;font-family:'Rubik',sans-serif;}
+.tab.act{background:var(--t1);color:#fff;border-color:var(--t1);}
+
+.pane{display:none;}
+.pane.act{display:block;}
+
+.doc{background:var(--white);border:1px solid var(--bdr);border-radius:16px;padding:28px 24px;box-shadow:var(--shadow);max-width:680px;margin:0 auto;}
+.doc-title{font-size:20px;font-weight:800;color:var(--t1);margin-bottom:4px;}
+.doc-date{font-size:12px;color:var(--t4);margin-bottom:6px;}
+.doc-version{display:inline-block;font-size:11px;font-weight:700;background:var(--green-p);color:var(--green-d);padding:3px 10px;border-radius:100px;margin-bottom:20px;}
+
+.doc h2{font-size:15px;font-weight:700;color:var(--t1);margin:22px 0 8px;padding-top:16px;border-top:1px solid var(--bdr);}
+.doc h2:first-of-type{border-top:none;padding-top:0;}
+.doc p{font-size:13.5px;color:var(--t2);line-height:1.8;margin-bottom:10px;}
+.doc ul{padding-right:18px;margin-bottom:10px;}
+.doc ul li{font-size:13.5px;color:var(--t2);line-height:1.8;margin-bottom:4px;}
+.doc strong{color:var(--t1);font-weight:600;}
+
+.highlight-box{background:#f8fafc;border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;margin:14px 0;}
+.highlight-box p{margin:0;font-size:13px;color:var(--t2);}
+
+/* AGREE SECTION */
+.agree-section{background:var(--white);border:1.5px solid var(--bdr);border-radius:14px;padding:20px;margin-top:20px;max-width:680px;margin-inline:auto;}
+.agree-title{font-size:15px;font-weight:700;margin-bottom:14px;}
+.checkbox-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;cursor:pointer;}
+.checkbox-row input{width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--green-d);cursor:pointer;}
+.checkbox-label{font-size:13.5px;color:var(--t2);line-height:1.6;}
+.checkbox-label a{color:var(--green-d);font-weight:600;text-decoration:none;}
+.agree-btn{width:100%;padding:13px;background:var(--green);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Rubik',sans-serif;transition:all .2s;margin-top:4px;opacity:.5;}
+.agree-btn.ready{opacity:1;}
+.agree-btn.ready:hover{background:var(--green-d);transform:translateY(-1px);}
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <button class="tab act" onclick="show('terms',this)">תנאי שימוש</button>
+  <button class="tab" onclick="show('privacy',this)">מדיניות פרטיות</button>
+  <button class="tab" onclick="show('agree',this)">טופס אישור</button>
+</div>
+
+<!-- ══ TERMS ══ -->
+<div class="pane act" id="p-terms">
+<div class="doc">
+  <div class="doc-title">תנאי שימוש — Robert</div>
+  <div class="doc-date">עודכן לאחרונה: ינואר 2026</div>
+  <div class="doc-version">גרסה 1.0</div>
+
+  <h2>1. כללי</h2>
+  <p>ברוכים הבאים ל-Robert ("השירות", "המערכת"). Robert הינה פלטפורמה לבניית בוטים אוטומטיים לוואטסאפ, המופעלת על ידי <strong>רוברט בוט בע"מ</strong> ("החברה").</p>
+  <p>שימוש בשירות מהווה הסכמה מלאה לתנאים אלו. אם אינך מסכים — אנא הפסק את השימוש.</p>
+
+  <h2>2. הגדרות</h2>
+  <ul>
+    <li><strong>משתמש / לקוח</strong> — כל אדם או עסק שנרשם לשירות</li>
+    <li><strong>לקוח קצה</strong> — הלקוחות של העסק שלך שמתכתבים עם הבוט</li>
+    <li><strong>בוט</strong> — הסוכן האוטומטי שנוצר דרך המערכת</li>
+    <li><strong>תוכן</strong> — כל מידע, טקסט והגדרות שהמשתמש מזין למערכת</li>
+  </ul>
+
+  <h2>3. השירות</h2>
+  <p>החברה מספקת פלטפורמה לבניית בוטים לוואטסאפ. השירות כולל:</p>
+  <ul>
+    <li>ממשק להגדרת הבוט ותכניו</li>
+    <li>חיבור למספר וואטסאפ Business של המשתמש</li>
+    <li>ניהול שיחות ו-Inbox</li>
+    <li>אנליטיקס ודוחות</li>
+  </ul>
+  <div class="highlight-box">
+    <p>⚠️ <strong>חשוב:</strong> Robert פועל דרך WhatsApp Business API של Meta. השימוש כפוף גם למדיניות Meta. החברה אינה אחראית לשינויים במדיניות Meta שעלולים להשפיע על השירות.</p>
+  </div>
+
+  <h2>4. הרשמה וחשבון</h2>
+  <p>הרשמה לשירות מחייבת מסירת פרטים נכונים ומדויקים. המשתמש אחראי לשמור על סודיות פרטי הכניסה לחשבון.</p>
+  <p>החברה שומרת לעצמה הזכות להשעות חשבון שפרטיו אינם נכונים.</p>
+
+  <h2>5. מנוי ותשלום</h2>
+  <ul>
+    <li>השירות ניתן בתמורה לתשלום לפי המסלול שנבחר — <strong>חודשי או שנתי</strong></li>
+    <li><strong>מסלול חודשי</strong> — חיוב חודשי חוזר, מתחדש אוטומטית בתחילת כל חודש</li>
+    <li><strong>מסלול שנתי</strong> — חיוב שנתי מראש בעת ההרשמה. ניתן לביטול עד 14 יום מתחילת תקופת החיוב עם החזר יחסי. לאחר 14 יום — אין החזר כספי</li>
+    <li>החיוב מתבצע מראש בתחילת כל תקופת חיוב (חודשית או שנתית)</li>
+    <li>7 ימי ניסיון חינם — ללא חיוב. לאחריהם תחל תקופת התשלום לפי המסלול שנבחר</li>
+    <li>ביטול מסלול חודשי יכנס לתוקף בסוף החודש הנוכחי — לא יינתן החזר חלקי</li>
+    <li>שדרוג ממסלול חודשי לשנתי — זיכוי יחסי על היתרה החודשית</li>
+    <li>החברה רשאית לשנות מחירים בהודעה מוקדמת של 30 יום</li>
+  </ul>
+
+  <h2>6. אחריות המשתמש</h2>
+  <p>המשתמש מתחייב:</p>
+  <ul>
+    <li>לא להשתמש בשירות לפעילות בלתי חוקית, הטרדה, ספאם או תוכן פוגעני</li>
+    <li>לקבל את הסכמת לקוחות הקצה לקבל הודעות אוטומטיות</li>
+    <li>לציית לתקנות הגנת הפרטיות הרלוונטיות (GDPR, חוק הגנת הפרטיות הישראלי)</li>
+    <li>לא להעביר גישה לחשבונו לצד שלישי ללא אישור</li>
+    <li>לא לנסות לפרוץ, לשבש או להזיק למערכת</li>
+  </ul>
+
+  <h2>7. קניין רוחני</h2>
+  <p>כל הקוד, העיצוב, האלגוריתמים והתוכן של המערכת הם רכוש החברה. המשתמש רשאי להשתמש בשירות בלבד — לא להעתיקו, לשכפלו או למכרו.</p>
+  <p>תוכן שהמשתמש מזין (שמות, שירותים, תשובות) נשאר בבעלות המשתמש.</p>
+
+  <h2>8. הגבלת אחריות</h2>
+  <p>החברה אינה אחראית לנזקים ישירים, עקיפים או תוצאתיים הנובעים מ:</p>
+  <ul>
+    <li>הפסקת שירות זמנית לצורך תחזוקה</li>
+    <li>תקלות ברשת או אצל ספקי צד שלישי (Twilio, Meta, OpenAI)</li>
+    <li>שינויים במדיניות WhatsApp</li>
+    <li>תוכן שגוי שהוזן על ידי המשתמש</li>
+  </ul>
+  <p>אחריות החברה מוגבלת לסכום ששולם עבור חודש השירות האחרון.</p>
+
+  <h2>9. הפסקת שירות</h2>
+  <p>החברה רשאית להשעות או לסיים חשבון שמפר תנאים אלו, לאחר הודעה מוקדמת של 48 שעות (למעט במקרי הפרה חמורה).</p>
+  <p>המשתמש רשאי לבטל בכל עת דרך לוח הניהול.</p>
+
+  <h2>10. שינויים בתנאים</h2>
+  <p>החברה רשאית לעדכן תנאים אלו בכל עת. שינויים מהותיים יפורסמו 14 יום מראש במייל ובאתר. המשך שימוש לאחר השינוי מהווה הסכמה.</p>
+
+  <h2>11. דין וסמכות שיפוטית</h2>
+  <p>תנאים אלו כפופים לדיני מדינת ישראל. כל סכסוך יידון בבתי המשפט המוסמכים בתל אביב-יפו.</p>
+
+  <h2>12. יצירת קשר</h2>
+  <p>שאלות בנושא תנאי שימוש: <strong>legal@robertbot.co.il</strong></p>
+</div>
+</div>
+
+<!-- ══ PRIVACY ══ -->
+<div class="pane" id="p-privacy">
+<div class="doc">
+  <div class="doc-title">מדיניות פרטיות — Robert</div>
+  <div class="doc-date">עודכן לאחרונה: ינואר 2026</div>
+  <div class="doc-version">גרסה 1.0</div>
+
+  <h2>1. מבוא</h2>
+  <p>Robert מחויבת להגן על פרטיות המשתמשים. מדיניות זו מסבירה אילו נתונים אנו אוספים, כיצד אנו משתמשים בהם ואיזה שליטה יש לך.</p>
+
+  <h2>2. מידע שאנחנו אוספים</h2>
+  <p><strong>מידע שמסרת ישירות:</strong></p>
+  <ul>
+    <li>שם, כתובת מייל, מספר טלפון בעת ההרשמה</li>
+    <li>פרטי העסק — שם, תיאור, שירותים, שעות</li>
+    <li>פרטי תשלום (מאוחסנים בצורה מוצפנת דרך Stripe — אנחנו לא רואים מספר כרטיס)</li>
+  </ul>
+  <p><strong>מידע שנאסף אוטומטית:</strong></p>
+  <ul>
+    <li>לוגים של שיחות הבוט עם לקוחות הקצה שלך</li>
+    <li>נתוני שימוש — כמה הודעות, מתי, מאיזה מכשיר</li>
+    <li>כתובת IP ומידע טכני בסיסי</li>
+  </ul>
+
+  <h2>3. כיצד אנחנו משתמשים במידע</h2>
+  <ul>
+    <li>מתן השירות — הפעלת הבוטים שלך</li>
+    <li>שיפור המוצר — ניתוח שגיאות ושיפור AI</li>
+    <li>תמיכה — מענה לפניות ופתרון בעיות</li>
+    <li>חיוב — עיבוד תשלומים וחשבוניות</li>
+    <li>תקשורת — עדכונים, שינויים בשירות</li>
+  </ul>
+  <div class="highlight-box">
+    <p>🔒 <strong>אנחנו לא מוכרים מידע לצד שלישי. לעולם.</strong></p>
+  </div>
+
+  <h2>4. שיתוף עם צד שלישי</h2>
+  <p>אנחנו משתמשים בשירותי צד שלישי חיוניים:</p>
+  <ul>
+    <li><strong>Twilio</strong> — שליחת הודעות וואטסאפ</li>
+    <li><strong>Stripe</strong> — עיבוד תשלומים</li>
+    <li><strong>Supabase</strong> — אחסון נתונים מאובטח</li>
+    <li><strong>OpenAI / Anthropic</strong> — עיבוד שפה טבעית לבוטים</li>
+  </ul>
+  <p>כל ספק כפוף למדיניות הפרטיות שלו ולהסכמי עיבוד נתונים.</p>
+
+  <h2>5. אחסון ואבטחה</h2>
+  <p>המידע מאוחסן בשרתים מאובטחים באיחוד האירופי. אנחנו משתמשים ב:</p>
+  <ul>
+    <li>הצפנה SSL/TLS לכל תעבורת נתונים</li>
+    <li>הצפנת נתונים במנוחה</li>
+    <li>גישה מוגבלת לעובדים מורשים בלבד</li>
+    <li>גיבויים אוטומטיים יומיים</li>
+  </ul>
+
+  <h2>6. שמירת מידע</h2>
+  <ul>
+    <li>נתוני חשבון — נשמרים כל עוד החשבון פעיל</li>
+    <li>היסטוריית שיחות — 12 חודשים מכל שיחה</li>
+    <li>לאחר מחיקת חשבון — מחיקה תוך 30 יום</li>
+  </ul>
+
+  <h2>7. הזכויות שלך</h2>
+  <p>בהתאם לחוק הגנת הפרטיות ו-GDPR, יש לך זכות ל:</p>
+  <ul>
+    <li><strong>עיון</strong> — לקבל עותק של המידע שיש לנו עליך</li>
+    <li><strong>תיקון</strong> — לתקן מידע שגוי</li>
+    <li><strong>מחיקה</strong> — למחוק את חשבונך ומידעך</li>
+    <li><strong>ניידות</strong> — לקבל את הנתונים שלך בפורמט מובנה</li>
+    <li><strong>התנגדות</strong> — להתנגד לעיבוד מסוים</li>
+  </ul>
+  <p>לממש זכויות אלו — שלח מייל ל: <strong>privacy@robertbot.co.il</strong></p>
+
+  <h2>8. עוגיות (Cookies)</h2>
+  <p>אנחנו משתמשים בעוגיות חיוניות בלבד — לצורך התחברות ואבטחה. אין פרסום ואין מעקב.</p>
+
+  <h2>9. ילדים</h2>
+  <p>השירות מיועד לבני 18 ומעלה. אנחנו לא אוספים ביודעין מידע על קטינים.</p>
+
+  <h2>10. שינויים במדיניות</h2>
+  <p>שינויים מהותיים יפורסמו 14 יום מראש. המשך שימוש מהווה הסכמה.</p>
+
+  <h2>11. יצירת קשר</h2>
+  <p>ממונה הגנת פרטיות: <strong>privacy@robertbot.co.il</strong><br>
+  כתובת: רוברט בוט בע"מ, תל אביב, ישראל</p>
+</div>
+</div>
+
+<!-- ══ AGREE FORM ══ -->
+<div class="pane" id="p-agree">
+  <div class="doc" style="margin-bottom:16px;">
+    <div class="doc-title">סיכום — מה אתה מאשר</div>
+    <p style="font-size:13.5px;color:var(--t3);margin-top:8px;line-height:1.7;">לפני שמתחילים, חשוב שתבין בדיוק מה אתה מסכים לו. אלה הנקודות העיקריות:</p>
+
+    <h2>תנאי שימוש — עיקרי הדברים</h2>
+    <ul>
+      <li>השירות ניתן בתמורה לתשלום חודשי לפי המסלול שבחרת</li>
+      <li>7 ימי ניסיון חינם — לאחריהם תחל ההרשמה לחיוב לפי המסלול שבחרת (חודשי או שנתי)</li>
+      <li>אתה אחראי לוודא שלקוחות הקצה שלך הסכימו לקבל הודעות אוטומטיות</li>
+      <li>ביטול — בכל עת, ללא קנסות, יכנס לתוקף בסוף תקופת החיוב</li>
+      <li>אסור להשתמש בשירות לספאם, הטרדה או תוכן בלתי חוקי</li>
+    </ul>
+
+    <h2>פרטיות — עיקרי הדברים</h2>
+    <ul>
+      <li>אנחנו אוספים פרטי חשבון ולוגים של שיחות הבוט</li>
+      <li>המידע משמש לצורך השירות בלבד — לא נמכר לאף אחד</li>
+      <li>תוכל למחוק את חשבונך ואת כל המידע בכל עת</li>
+      <li>נשמור נתוני שיחות 12 חודשים, ולאחר מחיקת חשבון — 30 יום</li>
+    </ul>
+  </div>
+
+  <div class="agree-section">
+    <div class="agree-title">אישור ותחילת שימוש</div>
+
+    <label class="checkbox-row" onclick="checkState()">
+      <input type="checkbox" id="cb1">
+      <span class="checkbox-label">קראתי ואני מסכים ל<a href="#">תנאי השימוש</a> של Robert</span>
+    </label>
+
+    <label class="checkbox-row" onclick="checkState()">
+      <input type="checkbox" id="cb2">
+      <span class="checkbox-label">קראתי ואני מסכים ל<a href="#">מדיניות הפרטיות</a> של Robert</span>
+    </label>
+
+    <label class="checkbox-row" onclick="checkState()">
+      <input type="checkbox" id="cb3">
+      <span class="checkbox-label">אני מאשר שאקבל הסכמה מלקוחות הקצה שלי לפני שליחת הודעות אוטומטיות</span>
+    </label>
+
+    <label class="checkbox-row" onclick="checkState()">
+      <input type="checkbox" id="cb4">
+      <span class="checkbox-label">אני מסכים לקבל עדכונים ותקשורת שיווקית מ-Robert (ניתן לביטול בכל עת)</span>
+    </label>
+
+    <button class="agree-btn" id="agree-btn" onclick="agreeAll()">אשר והתחל בחינם →</button>
+  </div>
+</div>
+
+<script>
+function show(id, el) {
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('act'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('act'));
+  document.getElementById('p-'+id).classList.add('act');
+  el.classList.add('act');
+  window.scrollTo(0,0);
+}
+
+function checkState() {
+  setTimeout(()=>{
+    const required = ['cb1','cb2','cb3'];
+    const allChecked = required.every(id=>document.getElementById(id).checked);
+    const btn = document.getElementById('agree-btn');
+    btn.classList.toggle('ready', allChecked);
+  },0);
+}
+
+function agreeAll() {
+  const btn = document.getElementById('agree-btn');
+  if(!btn.classList.contains('ready')) return;
+  btn.textContent = '✓ אושר — מעביר לאזור האישי...';
+  btn.style.background = '#16a34a';
+  setTimeout(()=>{ window.location.href='robert-onboarding.html'; },1200);
+}
+</script>
+</body>
+</html>

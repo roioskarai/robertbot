@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robert — מחירים</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:       #0a0f1e;
+  --ink2:      #1e2740;
+  --muted:     #64748b;
+  --faint:     #94a3b8;
+  --border:    #e2e8f0;
+  --surface:   #ffffff;
+  --bg:        #f5f6f8;
+  --green:     #16a34a;
+  --green-l:   #22c55e;
+  --green-pale:#dcfce7;
+  --gold:      #ca8a04;
+  --gold-pale: #fef9c3;
+  --purple:    #7c3aed;
+  --purple-pale:#ede9fe;
+  --r:         14px;
+  --r-xl:      20px;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  font-family:'Rubik', sans-serif;
+  background:#f5f6f8;
+  color:var(--ink);
+  direction:rtl;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+
+/* ── BG GRID ── */
+
+
+.wrap { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:0 20px; }
+
+/* ── NAV ── */
+nav {
+  position:sticky; top:0; z-index:100;
+  background:rgba(248,250,252,.9); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:14px 0;
+}
+.nav-inner { display:flex; align-items:center; justify-content:space-between; }
+.nav-logo { display:flex; align-items:center; gap:9px; text-decoration:none; }
+.logo-mark {
+  width:28px; height:28px; border-radius:7px;
+  background:linear-gradient(135deg, var(--green-l), var(--green));
+  display:flex; align-items:center; justify-content:center;
+}
+.logo-mark svg { width:15px; height:15px; }
+.logo-name { font-size:17px; font-weight:800; color:var(--ink); letter-spacing:-.4px; }
+.logo-name em { font-style:normal; color:var(--green); }
+.nav-btns { display:flex; gap:8px; }
+.btn-nav-login {
+  padding:7px 16px; border-radius:8px; font-size:13px; font-weight:600;
+  border:1.5px solid var(--border); background:var(--surface); color:var(--ink2);
+  text-decoration:none; transition:all .18s;
+}
+.btn-nav-login:hover { border-color:#94a3b8; }
+.btn-nav-signup {
+  padding:7px 16px; border-radius:8px; font-size:13px; font-weight:600;
+  background:var(--ink); color:#fff; text-decoration:none; transition:all .18s;
+}
+.btn-nav-signup:hover { background:var(--ink2); transform:translateY(-1px); }
+
+/* ── HERO ── */
+.hero {
+  text-align:center;
+  padding:72px 0 48px;
+  animation:fadeUp .6s ease both;
+}
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+.hero-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--green-pale); color:var(--green); border:1px solid #bbf7d0;
+  font-size:12px; font-weight:700; padding:5px 14px; border-radius:100px;
+  margin-bottom:20px; letter-spacing:.3px;
+}
+.hero-badge-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+
+.hero h1 {
+  font-size:clamp(32px,5vw,52px); font-weight:900; letter-spacing:-2px;
+  color:var(--ink); line-height:1.1; margin-bottom:16px;
+}
+.hero h1 span { color:var(--green); }
+.hero-sub { font-size:17px; color:var(--muted); max-width:540px; margin:0 auto 32px; line-height:1.7; font-weight:400; }
+
+/* toggle */
+.toggle-wrap {
+  display:inline-flex; align-items:center; gap:12px;
+  background:var(--surface); border:1px solid var(--border);
+  padding:5px 6px; border-radius:100px;
+  box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.tog-label { font-size:13px; font-weight:600; color:var(--muted); transition:color .2s; padding:0 6px; }
+.tog-label.act { color:var(--ink); }
+.tog-switch {
+  position:relative; width:44px; height:24px; cursor:pointer;
+}
+.tog-switch input { opacity:0; width:0; height:0; position:absolute; }
+.tog-track {
+  position:absolute; inset:0; border-radius:100px;
+  background:#e2e8f0; transition:background .25s;
+}
+.tog-thumb {
+  position:absolute; top:3px; right:3px; width:18px; height:18px;
+  border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.2);
+  transition:transform .25s cubic-bezier(.4,0,.2,1);
+}
+.tog-switch input:checked ~ .tog-track { background:var(--green); }
+.tog-switch input:checked ~ .tog-thumb { transform:translateX(-20px); }
+.save-chip {
+  background:var(--gold-pale); color:var(--gold); border:1px solid #fde68a;
+  font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px;
+}
+
+/* ── PLANS GRID ── */
+.plans { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:16px; animation:fadeUp .7s .1s ease both; }
+
+.plan {
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--r-xl); padding:24px 20px;
+  display:flex; flex-direction:column;
+  position:relative; transition:transform .25s, box-shadow .25s;
+}
+.plan:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(0,0,0,.08); }
+
+/* Popular plan */
+.plan.popular {
+  border-color:var(--green);
+  box-shadow:0 0 0 1px var(--green), 0 8px 24px rgba(34,197,94,.12);
+}
+.pop-badge {
+  position:absolute; top:-13px; left:50%; transform:translateX(-50%);
+  background:var(--green); color:#fff; font-size:11px; font-weight:800;
+  padding:3px 14px; border-radius:100px; white-space:nowrap;
+  box-shadow:0 2px 8px rgba(34,197,94,.4);
+}
+
+/* Pro plan - same as light */
+.plan.pro {
+  background:var(--surface);
+  border-color:var(--border);
+  color:var(--ink);
+}
+
+/* Enterprise plan - single premium dark */
+.plan.agency {
+  background:linear-gradient(160deg,#1a2035,#1e1a30);
+  border-color:#2d3a5a;
+  color:#fff;
+}
+.plan.agency .plan-label { color:rgba(255,255,255,.45); }
+.plan.agency .plan-name { color:#fff; }
+.plan.agency .plan-price { color:#fff; }
+.plan.agency .plan-period { color:rgba(255,255,255,.4); }
+.plan.agency .feat-item { color:rgba(255,255,255,.82); }
+.plan.agency .feat-icon { color:#22c55e; }
+.plan.agency .divider { background:rgba(255,255,255,.08); }
+.plan.agency .plan-cta.cta-purple {
+  background:rgba(255,255,255,.12);
+  color:#fff;
+  border:1.5px solid rgba(255,255,255,.2);
+}
+.plan.agency .plan-cta.cta-purple:hover {
+  background:rgba(255,255,255,.2);
+}
+.plan.agency .stat-chips .chip { background:rgba(255,255,255,.1); color:rgba(255,255,255,.8); }
+.plan.agency .feat-divider-label { color:rgba(255,255,255,.25); border-color:rgba(255,255,255,.08); }
+
+.plan-label {
+  font-size:10px; font-weight:800; letter-spacing:2px; text-transform:uppercase;
+  color:var(--faint); margin-bottom:12px;
+}
+.plan.popular .plan-label { color:var(--green); }
+
+.plan.agency .plan-label { color:#c084fc; }
+
+.plan-name { font-size:20px; font-weight:800; color:var(--ink); letter-spacing:-.5px; margin-bottom:4px; }
+.plan-period { font-size:12px; color:var(--faint); margin-bottom:16px; font-weight:500; }
+
+.plan-price-wrap { margin-bottom:20px; }
+.plan-price {
+  font-size:38px; font-weight:900; color:var(--ink); letter-spacing:-2px; line-height:1;
+  display:flex; align-items:flex-start; gap:2px;
+}
+.price-cur { font-size:18px; font-weight:700; margin-top:6px; }
+.price-per { font-size:13px; font-weight:500; color:var(--faint); margin-top:auto; padding-bottom:4px; margin-right:2px; }
+.price-annual { font-size:11.5px; color:var(--green); font-weight:600; margin-top:4px; display:none; }
+body.annual .price-annual { display:block; }
+body.annual .price-monthly-val { display:none; }
+body.annual .price-annual-val { display:inline; }
+.price-annual-val { display:none; }
+.price-monthly-val { display:inline; }
+
+.divider { height:1px; background:var(--border); margin:16px 0; }
+
+.feat-list { display:flex; flex-direction:column; gap:9px; flex:1; margin-bottom:20px; }
+.feat-item {
+  display:flex; align-items:flex-start; gap:8px;
+  font-size:13px; color:var(--ink2); line-height:1.4; font-weight:500;
+}
+.feat-icon { flex-shrink:0; font-size:13px; margin-top:1px; color:var(--green); }
+.feat-locked:hover .tooltip { opacity:1; transform:translateY(0); pointer-events:auto; }
+
+/* tooltip */
+.tooltip {
+  position:absolute; bottom:calc(100% + 8px); right:0;
+  background:var(--ink); color:#fff; font-size:11px; font-weight:600;
+  padding:6px 10px; border-radius:8px; white-space:nowrap; z-index:50;
+  opacity:0; transform:translateY(4px); transition:all .18s; pointer-events:none;
+  box-shadow:0 4px 12px rgba(0,0,0,.25);
+}
+.tooltip::after {
+  content:''; position:absolute; top:100%; right:14px;
+  border:5px solid transparent; border-top-color:var(--ink);
+}
+
+/* plan CTA */
+.plan-cta {
+  width:100%; padding:11px; border-radius:10px;
+  font-size:14px; font-weight:700; cursor:pointer;
+  font-family:'Rubik', sans-serif; transition:all .2s; border:none;
+  text-align:center; text-decoration:none; display:block;
+}
+.cta-outline {
+  background:transparent; border:1.5px solid var(--border); color:var(--ink2);
+}
+.cta-outline:hover { border-color:var(--ink); color:var(--ink); }
+.cta-green {
+  background:var(--green); color:#fff;
+  box-shadow:0 2px 12px rgba(34,197,94,.3);
+}
+.cta-green:hover { background:#15803d; transform:translateY(-1px); box-shadow:0 4px 16px rgba(34,197,94,.4); }
+.cta-dark {
+  background:rgba(255,255,255,.12); color:#fff; border:1.5px solid rgba(255,255,255,.2);
+}
+.cta-dark:hover { background:rgba(255,255,255,.2); }
+.cta-purple {
+  background:linear-gradient(135deg,#7c3aed,#6d28d9); color:#fff;
+  box-shadow:0 2px 12px rgba(124,58,237,.35);
+}
+.cta-purple:hover { transform:translateY(-1px); box-shadow:0 4px 16px rgba(124,58,237,.45); }
+
+/* stat chips */
+.stat-chips { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:14px; }
+.chip {
+  font-size:11px; font-weight:700; padding:3px 9px; border-radius:100px;
+  display:inline-flex; align-items:center; gap:4px;
+}
+.chip-green { background:var(--green-pale); color:var(--green); }
+.chip-blue { background:#dbeafe; color:#1d4ed8; }
+.chip-dark { background:rgba(255,255,255,.12); color:rgba(255,255,255,.8); }
+.chip-purple { background:rgba(196,132,252,.15); color:#c084fc; }
+
+/* ── COMPARISON TABLE ── */
+.compare-wrap {
+  margin:48px 0 0;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-xl); overflow:hidden;
+  box-shadow:0 2px 12px rgba(0,0,0,.05);
+  animation:fadeUp .8s .2s ease both;
+}
+.compare-title {
+  padding:20px 24px; border-bottom:1px solid var(--border);
+  font-size:16px; font-weight:800; color:var(--ink); letter-spacing:-.3px;
+}
+table { width:100%; border-collapse:collapse; }
+thead th {
+  padding:14px 16px; font-size:12px; font-weight:700; color:var(--faint);
+  text-transform:uppercase; letter-spacing:1.5px; text-align:center;
+  border-bottom:1px solid var(--border);
+}
+thead th:first-child { text-align:right; }
+thead th.th-pop { color:var(--green); }
+thead th.th-pro { color:var(--ink); }
+thead th.th-agency { color:#7c6af7; background:linear-gradient(180deg,#1a2035,#1e1a30); }
+tbody td {
+  padding:12px 16px; font-size:13px; color:var(--ink2);
+  border-bottom:1px solid var(--border); text-align:center;
+}
+tbody td:first-child { text-align:right; font-weight:500; color:var(--ink); }
+tbody tr:last-child td { border-bottom:none; }
+tbody tr:hover td { background:#fafbfc; }
+tbody tr:hover td.td-dark { background:rgba(255,255,255,.03); }
+.td-dark { background:var(--bg) !important; color:var(--ink2) !important; font-weight:600; }
+.td-purple { background:linear-gradient(180deg,#1a2035,#1e1a30) !important; color:rgba(255,255,255,.82) !important; }
+.td-dark:hover, .td-purple:hover { opacity:.95; }
+.check { color:var(--green); font-size:16px; }
+.check-purple { color:#22c55e; font-size:16px; }
+.cross { color:#cbd5e1; font-size:14px; }
+.row-label { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--faint); padding:10px 16px 4px !important; }
+
+/* ── FAQ ── */
+.faq-wrap { margin:48px 0; animation:fadeUp .9s .3s ease both; }
+.faq-title { font-size:22px; font-weight:800; color:var(--ink); text-align:center; margin-bottom:24px; letter-spacing:-.4px; }
+.faq-list { display:flex; flex-direction:column; gap:8px; }
+.faq-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; }
+.faq-q {
+  padding:14px 18px; display:flex; align-items:center; justify-content:space-between;
+  cursor:pointer; font-size:14px; font-weight:600; color:var(--ink);
+  user-select:none; transition:background .15s;
+}
+.faq-q:hover { background:#f5f6f8; }
+.faq-q .arr { transition:transform .25s; color:var(--faint); flex-shrink:0; }
+.faq-item.open .faq-q .arr { transform:rotate(180deg); }
+.faq-a { display:none; padding:0 18px 14px; font-size:13.5px; color:var(--muted); line-height:1.7; }
+.faq-item.open .faq-a { display:block; animation:fadeUp .2s ease; }
+
+/* ── CTA BAND ── */
+.cta-band {
+  background:linear-gradient(135deg,#0f172a,#1a2035);
+  border-radius:var(--r-xl); margin:0 0 64px;
+  padding:52px 40px; text-align:center;
+  animation:fadeUp 1s .4s ease both;
+}
+.cta-band h2 { font-size:28px; font-weight:900; color:#fff; letter-spacing:-.8px; margin-bottom:10px; }
+.cta-band p { font-size:15px; color:rgba(255,255,255,.55); margin-bottom:28px; }
+.cta-band-btns { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.btn-cta-white {
+  padding:13px 28px; border-radius:10px; font-size:15px; font-weight:700;
+  background:#fff; color:var(--ink); border:none; cursor:pointer;
+  font-family:'Rubik',sans-serif; transition:all .2s; text-decoration:none; display:inline-block;
+}
+.btn-cta-white:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(255,255,255,.2); }
+.btn-cta-ghost {
+  padding:13px 28px; border-radius:10px; font-size:15px; font-weight:700;
+  background:transparent; border:1.5px solid rgba(255,255,255,.25); color:rgba(255,255,255,.8);
+  cursor:pointer; font-family:'Rubik',sans-serif; transition:all .2s; text-decoration:none; display:inline-block;
+}
+.btn-cta-ghost:hover { border-color:rgba(255,255,255,.5); color:#fff; }
+
+/* RESPONSIVE */
+@media(max-width:900px) {
+  .plans { grid-template-columns:repeat(2,1fr); }
+}
+@media(max-width:560px) {
+  .plans { grid-template-columns:1fr; }
+  .hero h1 { font-size:28px; }
+  .compare-wrap { overflow-x:auto; }
+  table { min-width:600px; }
+}
+
+/* feat divider label */
+.feat-divider-label {
+  font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--faint); padding:8px 0 4px; margin-top:2px;
+  border-top:1px solid var(--border);
+}
+.plan.agency .feat-divider-label {
+  color:rgba(255,255,255,.22); border-color:rgba(255,255,255,.1);
+}
+.feat-excluded { opacity:.75; }
+.feat-icon-x { flex-shrink:0; font-size:11px; color:var(--faint); margin-top:2px; }
+.plan.agency .feat-icon-x { color:rgba(255,255,255,.2); }
+.feat-locked { color:var(--faint); text-decoration:line-through; font-weight:400; cursor:default; position:relative; }
+.plan.agency .feat-locked { color:rgba(255,255,255,.22); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="wrap nav-inner">
+    <a href="robert-landing.html" class="nav-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8l4 4-4 4"/></svg>
+      </div>
+      <div class="logo-name">Robert<em>.</em></div>
+    </a>
+    <div class="nav-btns">
+      <a href="robert-dashboard.html" class="btn-nav-login">כניסה</a>
+      <a href="robert-onboarding.html" class="btn-nav-signup">הרשמה חינם</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="wrap">
+  <div class="hero">
+    <div class="hero-badge">
+      <div class="hero-badge-dot"></div>
+      7 ימי ניסיון חינם — ללא כרטיס אשראי
+    </div>
+    <h1>בחר את המסלול<br>הנכון לעסק שלך</h1>
+    <p class="hero-sub">בוט WhatsApp חכם שמנהל לקוחות, תורים ולידים — 24/7, בלי מאמץ</p>
+
+    <div class="toggle-wrap">
+      <span class="tog-label act" id="lbl-mo">חיוב חודשי</span>
+      <label class="tog-switch">
+        <input type="checkbox" id="billing-tog" onchange="toggleBilling(this)">
+        <div class="tog-track"></div>
+        <div class="tog-thumb"></div>
+      </label>
+      <span class="tog-label" id="lbl-yr">חיוב שנתי</span>
+      <span class="save-chip">חיסכון 20%</span>
+    </div>
+  </div>
+
+  <!-- PLANS -->
+  <div class="plans">
+
+    <!-- STARTER -->
+    <div class="plan">
+      <div class="plan-label">Basic</div>
+      <div class="plan-name">בסיסי</div>
+      <div class="plan-price-wrap">
+        <div class="plan-price">
+          <span class="price-cur">₪</span>
+          <span class="price-monthly-val">99</span>
+          <span class="price-annual-val">79</span>
+          <span class="price-per">/חודש</span>
+        </div>
+        <div class="price-annual">חיסכון ₪240 בתשלום שנתי</div>
+      </div>
+
+      <div class="stat-chips">
+        <span class="chip chip-green">1 בוט</span>
+        <span class="chip chip-blue">300 הודעות</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="feat-list">
+        <div class="feat-item"><span class="feat-icon">✓</span> סוכן AI אחד</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> מענה אוטומטי על שאלות</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> קביעת תורים אוטומטית</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> Packs הודעות נוספות</div>
+        <div class="feat-divider-label">לא כלול במסלול זה</div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            שיחות חכמות עם הלקוח
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            זיכרון שיחה אישי ללקוח
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            ניהול יומן מלא
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            סנכרון עם Google Calendar
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            לכידת לידים אוטומטית
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            העברה לנציג אנושי
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            דוחות וסטטיסטיקות
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            ניהול מספר עסקים
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            API וחיבורים חיצוניים
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            תמיכה מועדפת
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            תמיכה ייעודית 24/7
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+      </div>
+
+      <a href="robert-onboarding.html" class="plan-cta cta-outline">התחל 7 ימים חינם</a>
+    </div>
+
+    <!-- GROWTH (POPULAR) -->
+    <div class="plan popular">
+      <div class="pop-badge">⭐ הכי פופולרי</div>
+      <div class="plan-label">Pro</div>
+      <div class="plan-name">מקצועי</div>
+      <div class="plan-price-wrap">
+        <div class="plan-price">
+          <span class="price-cur">₪</span>
+          <span class="price-monthly-val">199</span>
+          <span class="price-annual-val">159</span>
+          <span class="price-per">/חודש</span>
+        </div>
+        <div class="price-annual">חיסכון ₪480 בתשלום שנתי</div>
+      </div>
+
+      <div class="stat-chips">
+        <span class="chip chip-green">2 בוטים</span>
+        <span class="chip chip-blue">1,000 הודעות</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="feat-list">
+        <div class="feat-item"><span class="feat-icon">✓</span> עד 2 סוכני AI</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> מענה אוטומטי על שאלות</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> שיחות חכמות עם הלקוח</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> קביעת תורים אוטומטית</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> ניהול יומן מלא</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> לכידת לידים אוטומטית</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> העברה לנציג אנושי</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> דוחות וסטטיסטיקות</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> Packs הודעות נוספות</div>
+        <div class="feat-divider-label">לא כלול במסלול זה</div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            זיכרון שיחה אישי ללקוח
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            סנכרון עם Google Calendar
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            ניהול מספר עסקים
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            API וחיבורים חיצוניים
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            תמיכה מועדפת
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            תמיכה ייעודית 24/7
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+      </div>
+
+      <a href="robert-onboarding.html" class="plan-cta cta-green">התחל 7 ימים חינם</a>
+    </div>
+
+    <!-- PRO -->
+    <div class="plan pro">
+      <div class="plan-label">Business</div>
+      <div class="plan-name">עסקים</div>
+      <div class="plan-price-wrap">
+        <div class="plan-price">
+          <span class="price-cur">₪</span>
+          <span class="price-monthly-val">399</span>
+          <span class="price-annual-val">319</span>
+          <span class="price-per">/חודש</span>
+        </div>
+        <div class="price-annual" style="color:#4ade80;">חיסכון ₪960 בתשלום שנתי</div>
+      </div>
+
+      <div class="stat-chips">
+        <span class="chip chip-green">5 בוטים</span>
+        <span class="chip chip-blue">6,000 הודעות</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="feat-list">
+        <div class="feat-item"><span class="feat-icon">✓</span> עד 5 סוכני AI</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> מענה אוטומטי על שאלות</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> שיחות חכמות עם הלקוח</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> זיכרון שיחה אישי ללקוח</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> קביעת תורים אוטומטית</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> ניהול יומן מלא</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> סנכרון עם Google Calendar</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> לכידת לידים אוטומטית</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> העברה לנציג אנושי</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> דוחות וסטטיסטיקות</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> Packs הודעות נוספות</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> תמיכה מועדפת</div>
+        <div class="feat-divider-label">לא כלול במסלול זה</div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            ניהול מספר עסקים
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            API וחיבורים חיצוניים
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+        <div class="feat-item feat-excluded">
+          <span class="feat-icon-x" style="color:var(--faint);">✕</span>
+          <span class="feat-locked" style="position:relative;color:var(--faint);">
+            תמיכה ייעודית 24/7
+            <span class="tooltip">שדרג כדי לפתוח תכונה זו</span>
+          </span>
+        </div>
+      </div>
+
+      <a href="robert-onboarding.html" class="plan-cta cta-outline">התחל 7 ימים חינם</a>
+    </div>
+
+    <!-- AGENCY -->
+    <div class="plan agency">
+      <div class="plan-label">Enterprise</div>
+      <div class="plan-name">ארגוני</div>
+      <div class="plan-price-wrap">
+        <div class="plan-price">
+          <span class="price-cur">₪</span>
+          <span class="price-monthly-val">699</span>
+          <span class="price-annual-val">559</span>
+          <span class="price-per">/חודש</span>
+        </div>
+        <div class="price-annual" style="color:#c084fc;">חיסכון ₪1,680 בתשלום שנתי</div>
+      </div>
+
+      <div class="stat-chips">
+        <span class="chip chip-purple">15 בוטים</span>
+        <span class="chip chip-purple">15,000 הודעות</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="feat-list">
+        <div class="feat-item"><span class="feat-icon">✓</span> עד 15 סוכני AI</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> מענה אוטומטי על שאלות</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> שיחות חכמות עם הלקוח</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> זיכרון שיחה אישי ללקוח</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> קביעת תורים אוטומטית</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> ניהול יומן מלא</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> סנכרון עם Google Calendar</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> לכידת לידים אוטומטית</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> העברה לנציג אנושי</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> דוחות וסטטיסטיקות</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> Packs הודעות נוספות</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> ניהול מספר עסקים</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> API וחיבורים חיצוניים</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> תמיכה מועדפת</div>
+        <div class="feat-item"><span class="feat-icon">✓</span> תמיכה ייעודית 24/7</div>
+      </div>
+
+      <a href="mailto:hi@robertbot.co.il" class="plan-cta cta-purple">דבר איתנו</a>
+    </div>
+
+  </div>
+
+  <p style="text-align:center;font-size:13px;color:var(--faint);margin-top:14px;margin-bottom:0;">
+    7 ימי ניסיון חינם בכל מסלול · ביטול בכל עת · ללא כרטיס אשראי
+  </p>
+
+  <!-- COMPARISON TABLE -->
+  <div class="compare-wrap">
+    <div class="compare-title">השוואת מסלולים מלאה</div>
+    <div style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:38%;"></th>
+          <th>בסיסי<br><span style="font-size:14px;font-weight:700;color:var(--ink);">₪99</span></th>
+          <th class="th-pop">מקצועי<br><span style="font-size:14px;font-weight:700;color:var(--ink);">₪199</span></th>
+          <th class="th-pro">Business<br><span style="font-size:14px;font-weight:700;color:var(--ink);">₪399</span></th>
+          <th class="th-agency">Enterprise<br><span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.9);">₪699</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="row-label" colspan="5">מגבלות</td></tr>
+        <tr><td>מספר בוטים</td><td>1</td><td style="color:var(--green);font-weight:700;">2</td><td class="td-dark" style="color:#fff;font-weight:700;">5</td><td class="td-purple" style="color:#c084fc;font-weight:700;">15</td></tr>
+        <tr><td>הודעות לחודש</td><td>300</td><td style="color:var(--green);font-weight:700;">1,000</td><td class="td-dark" style="color:#fff;font-weight:700;">6,000</td><td class="td-purple" style="color:#c084fc;font-weight:700;">15,000</td></tr>
+        <tr><td>Packs הודעות נוספות</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td class="td-dark"><span class="check">✓</span></td><td class="td-purple"><span class="check-purple">✓</span></td></tr>
+
+        <tr><td class="row-label" colspan="5">בוט AI</td></tr>
+        <tr><td>שאלות ותשובות בסיסיות</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td class="td-dark"><span class="check">✓</span></td><td class="td-purple"><span class="check-purple">✓</span></td></tr>
+        <tr><td>שיחות AI חכמות</td><td><span class="cross">✕</span></td><td><span class="check">✓</span></td><td class="td-dark"><span class="check">✓</span></td><td class="td-purple"><span class="check-purple">✓</span></td></tr>
+        <tr><td>זיכרון שיחה מתקדם</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="td-dark"><span class="check">✓</span></td><td class="td-purple"><span class="check-purple">✓</span></td></tr>
+        <tr><td>התאמה אישית AI</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="td-dark"><span class="check">✓</span></td><td class="td-purple"><span class="check-purple">✓</span></td></tr>
+
+        <tr><td class="row-label" colspan="5">מערכת תורים</td></tr>
+        <tr><td>קביעת תורים בסיסית</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td class="td-dark"><span class="check">✓</span></td><td class="td-purple"><span class="check-purple">✓</span></td></tr>
+        <tr><td>מערכת תורים מלאה</td><td><span class="cross">✕</span></td><td><span class="check">✓</span></td><td class="td-dark"><span class="check">✓</span></td><td class="td-purple"><span class="check-purple">✓</span></td></tr>
+        <tr><td>סנכרון Google Calendar</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="td-dark"><span class="check">✓</span></td><td class="td-purple"><span class="check-purple">✓</span></td></tr>
+        <tr><td>תזמון מספר נציגים</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="td-dark"><span class="check">✓</span></td><td class="td-purple"><span class="check-purple">✓</span></td></tr>
+
+        <tr><td class="row-label" colspan="5">לידים ואוטומציה</td></tr>
+        <tr><td>לכידת לידים</td><td><span class="cross">✕</span></td><td><span class="check">✓</span></td><td class="td-dark"><span class="check">✓</span></td><td class="td-purple"><span class="check-purple">✓</span></td></tr>
+        <tr><td>סינון לידים חכם</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="td-dark"><span class="check">✓</span></td><td class="td-purple"><span class="check-purple">✓</span></td></tr>
+        <tr><td>API + Webhook</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="td-dark"><span class="cross" style="color:rgba(255,255,255,.2);">✕</span></td><td class="td-purple"><span class="check-purple">✓</span></td></tr>
+
+        <tr><td class="row-label" colspan="5">ניהול וסוכנות</td></tr>
+        <tr><td>אנליטיקס</td><td><span class="cross">✕</span></td><td>בסיסי</td><td class="td-dark" style="color:#4ade80;">מלא</td><td class="td-purple" style="color:#c084fc;">מלא</td></tr>
+        <tr><td>ניהול מרובה לקוחות</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="td-dark"><span class="cross" style="color:rgba(255,255,255,.2);">✕</span></td><td class="td-purple"><span class="check-purple">✓</span></td></tr>
+        <tr><td>White-label</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="td-dark"><span class="cross" style="color:rgba(255,255,255,.2);">✕</span></td><td class="td-purple"><span class="check-purple">✓</span></td></tr>
+
+        <tr><td class="row-label" colspan="5">תמיכה</td></tr>
+        <tr><td>תמיכה</td><td>מייל</td><td>מייל + צ'אט</td><td class="td-dark" style="color:#4ade80;">עדיפות</td><td class="td-purple" style="color:#c084fc;">24/7 ייעודי</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="faq-wrap">
+    <div class="faq-title">שאלות נפוצות</div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>האם ניתן לשדרג או לשנמך בין מסלולים?</span>
+          <svg class="arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">כן — ניתן לשדרג בכל עת, השינוי נכנס לתוקף מיידית. שנמוך נכנס לתוקף בתחילת תקופת החיוב הבאה.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>מה קורה כשנגמרות ההודעות?</span>
+          <svg class="arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">הבוט יפסיק לענות עד לחידוש המנוי בחודש הבא. לחלופין, ניתן לרכוש Pack הודעות נוסף מהאזור האישי — הוא לא פוקע ועובר מחודש לחודש.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>האם הניסיון ב-7 ימים מחייב כרטיס אשראי?</span>
+          <svg class="arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">לא. ניתן להתחיל ולהשתמש ב-Robert ל-7 ימים מבלי להזין פרטי תשלום. ביום השמיני תתבקש לבחור מסלול.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>כמה בוטים יכולים לפעול בו זמנית?</span>
+          <svg class="arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">כל הבוטים במסלול שלך פועלים בו זמנית. כל בוט מחובר למספר וואטסאפ נפרד ומנהל שיחות עצמאית.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>האם ניתן לבטל בכל עת?</span>
+          <svg class="arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">כן — ביטול בלחיצה אחת מהאזור האישי. המנוי ממשיך עד סוף תקופת החיוב הנוכחית, ללא קנסות.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA BAND -->
+  <div class="cta-band">
+    <h2>מוכן להפוך את הוואטסאפ שלך<br>למכונת מכירות?</h2>
+    <p>הצטרף ל-+500 עסקים שכבר משתמשים ב-Robert</p>
+    <div class="cta-band-btns">
+      <a href="robert-onboarding.html" class="btn-cta-white">התחל 7 ימים חינם</a>
+      <a href="robert-landing.html" class="btn-cta-ghost">קרא עוד על Robert</a>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+function toggleBilling(cb) {
+  document.body.classList.toggle('annual', cb.checked);
+  document.getElementById('lbl-mo').classList.toggle('act', !cb.checked);
+  document.getElementById('lbl-yr').classList.toggle('act', cb.checked);
+}
+
+function toggleFaq(el) {
+  const item = el.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+</script>
+</body>
+</html>

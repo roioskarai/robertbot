@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robert — ביטול מנוי</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f4f5f9; --white:#fff;
+  --green:#22c55e; --green-d:#16a34a; --green-p:#dcfce7;
+  --red:#dc2626; --red-p:#fee2e2;
+  --amber:#d97706; --amber-p:#fef3c7;
+  --t1:#0f172a; --t2:#334155; --t3:#64748b; --t4:#94a3b8;
+  --bdr:#e2e8f0; --bdr2:#cbd5e1;
+  --shadow:0 2px 12px rgba(0,0,0,.07);
+  --shadow-md:0 4px 20px rgba(0,0,0,.10);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{font-family:'Rubik',sans-serif;background:var(--bg);color:var(--t1);direction:rtl;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px 16px 40px;-webkit-font-smoothing:antialiased;}
+
+/* NAV */
+nav{position:fixed;top:0;inset-inline:0;height:54px;background:var(--white);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:10;}
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.nlm{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;}
+.back-btn{display:flex;align-items:center;gap:6px;background:transparent;border:none;color:var(--t3);font-size:13px;font-weight:600;cursor:pointer;font-family:'Rubik',sans-serif;padding:0;margin-bottom:20px;transition:color .15s;}
+.back-btn:hover{color:var(--t1);}
+.back-btn svg{width:16px;height:16px;}
+.nlm svg{width:13px;height:13px;}
+.nln{font-size:15px;font-weight:800;color:var(--t1);}
+.nln em{font-style:normal;color:var(--green-d);}
+
+/* SCREENS */
+.screen{display:none;width:100%;max-width:460px;animation:up .22s ease;}
+.screen.act{display:block;}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARD */
+.card{background:var(--white);border:1px solid var(--bdr);border-radius:20px;padding:32px 26px;box-shadow:var(--shadow-md);}
+.card-icon{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+.card-title{font-size:20px;font-weight:800;letter-spacing:-.4px;text-align:center;margin-bottom:8px;}
+.card-sub{font-size:14px;color:var(--t3);text-align:center;line-height:1.7;margin-bottom:24px;}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px;}
+.stat-box{background:var(--bg);border:1px solid var(--bdr);border-radius:12px;padding:12px 8px;text-align:center;}
+.stat-n{font-size:22px;font-weight:800;color:var(--t1);letter-spacing:-1px;}
+.stat-n.green{color:var(--green-d);}
+.stat-l{font-size:11px;color:var(--t3);margin-top:3px;line-height:1.3;}
+
+/* REASONS */
+.reasons{display:flex;flex-direction:column;gap:8px;margin-bottom:22px;}
+.reason{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--bg);border:1.5px solid var(--bdr);border-radius:12px;cursor:pointer;transition:all .18s;user-select:none;}
+.reason:hover{border-color:var(--bdr2);}
+.reason.sel{border-color:var(--t1);background:var(--white);}
+.reason-radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--bdr2);flex-shrink:0;transition:all .18s;display:flex;align-items:center;justify-content:center;}
+.reason.sel .reason-radio{border-color:var(--t1);background:var(--t1);}
+.reason.sel .reason-radio::after{content:'';width:7px;height:7px;border-radius:50%;background:#fff;}
+.reason-text{font-size:13.5px;font-weight:500;color:var(--t2);}
+
+/* OFFER CARD */
+.offer-card{background:linear-gradient(135deg,var(--green-p),#f0fdf4);border:1.5px solid #86efac;border-radius:14px;padding:18px 16px;margin-bottom:16px;}
+.offer-badge{display:inline-block;font-size:11px;font-weight:700;background:var(--green-d);color:#fff;padding:3px 10px;border-radius:100px;margin-bottom:10px;}
+.offer-title{font-size:16px;font-weight:800;color:var(--t1);margin-bottom:6px;letter-spacing:-.3px;}
+.offer-sub{font-size:13px;color:var(--t2);line-height:1.6;}
+.offer-price-row{display:flex;align-items:center;gap:8px;margin-top:12px;}
+.offer-old{font-size:16px;color:var(--t4);text-decoration:line-through;}
+.offer-new{font-size:24px;font-weight:800;color:var(--green-d);letter-spacing:-1px;}
+.offer-per{font-size:13px;color:var(--t3);}
+
+/* PAUSE CARD */
+.pause-card{background:var(--amber-p);border:1.5px solid #fde68a;border-radius:14px;padding:16px;margin-bottom:16px;}
+.pause-title{font-size:15px;font-weight:700;color:var(--t1);margin-bottom:5px;}
+.pause-sub{font-size:13px;color:#78350f;line-height:1.6;}
+
+/* DOWNGRADE CARD */
+.down-card{background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:14px;padding:16px;margin-bottom:16px;}
+.down-title{font-size:15px;font-weight:700;color:var(--t1);margin-bottom:5px;}
+.down-sub{font-size:13px;color:#075985;line-height:1.6;}
+
+/* BUTTONS */
+.btn{padding:12px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .18s;font-family:'Rubik',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-bottom:8px;}
+.btn-primary{background:var(--green);color:#fff;box-shadow:0 2px 10px rgba(34,197,94,.25);}
+.btn-primary:hover{background:var(--green-d);transform:translateY(-1px);}
+.btn-dark{background:var(--t1);color:#fff;}
+.btn-dark:hover{background:#1e293b;}
+.btn-amber{background:var(--amber-p);color:var(--amber);border:1.5px solid #fde68a;}
+.btn-amber:hover{background:#fef9c3;}
+.btn-outline{background:transparent;border:1.5px solid var(--bdr2);color:var(--t2);}
+.btn-outline:hover{border-color:var(--t3);color:var(--t1);}
+.btn-ghost{background:transparent;color:var(--t4);font-size:13px;padding:10px;}
+.btn-ghost:hover{color:var(--red);}
+.btn-danger{background:var(--red-p);color:var(--red);border:1.5px solid #fecaca;}
+.btn-danger:hover{background:#fecaca;}
+
+/* SUCCESS */
+.success-icon{width:60px;height:60px;border-radius:50%;background:var(--green-p);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+
+/* textarea */
+.fta{width:100%;padding:10px 12px;border:1.5px solid var(--bdr2);border-radius:8px;font-size:13.5px;font-family:'Rubik',sans-serif;color:var(--t1);resize:none;outline:none;min-height:80px;line-height:1.6;margin-bottom:14px;transition:border-color .18s;}
+.fta:focus{border-color:var(--green);}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="robert-landing.html" class="nav-logo">
+    <div class="nlm"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8l4 4-4 4"/></svg></div>
+    <div class="nln">Robert<em>.</em></div>
+  </a>
+  <a href="robert-dashboard.html" style="font-size:13px;color:#64748b;text-decoration:none;">חזור ל-Dashboard</a>
+</nav>
+
+<!-- ══ SCREEN 1: WHY ══ -->
+<div class="screen act" id="s1">
+  <div class="card">
+    <div class="card-icon" style="background:#fee2e2;">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="card-title">רגע לפני שמבטלים...</div>
+    <div class="card-sub">Robert עבד קשה בשבילך החודש. לפני שאתה הולך — ספר לנו למה.</div>
+
+    <!-- Usage stats -->
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-n green">847</div>
+        <div class="stat-l">הודעות החודש</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-n green">124</div>
+        <div class="stat-l">שיחות שנסגרו</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-n green">3שנ'</div>
+        <div class="stat-l">זמן תגובה</div>
+      </div>
+    </div>
+
+    <div class="reasons" id="reasons">
+      <div class="reason" onclick="selReason(this,'price')"><div class="reason-radio"></div><div class="reason-text">המחיר יקר מדי</div></div>
+      <div class="reason" onclick="selReason(this,'use')"><div class="reason-radio"></div><div class="reason-text">אני לא משתמש מספיק</div></div>
+      <div class="reason" onclick="selReason(this,'hard')"><div class="reason-radio"></div><div class="reason-text">קשה לי להגדיר את הבוט</div></div>
+      <div class="reason" onclick="selReason(this,'missing')"><div class="reason-radio"></div><div class="reason-text">חסר לי פיצ'ר מסוים</div></div>
+      <div class="reason" onclick="selReason(this,'competitor')"><div class="reason-radio"></div><div class="reason-text">עברתי לשירות אחר</div></div>
+      <div class="reason" onclick="selReason(this,'other')"><div class="reason-radio"></div><div class="reason-text">סיבה אחרת</div></div>
+    </div>
+
+    <button class="btn btn-dark" onclick="nextStep()">המשך</button>
+    <button class="btn btn-ghost" onclick="window.location.href='robert-dashboard.html'">חזור ל-Dashboard</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN 2: OFFER ══ -->
+<div class="screen" id="s2">
+  <div class="card">
+    <button class="back-btn" onclick="showScreen('s1')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      חזור
+    </button>
+    <div class="card-icon" style="background:var(--green-p);">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    </div>
+    <div class="card-title" id="offer-title">רגע — יש לנו משהו בשבילך</div>
+    <div class="card-sub" id="offer-sub">ספציפית בשבילך, הכנו הצעה שלא תרצה לפספס.</div>
+
+    <div id="offer-content"></div>
+
+    <textarea class="fta" id="feedback-text" placeholder="ספר לנו עוד — נשתמש בזה כדי להשתפר" style="display:none;"></textarea>
+
+    <button class="btn btn-primary" id="offer-accept-btn" onclick="acceptOffer()">כן, אני רוצה!</button>
+    <button class="btn btn-ghost" style="color:var(--t4);font-size:13px;margin-top:4px;" onclick="showScreen('s3')">בטל בכל זאת</button>
+    <button class="btn btn-ghost" onclick="window.location.href='robert-dashboard.html'">חזור ל-Dashboard</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN 3: CONFIRM ══ -->
+<div class="screen" id="s3">
+  <div class="card">
+    <button class="back-btn" onclick="showScreen('s2')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      חזור
+    </button>
+    <div class="card-icon" style="background:var(--red-p);">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    </div>
+    <div class="card-title">אישור ביטול</div>
+    <div class="card-sub">ברגע שמבטלים — <strong>הבוט שלך מפסיק לענות ללקוחות</strong> בסוף תקופת החיוב הנוכחית.</div>
+
+    <div style="background:#fff8f8;border:1px solid #fecaca;border-radius:12px;padding:14px 16px;margin-bottom:20px;">
+      <div style="font-size:13px;color:#991b1b;line-height:1.8;">
+        ❌ הבוט יפסיק לענות ב-<strong>1.7.2026</strong><br>
+        ❌ כל ההגדרות שלך יישמרו 30 יום<br>
+        ❌ לאחר מכן יימחקו לצמיתות
+      </div>
+    </div>
+
+    <button class="btn btn-danger" onclick="confirmCancel()">כן, בטל את המנוי</button>
+    <button class="btn btn-primary" onclick="window.location.href='robert-dashboard.html'">השאר אותי — חזור ל-Dashboard</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN 4: CANCELLED ══ -->
+<div class="screen" id="s4">
+  <div class="card" style="text-align:center;">
+    <div class="success-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="card-title">המנוי בוטל</div>
+    <div class="card-sub">
+      המנוי שלך בוטל בהצלחה. הבוט ימשיך לפעול עד <strong>1.7.2026</strong>.<br><br>
+      תמיד תוכל לחזור — ההגדרות שלך שמורות.
+    </div>
+    <button class="btn btn-primary" onclick="window.location.href='robert-landing.html'" style="margin-top:8px;">חזור לדף הבית</button>
+    <button class="btn btn-ghost" onclick="reactivate()">התחרטתי — הפעל מחדש</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN 5: OFFER ACCEPTED ══ -->
+<div class="screen" id="s5">
+  <div class="card" style="text-align:center;">
+    <div class="success-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="card-title" id="accepted-title">ההצעה הופעלה!</div>
+    <div class="card-sub" id="accepted-sub">ההנחה הופעלה על החשבון שלך מיידית.</div>
+    <button class="btn btn-primary" onclick="window.location.href='robert-dashboard.html'" style="margin-top:8px;">חזור ל-Dashboard</button>
+  </div>
+</div>
+
+<script>
+let selectedReason = null;
+
+function selReason(el, reason) {
+  document.querySelectorAll('.reason').forEach(r=>r.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedReason = reason;
+}
+
+function nextStep() {
+  if (!selectedReason) { alert('בחר סיבה'); return; }
+  buildOffer();
+  showScreen('s2');
+}
+
+function buildOffer() {
+  const title = document.getElementById('offer-title');
+  const sub = document.getElementById('offer-sub');
+  const cnt = document.getElementById('offer-content');
+  const acceptBtn = document.getElementById('offer-accept-btn');
+  const feedbackTxt = document.getElementById('feedback-text');
+
+  if (selectedReason === 'price') {
+    title.textContent = 'רגע — חשבת כמה Robert חוסך לך?';
+    sub.textContent = 'לפני שמבטלים — בוא נחשב יחד.';
+    cnt.innerHTML = `
+      <div class="offer-card" style="background:#f8fafc;border-color:#e2e8f0;">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #e2e8f0;">
+            <span style="font-size:13px;color:#334155;">נציג שירות לקוחות</span>
+            <span style="font-size:15px;font-weight:800;color:#dc2626;">₪5,000+/חודש</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #e2e8f0;">
+            <span style="font-size:13px;color:#334155;">Robert — מסלול מתקדם</span>
+            <span style="font-size:15px;font-weight:800;color:#16a34a;">₪199/חודש</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
+            <span style="font-size:13px;font-weight:700;color:#0f172a;">החיסכון שלך</span>
+            <span style="font-size:18px;font-weight:900;color:#16a34a;">₪4,801/חודש</span>
+          </div>
+        </div>
+      </div>
+      <div class="down-card" style="margin-top:10px;">
+        <div class="down-title">⬇️ אפשרות: ירידה למסלול בסיסי</div>
+        <div class="down-sub">₪99/חודש — בוט אחד, 500 הודעות. הבוט ממשיך לענות ללקוחות.</div>
+      </div>`;
+    acceptBtn.textContent = 'עבור למסלול בסיסי';
+
+  } else if (selectedReason === 'use') {
+    title.textContent = 'לא משתמש? הקפא את המנוי';
+    sub.textContent = 'במקום לבטל — הקפא עד 3 חודשים. אין חיוב, הבוט שמור.';
+    cnt.innerHTML = `
+      <div class="pause-card">
+        <div class="pause-title">⏸️ הקפאת מנוי — עד 3 חודשים</div>
+        <div class="pause-sub">הבוט מושהה, ההגדרות נשמרות, אין חיוב. כשתחזור — הכל ממש כמו שהשארת.</div>
+      </div>`;
+    acceptBtn.textContent = 'הקפא את המנוי';
+
+  } else if (selectedReason === 'hard') {
+    title.textContent = 'קשה להגדיר? יש סרטון הסבר קצר';
+    sub.textContent = 'תוך 5 דקות תבין בדיוק איך לגרום ל-Robert לעבוד מצוין.';
+    cnt.innerHTML = `
+      <div class="offer-card" style="cursor:pointer;" onclick="window.open('https://youtube.com','_blank')">
+        <div class="offer-badge">סרטון הדרכה — 5 דקות</div>
+        <div style="background:#0f172a;border-radius:10px;height:120px;display:flex;align-items:center;justify-content:center;margin:12px 0;cursor:pointer;">
+          <div style="width:46px;height:46px;background:rgba(255,255,255,.12);border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.2);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </div>
+        </div>
+        <div class="offer-sub">הגדרה מלאה — שם עסק, שירותים, שאלות נפוצות וחיבור וואטסאפ.</div>
+      </div>`;
+    acceptBtn.textContent = 'צפה בסרטון וחזור';
+
+  } else if (selectedReason === 'missing') {
+    title.textContent = 'חסר פיצ\'ר? ספר לנו';
+    sub.textContent = 'אנחנו בונים את הפיצ\'רים שהלקוחות שלנו מבקשים.';
+    cnt.innerHTML = '';
+    feedbackTxt.style.display = 'block';
+    feedbackTxt.placeholder = 'איזה פיצ\'ר חסר לך? נוסיף בעדיפות גבוהה...';
+    acceptBtn.textContent = 'שלח ואחכה לפיצ\'ר';
+
+  } else if (selectedReason === 'competitor') {
+    title.textContent = 'עברת למתחרה?';
+    sub.textContent = 'ספר לנו מה יש להם שאין לנו.';
+    cnt.innerHTML = `
+      <div class="down-card">
+        <div class="down-title">⬇️ עבור למסלול בסיסי — ₪99</div>
+        <div class="down-sub">במקום לבטל לגמרי — שמור את הבוט פעיל בעלות נמוכה יותר.</div>
+      </div>`;
+    feedbackTxt.style.display = 'block';
+    feedbackTxt.placeholder = 'לאיזה שירות עברת?';
+    acceptBtn.textContent = 'עבור למסלול בסיסי';
+
+  } else {
+    title.textContent = 'נצטער לשמוע';
+    sub.textContent = 'ספר לנו מה היה אפשר לעשות טוב יותר.';
+    cnt.innerHTML = '';
+    feedbackTxt.style.display = 'block';
+    acceptBtn.textContent = 'שלח משוב';
+  }
+}
+
+function acceptOffer() {
+  const titles = {
+    price: 'עברת למסלול בסיסי!',
+    use: 'המנוי הוקפא!',
+    hard: 'תודה — צפה בסרטון וחזור אלינו!',
+    missing: 'המשוב נשלח — תודה!',
+    competitor: 'עברת למסלול בסיסי',
+    other: 'המשוב נשלח — תודה!'
+  };
+  const subs = {
+    price: 'המסלול שלך שונה ל-₪99/חודש. הבוט ממשיך לעבוד.',
+    use: 'הבוט מושהה. כשתחזור — הכל ממש כמו שהשארת.',
+    hard: 'אנחנו כאן אם תצטרך עזרה נוספת.',
+    missing: 'נעדכן אותך כשהפיצ\'ר יהיה מוכן.',
+    competitor: 'המסלול שלך שונה. הבוט ממשיך לעבוד.',
+    other: 'אנחנו תמיד שמחים לשמוע.'
+  };
+  document.getElementById('accepted-title').textContent = titles[selectedReason] || 'תודה!';
+  document.getElementById('accepted-sub').textContent = subs[selectedReason] || '';
+  showScreen('s5');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('act'));
+  document.getElementById(id).classList.add('act');
+  window.scrollTo(0,0);
+}
+
+function confirmCancel() { showScreen('s4'); }
+function reactivate() { window.location.href='robert-dashboard.html'; }
+</script>
+</body>
+</html>

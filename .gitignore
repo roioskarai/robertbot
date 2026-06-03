@@ -1,0 +1,14 @@
+﻿# Next.js app
+app/node_modules/
+app/.next/
+app/.env*.local
+app/out/
+app/build/
+app/*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git push helper (local only)
+git-push.bat

@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robert — תצוגה מקדימה לבוט</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f4f5f9; --white:#fff;
+  --green:#22c55e; --green-d:#16a34a; --green-p:#dcfce7;
+  --t1:#0f172a; --t2:#334155; --t3:#64748b; --t4:#94a3b8;
+  --bdr:#e2e8f0; --bdr2:#cbd5e1;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+  --shadow-md:0 4px 20px rgba(0,0,0,.10);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{font-family:'Rubik',sans-serif;background:var(--bg);color:var(--t1);direction:rtl;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;}
+
+/* TOP BAR */
+.topbar{background:var(--white);border-bottom:1px solid var(--bdr);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.tb-logo{font-size:15px;font-weight:800;color:var(--t1);}
+.tb-logo em{font-style:normal;color:var(--green-d);}
+.tb-title{font-size:13px;font-weight:600;color:var(--t3);}
+.preview-badge{display:inline-flex;align-items:center;gap:5px;background:#fef3c7;border:1px solid #fde68a;border-radius:100px;padding:4px 10px;font-size:11px;font-weight:700;color:#b45309;}
+.preview-badge-dot{width:6px;height:6px;border-radius:50%;background:#d97706;animation:blink 1.5s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* LAYOUT */
+.layout{display:flex;flex:1;overflow:hidden;}
+
+/* LEFT PANEL - Settings summary */
+.left-panel{width:260px;background:var(--white);border-left:1px solid var(--bdr);flex-shrink:0;overflow-y:auto;display:flex;flex-direction:column;}
+.lp-header{padding:14px 16px;border-bottom:1px solid var(--bdr);font-size:13px;font-weight:700;color:var(--t1);}
+.lp-section{padding:12px 16px;border-bottom:1px solid var(--bdr);}
+.lp-label{font-size:10px;font-weight:700;color:var(--t4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;}
+.lp-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.lp-key{font-size:12px;color:var(--t3);}
+.lp-val{font-size:12px;font-weight:600;color:var(--t1);text-align:left;max-width:130px;}
+.lp-val.green{color:var(--green-d);}
+.lp-val.amber{color:#d97706;}
+.edit-link{font-size:11px;color:var(--green-d);font-weight:600;cursor:pointer;text-decoration:none;display:block;margin-top:8px;}
+
+/* SCENARIO BUTTONS */
+.scenarios{padding:12px 16px;}
+.scenario-label{font-size:10px;font-weight:700;color:var(--t4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;}
+.scenario-btn{width:100%;text-align:right;padding:8px 10px;background:var(--bg);border:1.5px solid var(--bdr);border-radius:8px;font-size:12px;font-weight:600;color:var(--t2);cursor:pointer;font-family:'Rubik',sans-serif;transition:all .15s;margin-bottom:6px;display:block;}
+.scenario-btn:hover{border-color:var(--green-d);color:var(--green-d);background:var(--green-p);}
+.scenario-btn.act{border-color:var(--green-d);background:var(--green-p);color:var(--green-d);}
+
+/* PHONE PREVIEW */
+.phone-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:20px;overflow:hidden;}
+
+.phone{
+  width:320px;
+  height:580px;
+  background:#fff;
+  border-radius:32px;
+  border:8px solid #1a1a2e;
+  box-shadow:0 32px 80px rgba(0,0,0,.25),inset 0 0 0 1px rgba(255,255,255,.1);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+}
+
+/* Phone notch */
+.phone-notch{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:100px;height:22px;background:#1a1a2e;border-radius:0 0 14px 14px;
+  z-index:10;
+}
+
+/* WA Header */
+.wa-header{
+  background:linear-gradient(135deg,#075e54,#128c7e);
+  padding:32px 12px 10px;
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.wa-back{color:rgba(255,255,255,.8);font-size:20px;cursor:pointer;}
+.wa-av{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--green),#16a34a);
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;color:#fff;
+}
+.wa-name{font-size:14px;font-weight:700;color:#fff;}
+.wa-status{font-size:10px;color:rgba(255,255,255,.7);margin-top:1px;}
+
+/* Chat area */
+.wa-body{
+  flex:1;overflow-y:auto;padding:10px 10px;
+  background:#ece5dd;
+  display:flex;flex-direction:column;gap:6px;
+}
+.wa-body::-webkit-scrollbar{width:3px;}
+.wa-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1);border-radius:3px;}
+
+/* Date label */
+.chat-date{text-align:center;margin:4px 0;}
+.chat-date span{background:rgba(0,0,0,.12);color:#fff;font-size:10px;padding:2px 8px;border-radius:100px;}
+
+/* Bubbles */
+.msg-wrap{display:flex;flex-direction:column;}
+.msg-wrap.in{align-items:flex-start;}
+.msg-wrap.out{align-items:flex-end;}
+
+.bubble{
+  max-width:82%;padding:7px 10px;border-radius:10px;
+  font-size:12.5px;line-height:1.55;
+  position:relative;
+}
+.bubble.in{background:#fff;border-radius:10px 10px 10px 2px;box-shadow:0 1px 1px rgba(0,0,0,.08);}
+.bubble.out{background:#dcf8c6;border-radius:10px 10px 2px 10px;box-shadow:0 1px 1px rgba(0,0,0,.08);}
+.btime{font-size:9px;color:rgba(0,0,0,.35);text-align:left;margin-top:2px;}
+
+/* Quick reply buttons in chat */
+.qr-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.qr{background:#fff;border:1px solid #25d366;border-radius:100px;padding:4px 10px;font-size:11px;font-weight:600;color:#16a34a;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.qr:hover,.qr.pressed{background:var(--green-p);border-color:var(--green-d);}
+
+/* Typing indicator */
+.typing{display:flex;align-items:center;gap:3px;padding:8px 10px;background:#fff;border-radius:10px 10px 10px 2px;max-width:60px;box-shadow:0 1px 1px rgba(0,0,0,.08);}
+.typing span{width:6px;height:6px;border-radius:50%;background:#94a3b8;animation:bounce .9s infinite;}
+.typing span:nth-child(2){animation-delay:.15s;}
+.typing span:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+
+/* Input bar */
+.wa-input{
+  background:#f0f0f0;padding:8px 10px;
+  display:flex;align-items:center;gap:8px;flex-shrink:0;
+}
+.wa-input-field{
+  flex:1;background:#fff;border:none;border-radius:20px;
+  padding:7px 12px;font-size:12.5px;font-family:'Rubik',sans-serif;
+  outline:none;color:var(--t1);
+}
+.wa-send{
+  width:34px;height:34px;border-radius:50%;
+  background:var(--green);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;border:none;flex-shrink:0;
+}
+.wa-send svg{width:16px;height:16px;}
+
+/* Bottom action bar */
+.action-bar{
+  background:var(--white);border-top:1px solid var(--bdr);
+  padding:12px 16px;display:flex;gap:10px;align-items:center;flex-shrink:0;
+}
+.action-label{font-size:12px;color:var(--t3);flex:1;}
+.btn{padding:9px 20px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:'Rubik',sans-serif;transition:all .18s;display:flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--green);color:#fff;box-shadow:0 2px 8px rgba(34,197,94,.3);}
+.btn-primary:hover{background:var(--green-d);}
+.btn-outline{background:transparent;border:1.5px solid var(--bdr2);color:var(--t2);}
+.btn-outline:hover{border-color:var(--t3);}
+.btn-danger{background:#fee2e2;color:#dc2626;}
+.btn-danger:hover{background:#fecaca;}
+
+/* Status indicator */
+.status-bar{display:flex;align-items:center;gap:6px;padding:6px 14px;background:#f0fdf4;border-bottom:1px solid #bbf7d0;}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--green-d);}
+.status-txt{font-size:11px;font-weight:600;color:var(--green-d);}
+
+@media(max-width:700px){
+  .left-panel{display:none;}
+  .phone{width:100%;max-width:340px;height:520px;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-right">
+    <div class="tb-logo">Robert<em>.</em></div>
+    <div class="tb-title">תצוגה מקדימה</div>
+  </div>
+  <div class="preview-badge">
+    <div class="preview-badge-dot"></div>
+    מצב הדגמה — לא שיחה אמיתית
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="lp-header">⚙️ הגדרות הבוט</div>
+
+    <div class="lp-section">
+      <div class="lp-label">פרטי בוט</div>
+      <div class="lp-row"><span class="lp-key">שם בוט</span><span class="lp-val green" id="disp-botname">מיטל</span></div>
+      <div class="lp-row"><span class="lp-key">שם עסק</span><span class="lp-val" id="disp-bizname">מספרת מיטל</span></div>
+      <div class="lp-row"><span class="lp-key">סגנון</span><span class="lp-val" id="disp-style">חברותי ונעים</span></div>
+      <div class="lp-row"><span class="lp-key">מספר</span><span class="lp-val" id="disp-phone">050-1234567</span></div>
+      <a class="edit-link" onclick="alert('חזרה להגדרות...')">✏️ ערוך הגדרות</a>
+    </div>
+
+    <div class="lp-section">
+      <div class="lp-label">שעות פעילות</div>
+      <div class="lp-row"><span class="lp-key">ראשון–שישי</span><span class="lp-val green">09:00–19:00</span></div>
+      <div class="lp-row"><span class="lp-key">שבת</span><span class="lp-val amber">סגור</span></div>
+    </div>
+
+    <div class="lp-section">
+      <div class="lp-label">שירותים</div>
+      <div class="lp-row"><span class="lp-key">תספורת</span><span class="lp-val">₪120</span></div>
+      <div class="lp-row"><span class="lp-key">לק ג׳ל</span><span class="lp-val">₪80</span></div>
+      <div class="lp-row"><span class="lp-key">טיפול פנים</span><span class="lp-val">₪200</span></div>
+    </div>
+
+    <div class="scenarios">
+      <div class="scenario-label">בדוק תרחישים</div>
+      <button class="scenario-btn act" onclick="loadScenario('welcome',this)">👋 פתיחת שיחה</button>
+      <button class="scenario-btn" onclick="loadScenario('appointment',this)">📅 קביעת תור</button>
+      <button class="scenario-btn" onclick="loadScenario('outside_hours',this)">🌙 מחוץ לשעות</button>
+      <button class="scenario-btn" onclick="loadScenario('handoff',this)">👤 מסירה לנציג</button>
+      <button class="scenario-btn" onclick="loadScenario('notunderstood',this)">❓ לא הבין</button>
+      <button class="scenario-btn" onclick="loadScenario('review',this)">⭐ חוות דעת</button>
+    </div>
+  </div>
+
+  <!-- PHONE -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-notch"></div>
+
+      <!-- WA STATUS BAR -->
+      <div class="status-bar">
+        <div class="status-dot"></div>
+        <div class="status-txt">הדגמה — כך הלקוח שלך רואה את הבוט</div>
+      </div>
+
+      <!-- WA HEADER -->
+      <div class="wa-header">
+        <span class="wa-back">‹</span>
+        <div class="wa-av" id="wa-av">מ</div>
+        <div>
+          <div class="wa-name" id="wa-bot-name">מיטל</div>
+          <div class="wa-status">🟢 מחובר · עונה תוך שניות</div>
+        </div>
+      </div>
+
+      <!-- CHAT BODY -->
+      <div class="wa-body" id="chat-body">
+        <div class="chat-date"><span>היום</span></div>
+      </div>
+
+      <!-- INPUT -->
+      <div class="wa-input">
+        <input class="wa-input-field" id="user-input" placeholder="כתוב הודעה..." onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="wa-send" onclick="sendMsg()">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM ACTION BAR -->
+<div class="action-bar">
+  <div class="action-label">בדקת את הבוט ונראה טוב? אפשר להפעיל אותו.</div>
+  <button class="btn btn-outline" onclick="resetChat()">🔄 אפס שיחה</button>
+  <button class="btn btn-outline" onclick="loadScenario('welcome',null)">▶️ הרץ מחדש</button>
+  <button class="btn btn-primary" onclick="goLive()">🚀 הפעל בוט</button>
+</div>
+
+<script>
+// ── BOT CONFIG (in real app — loaded from DB)
+const bot = {
+  name: 'מיטל',
+  bizName: 'מספרת מיטל',
+  style: 'friendly', // friendly | pro | short
+  phone: '050-1234567',
+  services: ['✂️ תספורת — ₪120', '💅 לק ג׳ל — ₪80', '🧖 טיפול פנים — ₪200'],
+  hours: 'א׳–ו׳ 09:00–19:00',
+  address: 'רחוב הרצל 12, תל אביב',
+};
+
+// Update display
+document.getElementById('disp-botname').textContent = bot.name;
+document.getElementById('disp-bizname').textContent = bot.bizName;
+document.getElementById('wa-bot-name').textContent = bot.name;
+document.getElementById('wa-av').textContent = bot.name.charAt(0);
+
+// ── SCENARIOS
+const scenarios = {
+  welcome: [
+    { from:'bot', text:`היי! 👋 אני ${bot.name}, הנציג של ${bot.bizName}.\nשמחים שפנית! במה אוכל לעזור?`, btns:['📅 קביעת תור','💰 מחירים','🕐 שעות פעילות','👤 נציג'] }
+  ],
+  appointment: [
+    { from:'user', text:'אני רוצה לקבוע תור' },
+    { from:'bot', text:'סופר! 🎉 איזה שירות תרצה?', btns:bot.services },
+    { from:'user', text:'✂️ תספורת — ₪120' },
+    { from:'bot', text:'מצוין! 💇 איזה תאריך נוח לך?', btns:['ראשון 15.6','שלישי 17.6','חמישי 19.6','ראשון 22.6','תאריך אחר'] },
+    { from:'user', text:'שלישי 17.6' },
+    { from:'bot', text:'יופי! 🗓️ השעות הפנויות ב-17.6:', btns:['09:00','10:30','13:00','15:30','17:00'] },
+    { from:'user', text:'13:00' },
+    { from:'bot', text:`✅ אשר את הפרטים:\n\n📋 תספורת\n📅 שלישי 17.6\n🕐 13:00\n📍 ${bot.address}\n💰 ₪120\n\nהכל נכון?`, btns:['✅ אשר תור','✏️ שנה פרטים'] },
+    { from:'user', text:'✅ אשר תור' },
+    { from:'bot', text:'🎉 התור נקבע!\nישלח אליך תזכורת יום לפני.\nלביטול — שלח "בטל תור".' },
+  ],
+  outside_hours: [
+    { from:'user', text:'שלום, רציתי לשאול' },
+    { from:'bot', text:`היי! 🌙 אנחנו סגורים כרגע.\nשעות פעילות: ${bot.hours}\n\nמה תרצה לעשות?`, btns:['📅 קבע תור למחר','📩 השאר הודעה'] },
+    { from:'user', text:'📅 קבע תור למחר' },
+    { from:'bot', text:'בשמחה! 😊 איזה שירות תרצה?', btns:bot.services },
+  ],
+  handoff: [
+    { from:'user', text:'אני רוצה לדבר עם בן אדם' },
+    { from:'bot', text:'בטח! 👍\nמעביר אותך לנציג.\nנחזור אליך תוך כ-5 דקות.' },
+    { from:'bot', text:'[נציג אנושי ייצור איתך קשר]', style:'system' },
+  ],
+  notunderstood: [
+    { from:'user', text:'מה המצב עם ה...' },
+    { from:'bot', text:'לא הצלחתי להבין 🙈\nבחר מהתפריט ואסדר לך:', btns:['📅 תור','💰 מחיר','🕐 שעות','👤 נציג'] },
+    { from:'user', text:'💰 מחיר' },
+    { from:'bot', text:`המחירים שלנו:\n\n${bot.services.join('\n')}\n\nרוצה לקבוע תור?`, btns:['📅 כן, קבע לי תור'] },
+  ],
+  review: [
+    { from:'bot', text:'שלום! 😊 ביקרת אצלנו אתמול.\nאיך היה?', btns:['⭐⭐⭐⭐⭐ מעולה','⭐⭐⭐⭐ טוב','⭐⭐⭐ בסדר','👎 לא טוב'] },
+    { from:'user', text:'⭐⭐⭐⭐⭐ מעולה' },
+    { from:'bot', text:'תודה רבה! ❤️\nאם תרצה לשתף — ביקורת קצרה בגוגל עוזרת לנו מאוד 🙏', btns:['⭐ כתוב ביקורת בגוגל','📅 קבע תור הבא'] },
+  ],
+};
+
+let currentScenario = [];
+let msgIndex = 0;
+let typing = false;
+
+function loadScenario(key, btn) {
+  if (btn) {
+    document.querySelectorAll('.scenario-btn').forEach(b=>b.classList.remove('act'));
+    btn.classList.add('act');
+  }
+  const body = document.getElementById('chat-body');
+  body.innerHTML = '<div class="chat-date"><span>היום</span></div>';
+  currentScenario = scenarios[key] || [];
+  msgIndex = 0;
+  convState = 'menu';
+  window._lastService = null;
+  window._lastDate = null;
+  window._lastTime = null;
+  playNext();
+}
+
+function playNext() {
+  if (msgIndex >= currentScenario.length) return;
+  const msg = currentScenario[msgIndex];
+  msgIndex++;
+
+  if (msg.from === 'user') {
+    addBubble('out', msg.text);
+    setTimeout(playNext, 600);
+  } else {
+    showTyping();
+    setTimeout(() => {
+      hideTyping();
+      addBubble('in', msg.text, msg.btns, msg.style);
+      setTimeout(playNext, msg.btns ? 1200 : 800);
+    }, 900 + (msg.text.length * 12));
+  }
+}
+
+function addBubble(dir, text, btns, style) {
+  const body = document.getElementById('chat-body');
+  const wrap = document.createElement('div');
+  wrap.className = `msg-wrap ${dir}`;
+
+  const now = new Date();
+  const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  if (style === 'system') {
+    wrap.innerHTML = `<div style="text-align:center;width:100%;"><span style="background:rgba(0,0,0,.08);color:#555;font-size:10.5px;padding:3px 10px;border-radius:100px;">${text}</span></div>`;
+  } else {
+    const bText = text.replace(/\n/g,'<br>');
+    let html = `<div class="bubble ${dir}"><div>${bText}</div><div class="btime">${time}</div></div>`;
+    if (btns && btns.length) {
+      html += '<div class="qr-row">' + btns.map(b=>`<span class="qr" onclick="handleQr(this,'${b.replace(/'/g,'\\\'')}')">${b}</span>`).join('') + '</div>';
+    }
+    wrap.innerHTML = html;
+  }
+
+  body.appendChild(wrap);
+  body.scrollTop = body.scrollHeight;
+}
+
+let typingEl = null;
+function showTyping() {
+  const body = document.getElementById('chat-body');
+  typingEl = document.createElement('div');
+  typingEl.className = 'msg-wrap in';
+  typingEl.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  body.appendChild(typingEl);
+  body.scrollTop = body.scrollHeight;
+}
+function hideTyping() {
+  if (typingEl) { typingEl.remove(); typingEl = null; }
+}
+
+function handleQr(el, text) {
+  el.classList.add('pressed');
+  setTimeout(()=>{
+    // Add user message
+    addBubble('out', text);
+    // Bot responds based on context
+    respondToQr(text);
+  }, 200);
+}
+
+// Track conversation state
+let convState = 'menu'; // menu | picking_service | picking_date | picking_time | confirming
+
+function respondToQr(text) {
+  showTyping();
+  setTimeout(()=>{
+    hideTyping();
+
+    // Service selected (from services list)
+    const isService = bot.services.some(s => s === text);
+    if (isService) {
+      convState = 'picking_date';
+      window._lastService = text;
+      addBubble('in','מצוין! 💇 איזה תאריך נוח לך?', ['ראשון 15.6','שלישי 17.6','חמישי 19.6','ראשון 22.6','תאריך אחר']);
+      return;
+    }
+
+    // Date selected
+    const isDate = /^(ראשון|שני|שלישי|רביעי|חמישי|שישי)\s+\d{1,2}\.\d{1,2}$/.test(text) || text === 'תאריך אחר';
+    if (isDate || convState === 'picking_date') {
+      convState = 'picking_time';
+      window._lastDate = text === 'תאריך אחר' ? 'התאריך שבחרת' : text;
+      if (text === 'תאריך אחר') {
+        addBubble('in','כתוב את התאריך שנוח לך (לדוגמא: 25.6) 📅');
+      } else {
+        addBubble('in',`יופי! 🗓️ השעות הפנויות ב-${text}:`, ['09:00','10:30','13:00','15:30','17:00']);
+      }
+      return;
+    }
+
+    // Time selected
+    const isTime = /^\d{2}:\d{2}$/.test(text);
+    if (isTime || convState === 'picking_time') {
+      convState = 'confirming';
+      window._lastTime = text;
+      const svc = (window._lastService || '').split(' — ')[0].replace(/^[^\s]+\s/,'');
+      const price = (window._lastService || '').split('— ')[1] || '';
+      addBubble('in',`✅ אשר את הפרטים:\n\n📋 ${svc}\n📅 ${window._lastDate || ''}\n🕐 ${text}\n📍 ${bot.address}\n💰 ${price}\n\nהכל נכון?`,
+        ['✅ אשר תור','✏️ שנה פרטים']);
+      return;
+    }
+
+    // Confirm
+    if (text.includes('אשר')) {
+      convState = 'menu';
+      addBubble('in','🎉 התור נקבע!\nתקבל תזכורת יום לפני.\nלביטול — "בטל תור".');
+      return;
+    }
+
+    // Change details
+    if (text.includes('שנה') || text.includes('שינוי')) {
+      convState = 'picking_service';
+      addBubble('in','בטח! 😊 מה תרצה לשנות?', ['שירות אחר','תאריך אחר','שעה אחרת']);
+      return;
+    }
+
+    // Menu shortcuts
+    if (text.includes('תור') || text.includes('קבע')) {
+      convState = 'picking_service';
+      addBubble('in','בשמחה! 😊 איזה שירות תרצה?', bot.services);
+    } else if (text.includes('מחיר') && !text.includes('₪')) {
+      addBubble('in', `המחירים שלנו:\n\n${bot.services.join('\n')}\n\nרוצה לקבוע תור?`, ['📅 כן, קבע לי תור']);
+    } else if (text.includes('שעות')) {
+      addBubble('in', `שעות פעילות:\n${bot.hours} 😊`, ['📅 קבע תור']);
+    } else if (text.includes('נציג') || text.includes('אדם')) {
+      convState = 'menu';
+      addBubble('in','מעביר אותך לנציג. נחזור תוך כ-5 דקות. 👍');
+    } else if (text.includes('גוגל') || text.includes('ביקורת')) {
+      addBubble('in','מעביר אותך לגוגל... 🙏\nתודה שעוזר לנו לצמוח!');
+    } else {
+      addBubble('in','לא הצלחתי להבין 🙈\nבחר מהתפריט:', ['📅 תור','💰 מחיר','🕐 שעות','👤 נציג']);
+    }
+  }, 700);
+}
+
+function sendMsg() {
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addBubble('out', text);
+  // Simple free-text response
+  showTyping();
+  setTimeout(()=>{
+    hideTyping();
+    if (text.includes('תור') || text.includes('לקבוע')) {
+      addBubble('in','סופר! 🎉 איזה שירות תרצה?', bot.services);
+    } else if (text.includes('מחיר') || text.includes('כמה')) {
+      addBubble('in',`המחירים שלנו:\n\n${bot.services.join('\n')}\n\nרוצה לקבוע תור?`, ['📅 כן, קבע לי תור','🔙 חזור לתפריט']);
+    } else if (text.includes('שלום') || text.includes('היי') || text.includes('הי')) {
+      addBubble('in',`היי! 👋 אני ${bot.name}, הנציג של ${bot.bizName}.\nבמה אוכל לעזור?`, ['📅 קביעת תור','💰 מחירים','🕐 שעות','👤 נציג']);
+    } else if (text.includes('שעות') || text.includes('פתוח')) {
+      addBubble('in',`שעות פעילות:\n${bot.hours} 😊`, ['📅 קבע תור']);
+    } else if (text.includes('בטל')) {
+      addBubble('in','התור בוטל בהצלחה. ✅\nרוצה לקבוע תור חדש?', ['📅 כן','🔙 לא תודה']);
+    } else {
+      addBubble('in','לא הצלחתי להבין 🙈\nבחר מהתפריט:', ['📅 תור','💰 מחיר','🕐 שעות','👤 נציג']);
+    }
+  }, 800);
+}
+
+function resetChat() {
+  const body = document.getElementById('chat-body');
+  body.innerHTML = '<div class="chat-date"><span>היום</span></div>';
+  msgIndex = 0;
+}
+
+function goLive() {
+  if (confirm('להפעיל את הבוט עכשיו?\n\nהוא יתחיל לענות ללקוחות האמיתיים שלך.')) {
+    alert('✅ הבוט הופעל בהצלחה!');
+    window.location.href = 'robert-dashboard.html';
+  }
+}
+
+// Auto-load welcome scenario
+loadScenario('welcome', document.querySelector('.scenario-btn'));
+</script>
+</body>
+</html>

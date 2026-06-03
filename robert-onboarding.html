@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robert — יצירת בוט חדש</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #f4f5f9;
+  --white:    #ffffff;
+  --green:    #22c55e;
+  --green-d:  #16a34a;
+  --green-p:  #dcfce7;
+  --purple:   #6d28d9;
+  --purple-p: #ede9fe;
+  --t1:       #0f172a;
+  --t2:       #334155;
+  --t3:       #64748b;
+  --t4:       #94a3b8;
+  --bdr:      #e2e8f0;
+  --bdr2:     #cbd5e1;
+  --shadow:   0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.05);
+  --shadow-md:0 4px 20px rgba(0,0,0,.10);
+  --r:        10px;
+  --r-lg:     16px;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; }
+body { font-family:'Rubik',sans-serif; background:var(--bg); color:var(--t1); direction:rtl; -webkit-font-smoothing:antialiased; }
+
+/* ══ SCREENS ══ */
+.screen { display:none; min-height:100vh; }
+.screen.act { display:flex; flex-direction:column; animation:fadeUp .22s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ══ SIGNUP SCREEN ══ */
+.signup-wrap {
+  min-height:100vh; display:flex;
+  align-items:center; justify-content:center;
+  padding:24px 16px;
+}
+.signup-card {
+  background:var(--white); border:1px solid var(--bdr);
+  border-radius:20px; padding:36px 32px;
+  width:100%; max-width:400px;
+  box-shadow:var(--shadow-md);
+}
+.signup-logo { display:flex; align-items:center; gap:9px; margin-bottom:28px; }
+.signup-logo-mark {
+  width:32px; height:32px; border-radius:8px;
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  display:flex; align-items:center; justify-content:center;
+}
+.signup-logo-mark svg { width:17px; height:17px; }
+.signup-logo-name { font-size:18px; font-weight:800; color:var(--t1); }
+.signup-logo-name span { color:var(--green-d); }
+.signup-title { font-size:20px; font-weight:800; color:var(--t1); margin-bottom:4px; letter-spacing:-.4px; }
+.signup-sub { font-size:13.5px; color:var(--t3); margin-bottom:24px; }
+
+.fg { display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
+.fl { font-size:12px; font-weight:600; color:var(--t2); }
+.fi {
+  padding:9px 12px; border:1.5px solid var(--bdr2); border-radius:8px;
+  font-size:14px; color:var(--t1); font-family:'Rubik',sans-serif;
+  outline:none; transition:border-color .18s; background:var(--white);
+}
+.fi:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(34,197,94,.1); }
+
+.divd { display:flex; align-items:center; gap:10px; margin:16px 0; }
+.divd::before,.divd::after { content:''; flex:1; height:1px; background:var(--bdr); }
+.divd span { font-size:12px; color:var(--t4); }
+
+.btn { padding:9px 20px; border-radius:9px; font-size:14px; font-weight:700; cursor:pointer; border:none; transition:all .18s; font-family:'Rubik',sans-serif; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+.btn-primary { background:var(--green); color:#fff; box-shadow:0 2px 10px rgba(34,197,94,.3); width:100%; padding:12px; font-size:15px; }
+.btn-primary:hover { background:var(--green-d); transform:translateY(-1px); }
+.btn-outline { background:var(--white); color:var(--t2); border:1.5px solid var(--bdr2); }
+.btn-outline:hover { border-color:var(--t3); color:var(--t1); }
+.btn-ghost { background:transparent; color:var(--t3); }
+.btn-ghost:hover { background:var(--bg); color:var(--t1); }
+.btn-sm { padding:7px 16px; font-size:13px; }
+.btn-xs { padding:5px 11px; font-size:12px; }
+.btn-danger { background:#fee2e2; color:#dc2626; }
+.btn-danger:hover { background:#fecaca; }
+
+.signup-terms { font-size:11.5px; color:var(--t4); text-align:center; margin-top:14px; }
+.signup-terms a { color:var(--t3); }
+.signup-login { font-size:13px; color:var(--t3); text-align:center; margin-top:16px; }
+.signup-login a { color:var(--green-d); font-weight:600; text-decoration:none; cursor:pointer; }
+
+/* ══ ONBOARDING LAYOUT ══ */
+.ob-header {
+  background:var(--white); border-bottom:1px solid var(--bdr);
+  padding:14px 20px; display:flex; align-items:center;
+  justify-content:space-between; flex-shrink:0;
+}
+.ob-logo { display:flex; align-items:center; gap:8px; }
+.ob-logo-mark {
+  width:26px; height:26px; border-radius:7px;
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  display:flex; align-items:center; justify-content:center;
+}
+.ob-logo-mark svg { width:14px; height:14px; }
+.ob-logo-name { font-size:15px; font-weight:800; color:var(--t1); }
+.ob-logo-name span { color:var(--green-d); }
+.ob-step-label { font-size:12.5px; color:var(--t3); font-weight:500; }
+
+/* progress */
+.ob-progress { padding:16px 20px 0; background:var(--white); border-bottom:1px solid var(--bdr); }
+.ob-steps-row { display:flex; gap:0; margin-bottom:12px; }
+.ob-step-pill {
+  flex:1; display:flex; flex-direction:column; align-items:center;
+  gap:5px; cursor:pointer; padding-bottom:10px;
+  border-bottom:2px solid var(--bdr); transition:border-color .2s;
+  position:relative;
+}
+.ob-step-pill.done { border-color:var(--green); }
+.ob-step-pill.act { border-color:var(--green-d); }
+.ob-step-circle {
+  width:26px; height:26px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; transition:all .2s;
+  background:var(--bdr); color:var(--t4);
+}
+.ob-step-pill.done .ob-step-circle { background:var(--green-p); color:var(--green-d); }
+.ob-step-pill.act .ob-step-circle { background:var(--green-d); color:#fff; }
+.ob-step-name { font-size:11px; color:var(--t4); font-weight:500; text-align:center; }
+.ob-step-pill.act .ob-step-name { color:var(--green-d); font-weight:600; }
+.ob-step-pill.done .ob-step-name { color:var(--green-text,var(--green-d)); }
+
+/* content area */
+.ob-content { flex:1; overflow-y:auto; padding:20px 16px 100px; }
+.ob-pane { display:none; }
+.ob-pane.act { display:block; animation:fadeUp .2s ease; }
+
+.pane-title { font-size:18px; font-weight:800; letter-spacing:-.4px; color:var(--t1); margin-bottom:4px; }
+.pane-sub { font-size:13.5px; color:var(--t3); margin-bottom:20px; line-height:1.6; }
+
+/* bottom nav */
+.ob-footer {
+  position:fixed; bottom:0; right:0; left:0;
+  background:var(--white); border-top:1px solid var(--bdr);
+  padding:12px 16px; display:flex; gap:10px; justify-content:space-between;
+  box-shadow:0 -4px 16px rgba(0,0,0,.06);
+}
+
+/* ══ STEP COMPONENTS ══ */
+
+/* business type grid */
+.btype-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
+.btype-card {
+  background:var(--white); border:1.5px solid var(--bdr);
+  border-radius:var(--r-lg); padding:14px 10px;
+  text-align:center; cursor:pointer; transition:all .18s;
+  position:relative;
+}
+.btype-card:hover { border-color:var(--green); background:var(--green-p); transform:translateY(-1px); }
+.btype-card.sel { border-color:var(--green); background:var(--green-p); }
+.btype-icon { font-size:24px; margin-bottom:6px; }
+.btype-name { font-size:12px; font-weight:600; color:var(--t2); }
+.btype-card:hover .btype-name { color:var(--green-d); }
+.btype-card.sel .btype-name { color:var(--green-d); }
+.btype-arrow { position:absolute; top:50%; left:8px; transform:translateY(-50%); font-size:10px; color:var(--t4); opacity:0; transition:opacity .15s; }
+.btype-card:hover .btype-arrow { opacity:1; color:var(--green-d); }
+
+/* sub category header */
+.sub-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.back-cat-btn { display:flex; align-items:center; gap:6px; background:transparent; border:1.5px solid var(--bdr2); border-radius:8px; padding:7px 13px; font-size:13px; font-weight:600; color:var(--t2); cursor:pointer; font-family:'Rubik',sans-serif; transition:all .15s; }
+.back-cat-btn:hover { border-color:var(--t3); color:var(--t1); background:var(--bg); }
+.sub-cat-label { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:700; color:var(--t1); background:var(--green-p); padding:6px 12px; border-radius:100px; color:var(--green-d); }
+
+/* card section */
+.section-card { background:var(--white); border:1px solid var(--bdr); border-radius:var(--r-lg); padding:16px; margin-bottom:12px; box-shadow:var(--shadow); }
+.section-card-title { font-size:13px; font-weight:700; color:var(--t1); margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+
+/* form grid */
+.form-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.form-full { grid-column:1/-1; }
+
+/* hours table */
+.hours-table { width:100%; border-collapse:collapse; }
+.hours-table th { font-size:11px; font-weight:600; color:var(--t4); text-align:right; padding:6px 8px; border-bottom:1px solid var(--bdr); }
+.hours-table td { padding:8px 8px; border-bottom:1px solid var(--bdr); vertical-align:middle; }
+.hours-table tr:last-child td { border-bottom:none; }
+.day-name { font-size:13px; font-weight:600; color:var(--t2); }
+.time-input { padding:6px 8px; border:1.5px solid var(--bdr2); border-radius:7px; font-size:13px; font-family:'Rubik',sans-serif; color:var(--t1); outline:none; width:88px; transition:border-color .15s; }
+.time-input:focus { border-color:var(--green); }
+.time-input:disabled { background:var(--bg); color:var(--t4); }
+.day-closed { font-size:12px; color:var(--t4); }
+
+/* toggle */
+.tog { position:relative; width:34px; height:19px; flex-shrink:0; }
+.tog input { opacity:0; width:0; height:0; }
+.tog-sl { position:absolute; inset:0; border-radius:100px; background:var(--bdr2); cursor:pointer; transition:background .2s; }
+.tog-sl::before { content:''; position:absolute; width:13px; height:13px; border-radius:50%; background:#fff; top:3px; right:3px; transition:transform .2s; box-shadow:0 1px 2px rgba(0,0,0,.15); }
+.tog input:checked + .tog-sl { background:var(--green); }
+.tog input:checked + .tog-sl::before { transform:translateX(-15px); }
+
+/* services list */
+.service-item {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px; background:var(--bg);
+  border:1px solid var(--bdr); border-radius:var(--r);
+  margin-bottom:8px; transition:border-color .15s;
+}
+.service-item:hover { border-color:var(--bdr2); }
+.si-name { flex:1; border:none; background:transparent; font-size:13.5px; color:var(--t1); font-family:'Rubik',sans-serif; outline:none; font-weight:500; }
+.si-price { width:90px; padding:5px 8px; border:1.5px solid var(--bdr2); border-radius:7px; font-size:13px; font-family:'Rubik',sans-serif; color:var(--t1); outline:none; text-align:center; transition:border-color .15s; }
+.si-price:focus { border-color:var(--green); }
+.si-del { color:var(--t4); cursor:pointer; font-size:17px; padding:0 3px; line-height:1; transition:color .15s; flex-shrink:0; }
+.si-del:hover { color:#dc2626; }
+.si-drag { color:var(--t4); cursor:grab; font-size:14px; flex-shrink:0; }
+
+/* faq */
+.faq-item { background:var(--bg); border:1px solid var(--bdr); border-radius:var(--r); padding:10px 12px; margin-bottom:8px; }
+.faq-q-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.faq-q-row input { flex:1; border:none; background:transparent; font-size:13.5px; font-weight:600; color:var(--t1); font-family:'Rubik',sans-serif; outline:none; }
+.faq-a-row textarea { width:100%; border:none; background:transparent; font-size:13px; color:var(--t2); font-family:'Rubik',sans-serif; outline:none; resize:none; line-height:1.55; }
+.faq-del { color:var(--t4); cursor:pointer; font-size:16px; transition:color .15s; flex-shrink:0; }
+.faq-del:hover { color:#dc2626; }
+
+/* style selector */
+.style-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.style-card {
+  background:var(--white); border:1.5px solid var(--bdr);
+  border-radius:var(--r-lg); padding:14px 14px;
+  cursor:pointer; transition:all .18s;
+}
+.style-card:hover { border-color:var(--bdr2); }
+.style-card.sel { border-color:var(--green); background:var(--green-p); }
+.style-card-name { font-size:13.5px; font-weight:700; color:var(--t1); margin-bottom:3px; }
+.style-card.sel .style-card-name { color:var(--green-d); }
+.style-card-ex { font-size:12px; color:var(--t3); line-height:1.5; }
+.style-card-badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:100px; margin-bottom:7px; }
+.sb-g { background:var(--green-p); color:var(--green-d); }
+.sb-p { background:var(--purple-p); color:var(--purple); }
+.sb-b { background:#dbeafe; color:#1d4ed8; }
+.sb-y { background:#fef3c7; color:#b45309; }
+
+/* connect */
+.connect-steps-list { display:flex; flex-direction:column; gap:10px; margin:16px 0; }
+.cstep { display:flex; align-items:flex-start; gap:12px; padding:12px 14px; background:var(--white); border:1px solid var(--bdr); border-radius:var(--r); box-shadow:var(--shadow); }
+.cstep-num { width:24px; height:24px; border-radius:50%; background:var(--purple-p); color:var(--purple); font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+.cstep-title { font-size:13.5px; font-weight:600; color:var(--t1); margin-bottom:2px; }
+.cstep-sub { font-size:12px; color:var(--t3); line-height:1.5; }
+
+/* success screen */
+.success-wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+.success-card { background:var(--white); border:1px solid var(--bdr); border-radius:20px; padding:40px 32px; max-width:400px; width:100%; text-align:center; box-shadow:var(--shadow-md); }
+.success-icon { width:64px; height:64px; border-radius:50%; background:var(--green-p); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; }
+.success-icon svg { width:30px; height:30px; }
+.success-title { font-size:21px; font-weight:800; letter-spacing:-.5px; margin-bottom:8px; }
+.success-sub { font-size:14px; color:var(--t3); line-height:1.65; margin-bottom:24px; }
+.success-details { background:var(--bg); border-radius:var(--r-lg); padding:14px 16px; margin-bottom:22px; text-align:right; }
+.sd-row { display:flex; justify-content:space-between; font-size:13px; padding:5px 0; border-bottom:1px solid var(--bdr); }
+.sd-row:last-child { border-bottom:none; }
+.sd-label { color:var(--t3); }
+.sd-val { font-weight:600; color:var(--t1); }
+
+/* add btn */
+.add-btn { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--green-d); cursor:pointer; padding:8px 0; border:none; background:transparent; font-family:'Rubik',sans-serif; transition:color .15s; }
+.add-btn:hover { color:var(--green); }
+.add-btn svg { width:16px; height:16px; }
+
+/* badge */
+.badge { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:600; padding:3px 9px; border-radius:100px; }
+.badge-green { background:var(--green-p); color:var(--green-d); }
+
+/* fhint */
+.fhint { font-size:11px; color:var(--t4); margin-top:3px; }
+.add-custom-card { border-style:dashed !important; border-color:var(--green) !important; }
+.add-custom-card:hover { background:var(--green-p) !important; }
+.fs { padding:9px 12px; border:1.5px solid var(--bdr2); border-radius:8px; font-size:14px; color:var(--t1); font-family:'Rubik',sans-serif; background:var(--white); outline:none; width:100%; transition:border-color .18s; }
+.fs:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(34,197,94,.1); }
+.fta { padding:9px 12px; border:1.5px solid var(--bdr2); border-radius:8px; font-size:13.5px; color:var(--t1); font-family:'Rubik',sans-serif; background:var(--white); outline:none; width:100%; resize:vertical; min-height:80px; line-height:1.6; transition:border-color .18s; }
+.fta:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(34,197,94,.1); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     SCREEN 1: SIGNUP
+══════════════════════════════ -->
+<div class="screen act" id="s-signup">
+  <div class="signup-wrap">
+    <div class="signup-card">
+      <div class="signup-logo">
+        <div class="signup-logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8l4 4-4 4"/></svg>
+        </div>
+        <div class="signup-logo-name">Robert<span>.</span></div>
+      </div>
+      <div class="signup-title">התחל 7 ימים חינם</div>
+      <div class="signup-sub">ללא כרטיס אשראי. מבטל מתי שרוצה.</div>
+      <div class="fg"><label class="fl">שם מלא</label><input class="fi" placeholder="ישראל ישראלי"></div>
+      <div class="fg"><label class="fl">אימייל</label><input class="fi" type="email" placeholder="israel@gmail.com"></div>
+      <div class="fg"><label class="fl">סיסמה</label><input class="fi" type="password" placeholder="לפחות 8 תווים"></div>
+      <div style="margin-bottom:16px;"></div>
+      <button class="btn btn-primary" onclick="showOb()">יצירת חשבון בחינם</button>
+      <div class="divd"><span>או</span></div>
+      <button class="btn btn-outline" style="width:100%;padding:11px;" onclick="showOb()">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        המשך עם Google
+      </button>
+      <div class="signup-terms">בהרשמה אתה מסכים ל<a href="#">תנאי השימוש</a> ו<a href="#">מדיניות הפרטיות</a></div>
+      <div class="signup-login">כבר יש לך חשבון? <a onclick="showOb()">התחבר</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN 2: ONBOARDING
+══════════════════════════════ -->
+<div class="screen" id="s-ob">
+
+  <!-- header -->
+  <div class="ob-header">
+    <div class="ob-logo">
+      <div class="ob-logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8l4 4-4 4"/></svg>
+      </div>
+      <div class="ob-logo-name">Robert<span>.</span></div>
+    </div>
+    <div class="ob-step-label" id="ob-step-label">שלב 1 מתוך 5</div>
+  </div>
+
+  <!-- progress steps -->
+  <div class="ob-progress">
+    <div class="ob-steps-row">
+      <div class="ob-step-pill act" id="sp1" onclick="jumpStep(1)">
+        <div class="ob-step-circle" id="sc1">1</div>
+        <div class="ob-step-name">סוג עסק</div>
+      </div>
+      <div class="ob-step-pill" id="sp2" onclick="jumpStep(2)">
+        <div class="ob-step-circle" id="sc2">2</div>
+        <div class="ob-step-name">פרטי עסק</div>
+      </div>
+      <div class="ob-step-pill" id="sp3" onclick="jumpStep(3)">
+        <div class="ob-step-circle" id="sc3">3</div>
+        <div class="ob-step-name">שירותים</div>
+      </div>
+      <div class="ob-step-pill" id="sp4" onclick="jumpStep(4)">
+        <div class="ob-step-circle" id="sc4">4</div>
+        <div class="ob-step-name">סגנון</div>
+      </div>
+      <div class="ob-step-pill" id="sp5" onclick="jumpStep(5)">
+        <div class="ob-step-circle" id="sc5">5</div>
+        <div class="ob-step-name">וואטסאפ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- content -->
+  <div class="ob-content">
+
+    <!-- ── STEP 1: סוג עסק ── -->
+    <div class="ob-pane act" id="pane1">
+      <!-- MAIN CATEGORIES -->
+      <div id="cats-main">
+        <div class="pane-title">מה תחום העסק?</div>
+        <div class="pane-sub">בחר קטגוריה ראשית — תוכל לבחור את הסוג המדויק בשלב הבא</div>
+        <div class="btype-grid">
+          <div class="btype-card" onclick="openSub('beauty')">
+            <div class="btype-icon">💇</div>
+            <div class="btype-name">יופי וטיפוח</div>
+            <div class="btype-arrow">◂</div>
+          </div>
+          <div class="btype-card" onclick="openSub('food')">
+            <div class="btype-icon">🍽️</div>
+            <div class="btype-name">מזון ומשקאות</div>
+            <div class="btype-arrow">◂</div>
+          </div>
+          <div class="btype-card" onclick="openSub('fitness')">
+            <div class="btype-icon">💪</div>
+            <div class="btype-name">כושר ובריאות</div>
+            <div class="btype-arrow">◂</div>
+          </div>
+          <div class="btype-card" onclick="openSub('professional')">
+            <div class="btype-icon">💼</div>
+            <div class="btype-name">שירות מקצועי</div>
+            <div class="btype-arrow">◂</div>
+          </div>
+          <div class="btype-card" onclick="openSub('medical')">
+            <div class="btype-icon">🏥</div>
+            <div class="btype-name">בריאות ורפואה</div>
+            <div class="btype-arrow">◂</div>
+          </div>
+          <div class="btype-card" onclick="openSub('retail')">
+            <div class="btype-icon">🛍️</div>
+            <div class="btype-name">קמעונאות ואיקומרס</div>
+            <div class="btype-arrow">◂</div>
+          </div>
+          <div class="btype-card" onclick="openSub('realestate')">
+            <div class="btype-icon">🏠</div>
+            <div class="btype-name">נדל"ן</div>
+            <div class="btype-arrow">◂</div>
+          </div>
+          <div class="btype-card" onclick="openSub('education')">
+            <div class="btype-icon">📚</div>
+            <div class="btype-name">חינוך והדרכה</div>
+            <div class="btype-arrow">◂</div>
+          </div>
+          <div class="btype-card" onclick="openSub('events')">
+            <div class="btype-icon">🎉</div>
+            <div class="btype-name">אירועים ובידור</div>
+            <div class="btype-arrow">◂</div>
+          </div>
+          <div class="btype-card" onclick="openSub('automotive')">
+            <div class="btype-icon">🚗</div>
+            <div class="btype-name">רכב ותחבורה</div>
+            <div class="btype-arrow">◂</div>
+          </div>
+          <div class="btype-card" onclick="openSub('home')">
+            <div class="btype-icon">🔧</div>
+            <div class="btype-name">בית ותחזוקה</div>
+            <div class="btype-arrow">◂</div>
+          </div>
+          <div class="btype-card" onclick="openSub('travel')">
+            <div class="btype-icon">✈️</div>
+            <div class="btype-name">תיירות ונסיעות</div>
+            <div class="btype-arrow">◂</div>
+          </div>
+          <div class="btype-card" onclick="openSub('other')">
+            <div class="btype-icon">⚙️</div>
+            <div class="btype-name">אחר</div>
+            <div class="btype-arrow">◂</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB CATEGORIES -->
+      <div id="cats-sub" style="display:none;">
+        <div class="sub-header">
+          <button class="back-cat-btn" onclick="closeSub()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            חזור לקטגוריות
+          </button>
+          <div class="sub-cat-label" id="sub-cat-label"></div>
+        </div>
+        <div class="pane-sub" id="sub-pane-sub">בחר את הסוג המדויק</div>
+        <div class="btype-grid" id="sub-grid"></div>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: פרטי עסק ── -->
+    <div class="ob-pane" id="pane2">
+      <div class="pane-title">פרטי העסק</div>
+      <div class="pane-sub">Robert ישתמש בפרטים אלה כשיענה ללקוחות שלך</div>
+
+      <div class="section-card">
+        <div class="section-card-title">מידע בסיסי</div>
+        <div class="fg"><label class="fl">שם העסק</label><input class="fi" placeholder="מספרת מיטל"></div>
+        <div class="fg"><label class="fl">תיאור קצר</label><textarea class="fta" placeholder="ספר על העסק שלך — מה אתה מציע, מה מיוחד בך..."></textarea><span class="fhint">Robert ישתמש בזה כדי לענות על שאלות כלליות</span></div>
+        <div class="form-2">
+          <div class="fg"><label class="fl">כתובת</label><input class="fi" placeholder="רחוב, עיר"></div>
+          <div class="fg"><label class="fl">טלפון ליצירת קשר</label><input class="fi" placeholder="050-0000000"></div>
+        </div>
+        <div class="fg"><label class="fl">קישור לאתר / אינסטגרם (אופציונלי)</label><input class="fi" placeholder="https://..."></div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-card-title">
+          שעות פעילות
+          <span class="badge badge-green">ניתן לעריכה בכל עת</span>
+        </div>
+        <table class="hours-table" id="hours-table">
+          <thead><tr><th>יום</th><th>פתוח</th><th>משעה</th><th>עד שעה</th></tr></thead>
+          <tbody id="hours-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: שירותים ── -->
+    <div class="ob-pane" id="pane3">
+      <div class="pane-title">השירותים שלך</div>
+      <div class="pane-sub">הוסף את השירותים והמחירים שלך — Robert ידע לענות עליהם. ניתן לערוך ולהוסיף בכל עת.</div>
+
+      <div class="section-card">
+        <div class="section-card-title">
+          רשימת שירותים
+          <span class="badge badge-green">ניתן לעריכה בכל עת</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 90px 28px;gap:6px;padding:4px 12px 8px;border-bottom:1px solid var(--bdr);margin-bottom:8px;">
+          <span style="font-size:11px;font-weight:600;color:var(--t4);">שם השירות</span>
+          <span style="font-size:11px;font-weight:600;color:var(--t4);text-align:center;">מחיר</span>
+          <span></span>
+        </div>
+        <div id="services-list"></div>
+        <button class="add-btn" onclick="addService()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          הוסף שירות
+        </button>
+      </div>
+
+      <div class="section-card">
+        <div class="section-card-title">שאלות נפוצות</div>
+        <div id="faq-list"></div>
+        <button class="add-btn" onclick="addFaq()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          הוסף שאלה ותשובה
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: סגנון ── -->
+    <div class="ob-pane" id="pane4">
+      <div class="pane-title">איך Robert מדבר?</div>
+      <div class="pane-sub">בחר את הסגנון שהכי מתאים לעסק שלך</div>
+
+      <div class="style-grid" style="margin-bottom:16px;">
+        <div class="style-card sel" onclick="selStyle(this)">
+          <div class="style-card-badge sb-g">מומלץ</div>
+          <div class="style-card-name">חברותי ונעים</div>
+          <div class="style-card-ex">"היי! תודה שפנית 😊 שמחים לעזור לך..."</div>
+        </div>
+        <div class="style-card" onclick="selStyle(this)">
+          <div class="style-card-badge sb-b">מקצועי</div>
+          <div class="style-card-name">רשמי ומקצועי</div>
+          <div class="style-card-ex">"שלום, תודה על פנייתך. נשמח לסייע..."</div>
+        </div>
+        <div class="style-card" onclick="selStyle(this)">
+          <div class="style-card-badge sb-y">יעיל</div>
+          <div class="style-card-name">קצר ולעניין</div>
+          <div class="style-card-ex">"שלום! מחיר תספורת: ₪120. לתור — שלח תאריך."</div>
+        </div>
+        <div class="style-card" onclick="selStyle(this)">
+          <div class="style-card-badge sb-p">אישי</div>
+          <div class="style-card-name">חם ואישי</div>
+          <div class="style-card-ex">"אהלן! איזה כיף שפנית, אשמח לעזור לך..."</div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-card-title">הגדרות נוספות</div>
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bdr);">
+            <div><div style="font-size:13.5px;font-weight:600;">מסירה לנציג אנושי</div><div style="font-size:12px;color:var(--t3);margin-top:1px;">כשהבוט לא יודע לענות — מעביר אליך</div></div>
+            <label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bdr);">
+            <div><div style="font-size:13.5px;font-weight:600;">מצב שינה מחוץ לשעות פעילות</div><div style="font-size:12px;color:var(--t3);margin-top:1px;">שולח הודעה אוטומטית מחוץ לשעות</div></div>
+            <label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;">
+            <div><div style="font-size:13.5px;font-weight:600;">קבלת פניות חדשות בSMS</div><div style="font-size:12px;color:var(--t3);margin-top:1px;">התראה כשמגיעה שיחה חדשה</div></div>
+            <label class="tog"><input type="checkbox"><span class="tog-sl"></span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 5: וואטסאפ ── -->
+    <div class="ob-pane" id="pane5">
+      <div class="pane-title">חיבור לוואטסאפ</div>
+      <div class="pane-sub">חבר את המספר העסקי שלך — Robert יתחיל לענות מיד</div>
+
+      <div class="section-card">
+        <div class="section-card-title">המספר העסקי שלך</div>
+        <div class="fg">
+          <label class="fl">מספר וואטסאפ</label>
+          <input class="fi" placeholder="050-0000000" id="wa-number">
+          <span class="fhint">המספר שעליו הלקוחות שלך כותבים לך</span>
+        </div>
+        <button class="btn btn-primary" style="max-width:200px;" onclick="sendCode()">שלח קוד אימות</button>
+        <div id="code-row" style="display:none;margin-top:14px;">
+          <div class="fg">
+            <label class="fl">קוד שהתקבל ב-SMS</label>
+            <input class="fi" placeholder="000000" maxlength="6" style="letter-spacing:6px;text-align:center;font-size:18px;font-weight:700;">
+          </div>
+          <button class="btn btn-outline btn-sm">אמת קוד</button>
+        </div>
+      </div>
+
+      <div class="connect-steps-list">
+        <div class="cstep">
+          <div class="cstep-num">1</div>
+          <div><div class="cstep-title">הכנס את המספר העסקי</div><div class="cstep-sub">המספר שעליו הלקוחות כותבים לך כיום</div></div>
+        </div>
+        <div class="cstep">
+          <div class="cstep-num">2</div>
+          <div><div class="cstep-title">קבל קוד אימות ב-SMS</div><div class="cstep-sub">תוך כ-30 שניות תקבל SMS עם קוד 6 ספרות</div></div>
+        </div>
+        <div class="cstep">
+          <div class="cstep-num">3</div>
+          <div><div class="cstep-title">Robert פעיל מיד</div><div class="cstep-sub">הבוט שלך יתחיל לענות ללקוחות תוך דקות</div></div>
+        </div>
+      </div>
+
+      <div class="section-card" style="background:#fffbeb;border-color:#fde68a;">
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div style="font-size:12.5px;color:#92400e;line-height:1.6;">חיבור המספר מנתק אותו מאפליקציית וואטסאפ הרגילה. מומלץ להשתמש במספר עסקי נפרד. ניתן לנהל שיחות דרך ה-Inbox במערכת.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /ob-content -->
+
+  <!-- footer nav -->
+  <div class="ob-footer">
+    <button class="btn btn-outline" id="btn-back" onclick="prevStep()" style="display:none;">חזור</button>
+    <div style="flex:1;"></div>
+    <button class="btn btn-primary" id="btn-next" onclick="nextStep()" style="max-width:160px;">המשך</button>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN 3: SUCCESS
+══════════════════════════════ -->
+<div class="screen" id="s-success">
+  <div class="success-wrap">
+    <div class="success-card">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--green-d)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="success-title">הבוט שלך מוכן!</div>
+      <div class="success-sub">Robert כבר עונה ללקוחות שלך. עכשיו תוכל לנהל, לערוך ולהוסיף עוד בוטים מה-Dashboard.</div>
+      <div class="success-details">
+        <div class="sd-row"><span class="sd-label">שם הבוט</span><span class="sd-val" id="s-bot-name">מספרת מיטל</span></div>
+        <div class="sd-row"><span class="sd-label">מספר וואטסאפ</span><span class="sd-val" id="s-wa">050-1234567</span></div>
+        <div class="sd-row"><span class="sd-label">סטטוס</span><span class="sd-val" style="color:var(--green-d);">פעיל</span></div>
+      </div>
+      <button class="btn btn-primary" onclick="toDash()">כניסה ל-Dashboard</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── state
+let curStep = 1;
+const totalSteps = 5;
+const days = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+const defaultHours = ['09:00','09:00','09:00','09:00','09:00','09:00',null];
+const defaultClose = ['19:00','19:00','19:00','19:00','19:00','14:00',null];
+
+// ── build hours table
+function buildHours() {
+  const tb = document.getElementById('hours-body');
+  tb.innerHTML = '';
+  days.forEach((d,i)=>{
+    const closed = defaultHours[i] === null;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="day-name">${d}'</span></td>
+      <td><label class="tog"><input type="checkbox" ${closed?'':'checked'} onchange="toggleDay(this,${i})"><span class="tog-sl"></span></label></td>
+      <td><input class="time-input" id="from-${i}" type="time" value="${closed?'09:00':defaultHours[i]}" ${closed?'disabled':''}></td>
+      <td><input class="time-input" id="to-${i}" type="time" value="${closed?'18:00':defaultClose[i]}" ${closed?'disabled':''}></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function toggleDay(cb,i) {
+  document.getElementById('from-'+i).disabled = !cb.checked;
+  document.getElementById('to-'+i).disabled = !cb.checked;
+}
+
+// ── build default services
+const defaultServices = [
+  {name:'תספורת נשים',price:'₪120'},
+  {name:'תספורת בנות',price:'₪80'},
+  {name:'צביעה שלמה',price:'₪250'},
+];
+
+function buildServices() {
+  const sl = document.getElementById('services-list');
+  sl.innerHTML='';
+  defaultServices.forEach(s=>addServiceRow(s.name,s.price));
+}
+
+function addServiceRow(name='',price='') {
+  const sl = document.getElementById('services-list');
+  const d = document.createElement('div');
+  d.className='service-item';
+  d.innerHTML=`<span class="si-drag" title="גרור לסידור מחדש">⠿</span><input class="si-name" placeholder="שם השירות" value="${name}"><input class="si-price" placeholder="₪0" value="${price}"><span class="si-del" onclick="this.parentElement.remove()">×</span>`;
+  sl.appendChild(d);
+}
+
+function addService() { addServiceRow(); document.querySelector('#services-list .service-item:last-child .si-name')?.focus(); }
+
+// ── faq
+function buildFaqs() {
+  const fl = document.getElementById('faq-list');
+  fl.innerHTML='';
+  addFaqRow('מה שעות הפעילות?','א\'-ו\' 9:00-19:00, שבת סגור');
+  addFaqRow('איך קובעים תור?','דרך הוואטסאפ הזה או בטלפון שלנו');
+}
+
+function addFaqRow(q='',a='') {
+  const fl = document.getElementById('faq-list');
+  const d = document.createElement('div');
+  d.className='faq-item';
+  d.innerHTML=`<div class="faq-q-row"><input placeholder="שאלה..." value="${q}"><span class="faq-del" onclick="this.closest('.faq-item').remove()">×</span></div><textarea class="faq-a-row" rows="2" placeholder="תשובה...">${a}</textarea>`;
+  fl.appendChild(d);
+}
+
+function addFaq() { addFaqRow(); }
+
+// ── sub categories data
+const subCats = {
+  beauty: {
+    label: 'יופי וטיפוח',
+    icon: '💇',
+    items: [
+      {icon:'✂️', name:'ספר / מספרה'},
+      {icon:'💅', name:'לק ג׳ל / ציפורניים'},
+      {icon:'🧖', name:'טיפולי פנים'},
+      {icon:'🤸', name:'גבות ושיוך'},
+      {icon:'💆', name:'מסאז׳'},
+      {icon:'💇‍♀️', name:'סלון שיער נשים'},
+      {icon:'🧴', name:'טיפולי גוף'},
+      {icon:'💋', name:'איפור מקצועי'},
+      {icon:'➕', name:'__ADD__'}
+    ]
+  },
+  food: {
+    label: 'מזון ומשקאות',
+    icon: '🍽️',
+    items: [
+      {icon:'🍖', name:'מסעדה'},
+      {icon:'☕', name:'קפה / בית קפה'},
+      {icon:'🥙', name:'מזון מהיר'},
+      {icon:'🍰', name:'מאפייה / קונדיטוריה'},
+      {icon:'🍕', name:'פיצרייה'},
+      {icon:'🍣', name:'מסעדת דגים / סושי'},
+      {icon:'🥗', name:'מסעדה בריאה / טבעוני'},
+      {icon:'🚚', name:'קייטרינג'},
+      {icon:'🍷', name:'בר / ברסטרו'}
+    ]
+  },
+  fitness: {
+    label: 'כושר ובריאות',
+    icon: '💪',
+    items: [
+      {icon:'🏋️', name:'חדר כושר'},
+      {icon:'🧘', name:'יוגה / פילאטיס'},
+      {icon:'🥊', name:'אגרוף / קיק בוקסינג'},
+      {icon:'🤸', name:'התעמלות / אקרובטיקה'},
+      {icon:'🏊', name:'שחייה'},
+      {icon:'🚴', name:'ספינינג / רכיבה'},
+      {icon:'🎾', name:'ספורט מחבט'},
+      {icon:'🏃', name:'ריצה / אתלטיקה'},
+      {icon:'💪', name:'מאמן אישי'}
+    ]
+  },
+  professional: {
+    label: 'שירות מקצועי',
+    icon: '💼',
+    items: [
+      {icon:'⚖️', name:'עורך דין'},
+      {icon:'📊', name:'רואה חשבון / יועץ מס'},
+      {icon:'🏗️', name:'קבלן / שיפוצניק'},
+      {icon:'💡', name:'יועץ עסקי'},
+      {icon:'🖥️', name:'מפתח / IT'},
+      {icon:'📸', name:'צלם / וידאוגרף'},
+      {icon:'🎨', name:'מעצב גרפי / UX'},
+      {icon:'📣', name:'שיווק / דיגיטל'},
+      {icon:'🔧', name:'טכנאי / חשמלאי'}
+    ]
+  },
+  medical: {
+    label: 'בריאות ורפואה',
+    icon: '🏥',
+    items: [
+      {icon:'👨‍⚕️', name:'רופא / מרפאה'},
+      {icon:'🦷', name:'דנטיסט'},
+      {icon:'🧠', name:'פסיכולוג / מטפל'},
+      {icon:'👁️', name:'אופטומטריסט'},
+      {icon:'🦴', name:'פיזיותרפיסט / כירופרקטור'},
+      {icon:'💊', name:'תזונאי / דיאטנית'},
+      {icon:'👶', name:'רופא ילדים'},
+      {icon:'🌿', name:'רפואה משלימה / נטורופת'},
+      {icon:'🐾', name:'וטרינר'}
+    ]
+  },
+  retail: {
+    label: 'קמעונאות ואיקומרס',
+    icon: '🛍️',
+    items: [
+      {icon:'👗', name:'חנות בגדים / אופנה'},
+      {icon:'📱', name:'אלקטרוניקה / סלולרי'},
+      {icon:'🏠', name:'ריהוט / עיצוב הבית'},
+      {icon:'📚', name:'ספרים / מוצרי תרבות'},
+      {icon:'🌸', name:'פרחים / מתנות'},
+      {icon:'🧸', name:'צעצועים / ילדים'},
+      {icon:'🐕', name:'חיות מחמד'},
+      {icon:'🛒', name:'חנות אונליין'},
+      {icon:'🏪', name:'מכולת / סופר'}
+    ]
+  },
+  realestate: {
+    label: 'נדל"ן',
+    icon: '🏠',
+    items: [
+      {icon:'🏢', name:'סוכן נדל"ן'},
+      {icon:'🏗️', name:'יזם נדל"ן'},
+      {icon:'🔑', name:'ניהול נכסים'},
+      {icon:'🏡', name:'השכרת דירות'},
+      {icon:'🏨', name:'מלון / אירוח'},
+      {icon:'📋', name:'שמאי מקרקעין'},
+      {icon:'🏘️', name:'קבלן בנייה'},
+      {icon:'🌴', name:'נופש ותיירות'},
+      {icon:'➕', name:'__ADD__'}
+    ]
+  },
+  education: {
+    label: 'חינוך והדרכה',
+    icon: '📚',
+    items: [
+      {icon:'📖', name:'מורה פרטי'},
+      {icon:'🎓', name:'בית ספר / מכללה'},
+      {icon:'💻', name:'קורסים דיגיטליים'},
+      {icon:'🎵', name:'מוזיקה / נגינה'},
+      {icon:'🎨', name:'אמנות / ציור'},
+      {icon:'🗣️', name:'שפות / אנגלית'},
+      {icon:'🚗', name:'בית ספר לנהיגה'},
+      {icon:'🧒', name:'גן ילדים / פעוטון'},
+      {icon:'➕', name:'__ADD__'}
+    ]
+  },
+  events: {
+    label: 'אירועים ובידור',
+    icon: '🎉',
+    items: [
+      {icon:'🎉', name:'אולם אירועים'},
+      {icon:'🎵', name:'DJ / מוזיקאי'},
+      {icon:'📸', name:'צלם אירועים'},
+      {icon:'🎂', name:'עוגות ועיצוב'},
+      {icon:'🎭', name:'הופעות ובידור'},
+      {icon:'💐', name:'עיצוב פרחים'},
+      {icon:'🍽️', name:'קייטרינג לאירועים'},
+      {icon:'🎪', name:'ארגון בר/בת מצווה'},
+      {icon:'➕', name:'__ADD__'}
+    ]
+  },
+  automotive: {
+    label: 'רכב ותחבורה',
+    icon: '🚗',
+    items: [
+      {icon:'🔧', name:'מוסך / תיקוני רכב'},
+      {icon:'🚗', name:'מכירת רכבים'},
+      {icon:'🚕', name:'שירות הסעות'},
+      {icon:'🚛', name:'הובלות / מעברים'},
+      {icon:'🔍', name:'בדיקת רכב לפני קנייה'},
+      {icon:'🎨', name:'פחחות וצבע'},
+      {icon:'🔋', name:'חשמלאי רכב'},
+      {icon:'🚐', name:'השכרת רכב'},
+      {icon:'➕', name:'__ADD__'}
+    ]
+  },
+  home: {
+    label: 'בית ותחזוקה',
+    icon: '🔧',
+    items: [
+      {icon:'🔧', name:'שיפוצניק כללי'},
+      {icon:'⚡', name:'חשמלאי'},
+      {icon:'🚿', name:'אינסטלטור'},
+      {icon:'❄️', name:'מיזוג אוויר'},
+      {icon:'🧹', name:'ניקיון ביתי'},
+      {icon:'🌿', name:'גינון ונוף'},
+      {icon:'🔒', name:'מנעולן'},
+      {icon:'🛋️', name:'ריהוט ועיצוב פנים'},
+      {icon:'➕', name:'__ADD__'}
+    ]
+  },
+  travel: {
+    label: 'תיירות ונסיעות',
+    icon: '✈️',
+    items: [
+      {icon:'✈️', name:'סוכנות נסיעות'},
+      {icon:'🏨', name:'מלון / צימר'},
+      {icon:'🌴', name:'אטרקציות תיירות'},
+      {icon:'🚌', name:'טיולים מאורגנים'},
+      {icon:'🎒', name:'מדריך טיולים'},
+      {icon:'⛵', name:'שייט / ספורט ים'},
+      {icon:'📋', name:'ויזות ותיעוד'},
+      {icon:'🏕️', name:'קמפינג ואוהלים'},
+      {icon:'➕', name:'__ADD__'}
+    ]
+  },
+  other: {
+    label: 'אחר',
+    icon: '⚙️',
+    items: [
+      {icon:'📦', name:'לוגיסטיקה / משלוחים'},
+      {icon:'🔒', name:'אבטחה'},
+      {icon:'🐾', name:'טיפול בחיות מחמד'},
+      {icon:'📣', name:'פרסום ומדיה'},
+      {icon:'🖨️', name:'דפוס והדפסות'},
+      {icon:'♻️', name:'סביבה ומיחזור'},
+      {icon:'🎓', name:'הכשרות מקצועיות'},
+      {icon:'🏛️', name:'עמותה / מגזר שלישי'},
+      {icon:'➕', name:'__ADD__'}
+    ]
+  }
+};
+
+let selectedCat = null;
+let selectedSub = null;
+
+function openSub(catKey) {
+  const cat = subCats[catKey];
+  selectedCat = catKey;
+  selectedSub = null;
+
+  document.getElementById('cats-main').style.display = 'none';
+  document.getElementById('cats-sub').style.display = 'block';
+  document.getElementById('sub-cat-label').textContent = cat.icon + ' ' + cat.label;
+  document.getElementById('sub-pane-sub').textContent = 'בחר את סוג העסק המדויק שלך';
+
+  const grid = document.getElementById('sub-grid');
+  grid.innerHTML = '';
+  cat.items.forEach(item => {
+    if (item.name === '__ADD__') {
+      // Render as "add custom" card
+      const d = document.createElement('div');
+      d.className = 'btype-card add-custom-card';
+      d.innerHTML = `
+        <div class="btype-icon" style="font-size:20px;color:var(--green-d);">+</div>
+        <div class="btype-name" style="color:var(--green-d);">הוסף ידנית</div>`;
+      d.onclick = () => showCustomInput(d);
+      grid.appendChild(d);
+    } else {
+      const d = document.createElement('div');
+      d.className = 'btype-card';
+      d.innerHTML = `<div class="btype-icon">${item.icon}</div><div class="btype-name">${item.name}</div>`;
+      d.onclick = () => selSub(d, item.name);
+      grid.appendChild(d);
+    }
+  });
+}
+
+function showCustomInput(card) {
+  // Replace the card with an input field inline
+  const wrapper = document.createElement('div');
+  wrapper.className = 'custom-input-wrap';
+  wrapper.style.cssText = 'grid-column:1/-1;display:flex;gap:8px;align-items:center;';
+  wrapper.innerHTML = `
+    <input id="custom-biz-input" class="fi" placeholder="שם העסק שלך..." style="flex:1;font-size:14px;" autofocus>
+    <button class="btn btn-primary btn-sm" onclick="confirmCustom()" style="white-space:nowrap;flex-shrink:0;">אישור</button>`;
+  card.parentElement.replaceChild(wrapper, card);
+  document.getElementById('custom-biz-input').focus();
+}
+
+function confirmCustom() {
+  const val = document.getElementById('custom-biz-input')?.value?.trim();
+  if (!val) { alert('נא להכניס שם'); return; }
+  selectedSub = val;
+  setTimeout(() => nextStep(), 200);
+}
+
+function closeSub() {
+  document.getElementById('cats-main').style.display = 'block';
+  document.getElementById('cats-sub').style.display = 'none';
+  selectedCat = null;
+  selectedSub = null;
+}
+
+function selSub(el, name) {
+  document.querySelectorAll('#sub-grid .btype-card').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedSub = name;
+  // auto-advance after short delay
+  setTimeout(() => nextStep(), 400);
+}
+
+// ── business type select (legacy)
+function selType(el) {
+  document.querySelectorAll('.btype-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// ── style select
+function selStyle(el) {
+  document.querySelectorAll('.style-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// ── navigation
+function updateStepUI() {
+  document.getElementById('ob-step-label').textContent=`שלב ${curStep} מתוך ${totalSteps}`;
+  for(let i=1;i<=totalSteps;i++){
+    const sp=document.getElementById('sp'+i);
+    const sc=document.getElementById('sc'+i);
+    sp.classList.remove('act','done');
+    if(i<curStep){ sp.classList.add('done'); sc.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'; }
+    else if(i===curStep){ sp.classList.add('act'); sc.textContent=i; }
+    else { sc.textContent=i; }
+    document.getElementById('pane'+i).classList.toggle('act',i===curStep);
+  }
+  document.getElementById('btn-back').style.display = curStep>1?'flex':'none';
+  document.getElementById('btn-next').textContent = curStep===totalSteps ? 'סיום וכניסה' : 'המשך';
+}
+
+function nextStep() {
+  if(curStep===totalSteps){ finish(); return; }
+  if(curStep<totalSteps){ curStep++; updateStepUI(); document.querySelector('.ob-content').scrollTop=0; }
+}
+
+function prevStep() {
+  if(curStep>1){ curStep--; updateStepUI(); document.querySelector('.ob-content').scrollTop=0; }
+}
+
+function jumpStep(n) { if(n<=curStep){ curStep=n; updateStepUI(); } }
+
+function sendCode() {
+  const n=document.getElementById('wa-number').value;
+  if(!n){ alert('נא להכניס מספר'); return; }
+  document.getElementById('code-row').style.display='block';
+  toast('קוד אימות נשלח ל-'+n);
+}
+
+function finish() {
+  const botName = document.querySelector('#pane2 input.fi')?.value || 'הבוט שלי';
+  const waNum = document.getElementById('wa-number')?.value || '---';
+  document.getElementById('s-bot-name').textContent = botName;
+  document.getElementById('s-wa').textContent = waNum || '---';
+  document.getElementById('s-ob').classList.remove('act');
+  document.getElementById('s-success').classList.add('act');
+}
+
+function toDash() { window.location.href = 'robert-dashboard.html'; }
+function showOb() {
+  document.getElementById('s-signup').classList.remove('act');
+  document.getElementById('s-ob').classList.add('act');
+}
+
+// ── init
+buildHours();
+buildServices();
+buildFaqs();
+updateStepUI();
+
+// Logged-in users arriving from the dashboard ("בוט חדש") skip the signup
+// screen and land straight on the bot-creation wizard.
+if (location.hash === '#bot') showOb();
+
+// ── toast
+function toast(msg) {
+  const t=document.createElement('div');
+  t.textContent=msg;
+  Object.assign(t.style,{position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%) translateY(6px)',background:'#1c1f2e',color:'#fff',padding:'10px 20px',borderRadius:'9px',fontSize:'13.5px',fontWeight:'600',zIndex:'9999',boxShadow:'0 4px 16px rgba(0,0,0,.25)',transition:'all .2s ease',opacity:'0',whiteSpace:'nowrap'});
+  document.body.appendChild(t);
+  requestAnimationFrame(()=>{t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';});
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},2400);
+}
+</script>
+</body>
+</html>

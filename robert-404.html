@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robert — הדף לא נמצא</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #f4f5f9;
+  --white:   #ffffff;
+  --green:   #22c55e;
+  --green-d: #16a34a;
+  --green-p: #dcfce7;
+  --t1:      #0f172a;
+  --t2:      #334155;
+  --t3:      #64748b;
+  --t4:      #94a3b8;
+  --bdr:     #e2e8f0;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; }
+
+body {
+  font-family:'Rubik', sans-serif;
+  background:var(--bg);
+  color:var(--t1);
+  direction:rtl;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  padding:24px;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* NAV */
+nav {
+  position:fixed; top:0; inset-inline:0;
+  height:56px; background:var(--white);
+  border-bottom:1px solid var(--bdr);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 24px; z-index:10;
+}
+.nav-logo { display:flex; align-items:center; gap:8px; text-decoration:none; }
+.nav-logo-mark {
+  width:26px; height:26px; border-radius:7px;
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  display:flex; align-items:center; justify-content:center;
+}
+.nav-logo-mark svg { width:14px; height:14px; }
+.nav-logo-name { font-size:16px; font-weight:800; color:var(--t1); }
+.nav-logo-name em { font-style:normal; color:var(--green-d); }
+.nav-links { display:flex; gap:10px; }
+
+/* CARD */
+.card {
+  background:var(--white);
+  border:1px solid var(--bdr);
+  border-radius:20px;
+  padding:40px 32px;
+  max-width:420px;
+  width:100%;
+  text-align:center;
+  box-shadow:0 4px 24px rgba(0,0,0,.07);
+  animation:fadeUp .3s ease;
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* 404 NUMBER */
+.num-wrap {
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:20px;
+}
+.num {
+  font-size:96px;
+  font-weight:900;
+  letter-spacing:-6px;
+  color:var(--bdr);
+  line-height:1;
+  user-select:none;
+}
+.robot-icon {
+  position:absolute;
+  width:52px; height:52px;
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  border-radius:14px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 16px rgba(34,197,94,.35);
+  animation:bob 3s ease-in-out infinite;
+}
+.robot-icon svg { width:28px; height:28px; }
+
+@keyframes bob {
+  0%,100% { transform:translateY(0); }
+  50%      { transform:translateY(-8px); }
+}
+
+.card-title {
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:-.5px;
+  color:var(--t1);
+  margin-bottom:8px;
+}
+
+.card-sub {
+  font-size:14px;
+  color:var(--t3);
+  line-height:1.7;
+  margin-bottom:28px;
+}
+
+/* BUTTONS */
+.btns { display:flex; flex-direction:column; gap:10px; }
+
+.btn {
+  padding:12px 24px;
+  border-radius:10px;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  border:none;
+  font-family:'Rubik',sans-serif;
+  transition:all .2s;
+  text-decoration:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+}
+.btn-primary {
+  background:var(--green);
+  color:#fff;
+  box-shadow:0 2px 10px rgba(34,197,94,.3);
+}
+.btn-primary:hover { background:var(--green-d); transform:translateY(-1px); }
+
+.btn-outline {
+  background:transparent;
+  border:1.5px solid var(--bdr);
+  color:var(--t2);
+}
+.btn-outline:hover { border-color:var(--t3); color:var(--t1); }
+
+/* DIVIDER */
+.or {
+  display:flex; align-items:center; gap:10px;
+  margin:4px 0; font-size:12px; color:var(--t4);
+}
+.or::before, .or::after { content:''; flex:1; height:1px; background:var(--bdr); }
+
+/* FOOTER NOTE */
+.foot-note {
+  margin-top:20px;
+  font-size:12px;
+  color:var(--t4);
+}
+.foot-note a { color:var(--green-d); text-decoration:none; font-weight:600; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="robert-landing.html" class="nav-logo">
+    <div class="nav-logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8l4 4-4 4"/></svg>
+    </div>
+    <div class="nav-logo-name">Robert<em>.</em></div>
+  </a>
+  <div class="nav-links">
+    <a href="robert-landing.html" class="btn btn-outline" style="padding:7px 16px;font-size:13px;">דף הבית</a>
+    <a href="robert-dashboard.html" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">כניסה</a>
+  </div>
+</nav>
+
+<!-- CARD -->
+<div class="card">
+  <div class="num-wrap">
+    <div class="num">404</div>
+    <div class="robot-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M12 11V7"/><circle cx="12" cy="5" r="2"/><path d="M8 15h.01M12 15h.01M16 15h.01"/></svg>
+    </div>
+  </div>
+
+  <div class="card-title">אופס — Robert לא מצא את הדף</div>
+  <div class="card-sub">
+    הדף שחיפשת לא קיים, הועבר או שהכתובת שגויה.<br>
+    אבל Robert תמיד כאן לעזור.
+  </div>
+
+  <div class="btns">
+    <a href="robert-landing.html" class="btn btn-primary">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      חזרה לדף הבית
+    </a>
+    <div class="or"><span>או</span></div>
+    <a href="robert-dashboard.html" class="btn btn-outline">כניסה לאזור האישי</a>
+  </div>
+
+  <div class="foot-note">
+    יש בעיה? <a href="mailto:support@robertbot.co.il">צור קשר</a>
+  </div>
+</div>
+
+</body>
+</html>

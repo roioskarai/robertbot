@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robert — אזור אישי</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #f4f5f9;
+  --white:       #ffffff;
+  --sidebar-bg:  #1c1f2e;
+  --sidebar-h:   #252a3d;
+  --sidebar-act: #2d3350;
+  --green:       #22c55e;
+  --green-d:     #16a34a;
+  --green-pale:  #dcfce7;
+  --green-text:  #15803d;
+  --purple:      #6d28d9;
+  --purple-pale: #ede9fe;
+  --blue:        #2563eb;
+  --blue-pale:   #dbeafe;
+  --red:         #dc2626;
+  --red-pale:    #fee2e2;
+  --amber:       #d97706;
+  --amber-pale:  #fef3c7;
+  --t1:          #0f172a;
+  --t2:          #334155;
+  --t3:          #64748b;
+  --t4:          #94a3b8;
+  --bdr:         #e2e8f0;
+  --bdr2:        #cbd5e1;
+  --shadow-sm:   0 1px 2px rgba(0,0,0,.05);
+  --shadow:      0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.05);
+  --shadow-md:   0 4px 16px rgba(0,0,0,.10);
+  --r:           10px;
+  --r-lg:        14px;
+  --sw:          232px;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; }
+body { font-family:'Rubik',sans-serif; background:var(--bg); color:var(--t1); direction:rtl; -webkit-font-smoothing:antialiased; display:flex; }
+
+/* ══════════════════════════════
+   SIDEBAR
+══════════════════════════════ */
+.sb {
+  width:260px; background:var(--sidebar-bg);
+  display:flex; flex-direction:column;
+  height:100vh; position:fixed; right:0; top:0;
+  z-index:300; flex-shrink:0;
+  transform:translateX(100%);
+  transition:transform .28s cubic-bezier(.4,0,.2,1);
+  box-shadow:-8px 0 32px rgba(0,0,0,.25);
+}
+.sb.open { transform:translateX(0); }
+.sb-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.4); z-index:299;
+  animation:fadeIn .2s ease;
+}
+.sb-overlay.show { display:block; }
+
+.sb-logo {
+  height:56px; display:flex; align-items:center; gap:10px;
+  padding:0 18px; border-bottom:1px solid rgba(255,255,255,.06);
+}
+.sb-logo-mark {
+  width:28px; height:28px; border-radius:7px;
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.sb-logo-mark svg { width:16px; height:16px; }
+.sb-logo-name { font-size:16px; font-weight:800; color:#fff; letter-spacing:-.3px; }
+.sb-logo-name span { color:var(--green); }
+
+.sb-scroll { flex:1; overflow-y:auto; padding:12px 10px; }
+.sb-scroll::-webkit-scrollbar { width:3px; }
+.sb-scroll::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:3px; }
+
+.sb-group { margin-bottom:6px; }
+.sb-group-label {
+  font-size:10px; font-weight:600; letter-spacing:1.8px; text-transform:uppercase;
+  color:rgba(255,255,255,.28); padding:10px 10px 5px;
+}
+
+.sb-item {
+  display:flex; align-items:center; gap:9px;
+  padding:8px 10px; border-radius:8px; cursor:pointer;
+  color:rgba(255,255,255,.55); font-size:13.5px; font-weight:500;
+  transition:all .16s; user-select:none; position:relative;
+  text-decoration:none;
+}
+.sb-item:hover { background:rgba(255,255,255,.06); color:rgba(255,255,255,.85); }
+.sb-item.act { background:var(--sidebar-act); color:#fff; }
+.sb-item.act .sb-icon { color:var(--green); }
+.sb-icon { width:17px; height:17px; flex-shrink:0; opacity:.7; }
+.sb-item.act .sb-icon { opacity:1; }
+.sb-item:hover .sb-icon { opacity:.9; }
+.sb-badge {
+  margin-right:auto; background:var(--red); color:#fff;
+  font-size:10px; font-weight:700; padding:1px 6px; border-radius:100px;
+  line-height:1.6;
+}
+.sb-new {
+  margin-right:auto; background:rgba(34,197,94,.15); color:#4ade80;
+  font-size:10px; font-weight:700; padding:1px 6px; border-radius:100px; line-height:1.6;
+}
+
+.sb-footer {
+  padding:10px; border-top:1px solid rgba(255,255,255,.06);
+}
+.sb-user {
+  display:flex; align-items:center; gap:9px;
+  padding:8px 10px; border-radius:8px; cursor:pointer;
+  transition:background .16s;
+}
+.sb-user:hover { background:rgba(255,255,255,.06); }
+.sb-av {
+  width:28px; height:28px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(135deg,#6d28d9,#a78bfa);
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700; color:#fff;
+}
+.sb-uname { font-size:13px; font-weight:500; color:rgba(255,255,255,.75); }
+.sb-uplan { font-size:11px; color:rgba(255,255,255,.35); margin-top:1px; }
+
+/* ══════════════════════════════
+   MAIN
+══════════════════════════════ */
+.main { margin-right:0; width:100%; min-height:100vh; display:flex; flex-direction:column; }
+
+.topbar {
+  height:56px; background:var(--white); border-bottom:1px solid var(--bdr);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 28px; position:sticky; top:0; z-index:100; flex-shrink:0;
+}
+.tb-title { font-size:15px; font-weight:700; color:var(--t1); }
+.tb-right { display:flex; align-items:center; gap:10px; }
+.tb-notif {
+  width:34px; height:34px; border-radius:8px; border:1px solid var(--bdr);
+  background:var(--white); display:flex; align-items:center; justify-content:center;
+  cursor:pointer; position:relative; transition:border-color .15s;
+}
+.tb-notif:hover { border-color:var(--bdr2); }
+.tb-notif-dot {
+  position:absolute; top:7px; left:7px; width:7px; height:7px;
+  background:var(--red); border-radius:50%; border:2px solid var(--white);
+}
+
+.content { padding:24px 28px; flex:1; }
+.page { display:none; }
+.page.act { display:block; animation:fadeIn .18s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+
+/* ══════════════════════════════
+   SHARED COMPONENTS
+══════════════════════════════ */
+.ph { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:22px; }
+.ph-title { font-size:19px; font-weight:800; letter-spacing:-.4px; color:var(--t1); }
+.ph-sub { font-size:13px; color:var(--t3); margin-top:3px; font-weight:400; }
+
+.card { background:var(--white); border:1px solid var(--bdr); border-radius:var(--r-lg); box-shadow:var(--shadow); }
+.card-pad { padding:20px 22px; }
+.card-title { font-size:14px; font-weight:700; color:var(--t1); margin-bottom:16px; }
+
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+.grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+.full { grid-column:1/-1; }
+
+/* stat card */
+.sc { padding:18px 20px; }
+.sc-label { font-size:12px; font-weight:500; color:var(--t3); margin-bottom:8px; }
+.sc-val { font-size:26px; font-weight:800; color:var(--t1); letter-spacing:-1px; line-height:1; }
+.sc-sub { font-size:12px; margin-top:5px; display:flex; align-items:center; gap:4px; }
+.up { color:var(--green-text); }
+.dn { color:var(--red); }
+.nt { color:var(--t4); }
+
+/* badge */
+.badge { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:600; padding:3px 9px; border-radius:100px; }
+.badge-green { background:var(--green-pale); color:var(--green-text); }
+.badge-gray { background:var(--bdr); color:var(--t3); }
+.badge-red { background:var(--red-pale); color:var(--red); }
+.badge-blue { background:var(--blue-pale); color:var(--blue); }
+.badge-amber { background:var(--amber-pale); color:var(--amber); }
+.badge-purple { background:var(--purple-pale); color:var(--purple); }
+
+/* status dot */
+.sdot { width:7px; height:7px; border-radius:50%; display:inline-block; flex-shrink:0; }
+.sdot-on { background:var(--green-d); }
+.sdot-off { background:var(--t4); }
+
+/* buttons */
+.btn { padding:8px 18px; border-radius:8px; font-size:13.5px; font-weight:600; cursor:pointer; border:none; transition:all .18s; font-family:'Rubik',sans-serif; display:inline-flex; align-items:center; gap:6px; }
+.btn-primary { background:var(--green); color:#fff; box-shadow:0 2px 8px rgba(34,197,94,.3); }
+.btn-primary:hover { background:var(--green-d); transform:translateY(-1px); }
+.btn-outline { background:transparent; border:1.5px solid var(--bdr2); color:var(--t2); }
+.btn-outline:hover { border-color:var(--t3); color:var(--t1); }
+.btn-ghost { background:transparent; color:var(--t3); }
+.btn-ghost:hover { background:var(--bg); color:var(--t1); }
+.btn-danger { background:var(--red-pale); color:var(--red); }
+.btn-danger:hover { background:#fecaca; }
+.btn-sm { padding:6px 14px; font-size:12.5px; }
+.btn-xs { padding:5px 11px; font-size:12px; }
+.hamburger-btn { width:34px; height:34px; border-radius:8px; border:1px solid var(--bdr); background:var(--white); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--t2); transition:all .15s; flex-shrink:0; }
+.hamburger-btn:hover { background:var(--bg); border-color:var(--bdr2); }
+.tb-logo { display:flex; align-items:center; gap:7px; }
+.tb-logo-mark { width:24px; height:24px; border-radius:6px; background:linear-gradient(135deg,#22c55e,#16a34a); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.tb-logo-mark svg { width:13px; height:13px; }
+.tb-logo-name { font-size:16px; font-weight:800; color:var(--t1); letter-spacing:-.3px; }
+.tb-logo-name em { font-style:normal; color:var(--green-d); }
+
+/* form */
+.fg { display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
+.fl { font-size:12px; font-weight:600; color:var(--t2); }
+.fi, .fs, .fta {
+  padding:8px 11px; border:1.5px solid var(--bdr2); border-radius:8px;
+  font-size:13.5px; color:var(--t1); font-family:'Rubik',sans-serif;
+  background:var(--white); outline:none; transition:border-color .18s;
+}
+.fi:focus, .fs:focus, .fta:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(34,197,94,.1); }
+.fta { resize:vertical; min-height:80px; line-height:1.6; }
+.fhint { font-size:11px; color:var(--t4); }
+
+/* toggle */
+.trow { display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--bdr); }
+.trow:last-child { border-bottom:none; }
+.tinfo h4 { font-size:13.5px; font-weight:600; color:var(--t1); margin-bottom:2px; }
+.tinfo p { font-size:12px; color:var(--t3); }
+.tog { position:relative; width:36px; height:20px; flex-shrink:0; }
+.tog input { opacity:0; width:0; height:0; }
+.tog-sl { position:absolute; inset:0; border-radius:100px; background:var(--bdr2); cursor:pointer; transition:background .2s; }
+.tog-sl::before { content:''; position:absolute; width:14px; height:14px; border-radius:50%; background:#fff; top:3px; right:3px; transition:transform .2s; box-shadow:0 1px 2px rgba(0,0,0,.15); }
+.tog input:checked + .tog-sl { background:var(--green); }
+.tog input:checked + .tog-sl::before { transform:translateX(-16px); }
+
+/* divider */
+.divd { height:1px; background:var(--bdr); margin:18px 0; }
+.divd-label { display:flex; align-items:center; gap:10px; margin:16px 0; }
+.divd-label span { font-size:11px; color:var(--t4); white-space:nowrap; }
+.divd-label::before, .divd-label::after { content:''; flex:1; height:1px; background:var(--bdr); }
+
+/* table */
+.tbl { width:100%; border-collapse:collapse; }
+.tbl th { font-size:11px; font-weight:600; color:var(--t4); text-align:right; padding:8px 14px; border-bottom:1px solid var(--bdr); letter-spacing:.5px; text-transform:uppercase; }
+.tbl td { font-size:13.5px; color:var(--t2); padding:11px 14px; border-bottom:1px solid var(--bdr); }
+.tbl tr:last-child td { border-bottom:none; }
+.tbl tr:hover td { background:#fafbfc; }
+
+/* usage bar */
+.ubar-wrap { margin:10px 0 4px; }
+.ubar-top { display:flex; justify-content:space-between; font-size:12px; color:var(--t3); margin-bottom:5px; font-weight:500; }
+.ubar { height:5px; background:var(--bdr); border-radius:100px; overflow:hidden; }
+.ubar-fill { height:100%; background:linear-gradient(90deg,var(--green),var(--green-d)); border-radius:100px; }
+.ubar-fill.warn { background:linear-gradient(90deg,#f59e0b,#d97706); }
+.ubar-fill.danger { background:linear-gradient(90deg,#ef4444,#dc2626); }
+
+/* ══════════════════════════════
+   PAGE: OVERVIEW
+══════════════════════════════ */
+.chart-bar-wrap { display:flex; align-items:flex-end; gap:5px; height:80px; padding:0 4px; }
+.cbar { flex:1; border-radius:4px 4px 0 0; background:var(--green-pale); transition:background .2s; min-width:0; position:relative; }
+.cbar:hover { background:var(--green); }
+.cbar-label { font-size:9px; color:var(--t4); text-align:center; margin-top:4px; }
+
+/* ══════════════════════════════
+   PAGE: BOTS
+══════════════════════════════ */
+.bots-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+
+.bot-card {
+  background:var(--white); border:1.5px solid var(--bdr);
+  border-radius:var(--r-lg); padding:18px 18px 14px;
+  cursor:pointer; transition:all .2s; position:relative;
+}
+.bot-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); border-color:var(--bdr2); }
+.bot-card.sel { border-color:var(--green); box-shadow:0 0 0 2px rgba(34,197,94,.15); }
+
+.bc-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.bc-icon {
+  width:38px; height:38px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; font-weight:800; flex-shrink:0;
+}
+.bc-name { font-size:14px; font-weight:700; color:var(--t1); margin-bottom:2px; }
+.bc-desc { font-size:12px; color:var(--t3); line-height:1.5; margin-bottom:12px; }
+.bc-foot { display:flex; align-items:center; justify-content:space-between; }
+.bc-phone { font-size:11.5px; color:var(--t4); font-weight:500; }
+.bc-count { font-size:11.5px; color:var(--t3); font-weight:500; }
+
+.add-card {
+  background:transparent; border:1.5px dashed var(--bdr2);
+  border-radius:var(--r-lg); padding:18px;
+  cursor:pointer; transition:all .2s;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-height:148px; gap:8px;
+}
+.add-card:hover { border-color:var(--green); background:rgba(34,197,94,.03); }
+.add-card svg { color:var(--t4); transition:color .2s; }
+.add-card:hover svg { color:var(--green-d); }
+.add-card span { font-size:13.5px; font-weight:600; color:var(--t3); transition:color .2s; }
+.add-card:hover span { color:var(--green-d); }
+
+/* editor */
+.editor {
+  display:none; margin-top:16px;
+  background:var(--white); border:1px solid var(--bdr);
+  border-radius:var(--r-lg); box-shadow:var(--shadow-md); overflow:hidden;
+}
+.editor.open { display:block; animation:fadeIn .2s ease; }
+.ed-hdr {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 20px; border-bottom:1px solid var(--bdr); background:var(--bg);
+}
+.ed-title { font-size:14px; font-weight:700; }
+.ed-tabs { display:flex; gap:2px; }
+.etab {
+  padding:5px 13px; border-radius:7px; font-size:13px; font-weight:600;
+  cursor:pointer; color:var(--t3); transition:all .15s;
+  border:none; background:transparent; font-family:'Rubik',sans-serif;
+}
+.etab.act { background:var(--white); color:var(--t1); box-shadow:var(--shadow-sm); }
+.etab:hover:not(.act) { color:var(--t1); }
+.ed-close { width:28px; height:28px; border-radius:6px; background:transparent; border:1px solid var(--bdr); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--t3); transition:all .15s; }
+.ed-close:hover { background:var(--bg); }
+.ed-body { padding:20px; }
+.etab-pane { display:none; }
+.etab-pane.act { display:block; }
+.form-row2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+.faq-row { display:flex; gap:8px; align-items:center; padding:8px 10px; background:var(--bg); border:1px solid var(--bdr); border-radius:8px; margin-bottom:7px; }
+.faq-row input { flex:1; border:none; background:transparent; font-size:13px; color:var(--t1); outline:none; font-family:'Rubik',sans-serif; }
+.faq-del { color:var(--t4); cursor:pointer; font-size:16px; padding:0 3px; transition:color .15s; }
+.faq-del:hover { color:var(--red); }
+
+.conn-box { background:var(--bg); border:1px solid var(--bdr); border-radius:var(--r); padding:16px 18px; }
+.conn-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.conn-ic { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.conn-ic-on { background:var(--green-pale); }
+.conn-ic-off { background:var(--bdr); }
+.conn-ic svg { width:18px; height:18px; }
+
+.ed-actions { display:flex; justify-content:flex-end; gap:8px; padding-top:14px; border-top:1px solid var(--bdr); margin-top:14px; }
+
+/* ══════════════════════════════
+   PAGE: INBOX
+══════════════════════════════ */
+.inbox-wrap { display:grid; grid-template-columns:280px 1fr; gap:14px; height:calc(100vh - 136px); }
+.inbox-list { background:var(--white); border:1px solid var(--bdr); border-radius:var(--r-lg); overflow:hidden; display:flex; flex-direction:column; box-shadow:var(--shadow); }
+.inbox-search { padding:10px; border-bottom:1px solid var(--bdr); }
+.inbox-search input { width:100%; padding:7px 11px; border:1px solid var(--bdr2); border-radius:7px; font-size:13px; font-family:'Rubik',sans-serif; outline:none; color:var(--t1); background:var(--bg); }
+.inbox-search input:focus { border-color:var(--green); background:var(--white); }
+.conv-list { flex:1; overflow-y:auto; }
+.conv-item { display:flex; align-items:flex-start; gap:9px; padding:11px 12px; border-bottom:1px solid var(--bdr); cursor:pointer; transition:background .15s; }
+.conv-item:hover { background:var(--bg); }
+.conv-item.act { background:#f0fdf4; border-right:3px solid var(--green); }
+.conv-av { width:32px; height:32px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; }
+.conv-name { font-size:13px; font-weight:600; color:var(--t1); }
+.conv-prev { font-size:11.5px; color:var(--t3); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; }
+.conv-time { font-size:10.5px; color:var(--t4); white-space:nowrap; }
+.conv-unread { width:7px; height:7px; background:var(--green); border-radius:50%; margin-top:3px; flex-shrink:0; }
+
+.chat-wrap { background:var(--white); border:1px solid var(--bdr); border-radius:var(--r-lg); display:flex; flex-direction:column; overflow:hidden; box-shadow:var(--shadow); }
+.chat-hdr { padding:12px 18px; border-bottom:1px solid var(--bdr); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.chat-msgs { flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:8px; background:#f8f9fc; }
+.bubble { max-width:72%; padding:9px 12px; border-radius:11px; font-size:13px; line-height:1.55; }
+.bin { background:#fff; color:var(--t1); align-self:flex-start; border-bottom-right-radius:2px; box-shadow:0 1px 2px rgba(0,0,0,.06); }
+.bout { background:#dcf8c6; color:var(--t1); align-self:flex-end; border-bottom-left-radius:2px; }
+.bagent { background:var(--purple-pale); color:#4c1d95; align-self:flex-end; border-bottom-left-radius:2px; font-style:italic; }
+.bt { font-size:10px; color:var(--t4); margin-top:3px; }
+.chat-input { padding:11px 14px; border-top:1px solid var(--bdr); display:flex; gap:9px; align-items:center; flex-shrink:0; }
+.chat-input input { flex:1; padding:8px 12px; border:1px solid var(--bdr2); border-radius:8px; font-size:13px; font-family:'Rubik',sans-serif; outline:none; }
+.chat-input input:focus { border-color:var(--green); }
+
+/* ══════════════════════════════
+   PAGE: ANALYTICS
+══════════════════════════════ */
+.analytics-grid { display:grid; grid-template-columns:2fr 1fr; gap:16px; }
+.analytics-card { background:var(--white); border:1px solid var(--bdr); border-radius:var(--r-lg); padding:20px 22px; box-shadow:var(--shadow); }
+.chart-line-wrap { height:120px; display:flex; align-items:flex-end; gap:3px; margin-top:12px; }
+.cl-bar { flex:1; border-radius:3px 3px 0 0; background:var(--green-pale); transition:background .15s; position:relative; cursor:pointer; }
+.cl-bar:hover { background:var(--green); }
+.cl-labels { display:flex; justify-content:space-between; margin-top:5px; }
+.cl-label { font-size:9px; color:var(--t4); text-align:center; flex:1; }
+.metric-row { display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--bdr); }
+.metric-row:last-child { border-bottom:none; }
+.metric-name { font-size:13px; color:var(--t2); }
+.metric-val { font-size:14px; font-weight:700; color:var(--t1); }
+
+/* ══════════════════════════════
+   PAGE: HISTORY
+══════════════════════════════ */
+.hist-filters { display:flex; gap:8px; margin-bottom:14px; }
+.hf-pill { padding:5px 13px; border-radius:100px; font-size:12.5px; font-weight:600; cursor:pointer; border:1.5px solid var(--bdr2); color:var(--t3); transition:all .15s; background:var(--white); font-family:'Rubik',sans-serif; }
+.hf-pill.act { background:var(--t1); color:#fff; border-color:var(--t1); }
+.hf-pill:hover:not(.act) { border-color:var(--t3); color:var(--t1); }
+
+/* ══════════════════════════════
+   PAGE: BILLING
+══════════════════════════════ */
+.plan-box {
+  background:linear-gradient(135deg,#1c1f2e,#252a3d);
+  border-radius:var(--r-lg); padding:20px 22px; color:#fff; margin-bottom:18px;
+}
+.plan-box-name { font-size:11px; font-weight:600; color:rgba(255,255,255,.45); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px; }
+.plan-box-price { font-size:30px; font-weight:900; letter-spacing:-1.5px; }
+.plan-box-price sub { font-size:15px; font-weight:400; color:rgba(255,255,255,.5); }
+.plan-box-renew { font-size:12px; color:rgba(255,255,255,.4); margin-top:4px; }
+
+.plans-compare { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px; }
+.plan-opt { background:var(--bg); border:1.5px solid var(--bdr); border-radius:var(--r-lg); padding:16px; position:relative; cursor:pointer; transition:all .2s; }
+.plan-opt:hover { border-color:var(--bdr2); }
+.plan-opt.cur { border-color:var(--green); background:rgba(34,197,94,.04); }
+.plan-opt-badge { position:absolute; top:-10px; left:50%; transform:translateX(-50%); background:var(--green); color:#fff; font-size:10px; font-weight:700; padding:2px 12px; border-radius:100px; white-space:nowrap; }
+.plan-opt-name { font-size:11px; font-weight:700; color:var(--t4); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; }
+.plan-opt-price { font-size:22px; font-weight:800; letter-spacing:-1px; color:var(--t1); margin-bottom:10px; }
+.plan-opt-price sub { font-size:13px; font-weight:400; color:var(--t4); }
+.plan-opt-feat { font-size:12px; color:var(--t3); line-height:1.8; }
+
+.cc-row { display:flex; align-items:center; gap:12px; padding:12px 14px; background:var(--bg); border:1px solid var(--bdr); border-radius:var(--r); margin-bottom:12px; }
+.cc-icon { width:36px; height:24px; background:var(--blue-pale); border-radius:4px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.cc-icon svg { width:20px; height:20px; color:var(--blue); }
+.cc-info { flex:1; }
+.cc-num { font-size:13.5px; font-weight:600; color:var(--t1); }
+.cc-exp { font-size:12px; color:var(--t3); margin-top:1px; }
+
+/* referral */
+.ref-box { background:linear-gradient(135deg,var(--purple-pale),var(--blue-pale)); border:1px solid rgba(109,40,217,.15); border-radius:var(--r-lg); padding:20px 22px; }
+.ref-title { font-size:15px; font-weight:700; color:var(--t1); margin-bottom:4px; }
+.ref-sub { font-size:13px; color:var(--t2); margin-bottom:14px; line-height:1.6; }
+.ref-link-row { display:flex; gap:8px; }
+.ref-link { flex:1; padding:8px 12px; background:var(--white); border:1.5px solid var(--bdr2); border-radius:8px; font-size:13px; color:var(--t2); font-family:'Rubik',sans-serif; outline:none; }
+.ref-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px; }
+.ref-stat { background:rgba(255,255,255,.7); border-radius:8px; padding:10px 12px; text-align:center; }
+.ref-stat-n { font-size:20px; font-weight:800; color:var(--t1); }
+.ref-stat-l { font-size:11px; color:var(--t3); margin-top:2px; }
+
+/* ══════════════════════════════
+   PAGE: TEMPLATES
+══════════════════════════════ */
+.tmpl-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+.tmpl-card { background:var(--white); border:1.5px solid var(--bdr); border-radius:var(--r-lg); padding:16px; cursor:pointer; transition:all .2s; }
+.tmpl-card:hover { border-color:var(--green); box-shadow:var(--shadow-md); transform:translateY(-2px); }
+.tmpl-tag { font-size:11px; font-weight:600; color:var(--t4); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.tmpl-name { font-size:14px; font-weight:700; color:var(--t1); margin-bottom:6px; }
+.tmpl-desc { font-size:12px; color:var(--t3); line-height:1.55; margin-bottom:12px; }
+
+/* ══════════════════════════════
+   PAGE: SETTINGS / SUPPORT
+══════════════════════════════ */
+.support-list { display:flex; flex-direction:column; gap:8px; }
+.support-item { display:flex; align-items:center; gap:14px; padding:14px 16px; background:var(--white); border:1px solid var(--bdr); border-radius:var(--r-lg); cursor:pointer; transition:all .18s; box-shadow:var(--shadow); }
+.support-item:hover { transform:translateY(-1px); box-shadow:var(--shadow-md); }
+.support-ic { width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.support-title { font-size:14px; font-weight:600; color:var(--t1); margin-bottom:2px; }
+.support-sub { font-size:12px; color:var(--t3); }
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sb">
+  <div class="sb-logo">
+    <div class="sb-logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8l4 4-4 4"/></svg>
+    </div>
+    <div class="sb-logo-name">Robert<span>.</span></div>
+  </div>
+
+  <div class="sb-scroll">
+    <div class="sb-group">
+      <div class="sb-item" onclick="window.location.href='robert-landing.html'" style="margin-bottom:4px;">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        דף הבית
+      </div>
+    </div>
+    <div class="sb-group">
+      <div class="sb-group-label">סקירה</div>
+      <div class="sb-item act" onclick="goPage('overview','סקירה כללית')">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        סקירה כללית
+      </div>
+    </div>
+
+    <div class="sb-group">
+      <div class="sb-group-label">בוטים</div>
+      <div class="sb-item" onclick="goPage('bots','הבוטים שלי')">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M12 11V7"/><circle cx="12" cy="5" r="2"/><path d="M8 15h.01M12 15h.01M16 15h.01"/></svg>
+        הבוטים שלי
+      </div>
+      <div class="sb-item" onclick="goPage('inbox','Inbox')">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Inbox
+        <span class="sb-badge">3</span>
+      </div>
+      <div class="sb-item" onclick="goPage('history','היסטוריית שיחות')">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z" rx="2"/><path d="M8 12h8M8 8h5M8 16h3"/></svg>
+        היסטוריית שיחות
+      </div>
+      <div class="sb-item" onclick="goPage('analytics','אנליטיקס')">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        אנליטיקס
+      </div>
+      <div class="sb-item" onclick="goPage('templates','תבניות מוכנות')">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        תבניות מוכנות
+        <span class="sb-new">חדש</span>
+      </div>
+    </div>
+
+    <div class="sb-group">
+      <div class="sb-group-label">חשבון</div>
+      <div class="sb-item" onclick="goPage('billing','מנוי וחיוב')">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+        מנוי וחיוב
+      </div>
+      <div class="sb-item" onclick="openStore()">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        מחירון וחנות
+      </div>
+      <div class="sb-item" onclick="goPage('account','הגדרות חשבון')">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        הגדרות חשבון
+      </div>
+      <div class="sb-item" onclick="goPage('support','תמיכה')">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        תמיכה
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-av">ד</div>
+      <div>
+        <div class="sb-uname">דני כהן</div>
+        <div class="sb-uplan">מסלול מקצועי</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+  <!-- OVERLAY -->
+  <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
+
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <!-- hamburger -->
+      <button class="hamburger-btn" onclick="toggleSidebar()" id="hamburger-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="tb-logo">
+        <div class="tb-logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8l4 4-4 4"/></svg>
+        </div>
+        <span class="tb-logo-name">Robert<em>.</em></span>
+      </div>
+    </div>
+    <div class="tb-right">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="tb-notif">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <div class="tb-notif-dot"></div>
+        </div>
+        <button class="btn btn-sm" onclick="goPage('store','חנות')" style="background:linear-gradient(135deg,#1c1f2e,#2d3350);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+          שדרג
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="window.location.href='robert-onboarding.html#bot'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          בוט חדש
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ OVERVIEW ══ -->
+    <div class="page act" id="p-overview">
+      <div class="ph"><div><div class="ph-title">בוקר טוב, דני</div><div class="ph-sub">הנה מה שקורה אצלך היום</div></div></div>
+      <div class="grid-4" style="margin-bottom:16px;">
+        <div class="card sc">
+          <div class="sc-label">הודעות היום</div>
+          <div class="sc-val">47</div>
+          <div class="sc-sub up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg> 12% מאתמול</div>
+        </div>
+        <div class="card sc">
+          <div class="sc-label">שיחות פתוחות</div>
+          <div class="sc-val">3</div>
+          <div class="sc-sub dn">ממתינות לתגובה</div>
+        </div>
+        <div class="card sc">
+          <div class="sc-label">שיחות שנסגרו</div>
+          <div class="sc-val">124</div>
+          <div class="sc-sub up">החודש</div>
+        </div>
+        <div class="card sc">
+          <div class="sc-label">בוטים פעילים</div>
+          <div class="sc-val">2</div>
+          <div class="sc-sub nt">מ-3 אפשריים</div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card card-pad">
+          <div class="card-title">הודעות השבוע</div>
+          <div class="chart-bar-wrap" id="chart-bars"></div>
+          <div style="display:flex;justify-content:space-between;margin-top:4px;">
+            <span style="font-size:9px;color:var(--t4);">א'</span>
+            <span style="font-size:9px;color:var(--t4);">ב'</span>
+            <span style="font-size:9px;color:var(--t4);">ג'</span>
+            <span style="font-size:9px;color:var(--t4);">ד'</span>
+            <span style="font-size:9px;color:var(--t4);">ה'</span>
+            <span style="font-size:9px;color:var(--t4);">ו'</span>
+            <span style="font-size:9px;color:var(--t4);">ש'</span>
+          </div>
+        </div>
+        <div class="card card-pad">
+          <div class="card-title">שימוש במנוי</div>
+          <div class="ubar-wrap">
+            <div class="ubar-top"><span>הודעות החודש</span><span>847 / 1,000</span></div>
+            <div class="ubar"><div class="ubar-fill" style="width:42%"></div></div>
+          </div>
+          <div class="ubar-wrap">
+            <div class="ubar-top"><span>בוטים פעילים</span><span>2 / 3</span></div>
+            <div class="ubar"><div class="ubar-fill" style="width:67%"></div></div>
+          </div>
+          <div class="divd"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:13px;color:var(--t3);">מסלול מקצועי · חידוש 1.7.26</span>
+            <button class="btn btn-outline btn-xs" onclick="goPage('billing','מנוי וחיוב')">שדרג</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ BOTS ══ -->
+    <div class="page" id="p-bots">
+      <div class="ph">
+        <div><div class="ph-title">הבוטים שלי</div><div class="ph-sub">ניהול ועריכת הבוטים שלך</div></div>
+      </div>
+      <div class="bots-grid" id="bots-grid">
+        <div class="bot-card" id="bc1" onclick="selBot(1,this)">
+          <div class="bc-top">
+            <div class="bc-icon" style="background:var(--green-pale);color:var(--green-text);">מ</div>
+            <span class="badge badge-green"><span class="sdot sdot-on"></span>פעיל</span>
+          </div>
+          <div class="bc-name">מספרת מיטל</div>
+          <div class="bc-desc">עונה על שאלות, קובע תורים ומסביר על השירותים</div>
+          <div class="bc-foot">
+            <span class="bc-phone">050-1234567</span>
+            <span class="bc-count">432 הודעות</span>
+          </div>
+        </div>
+        <div class="bot-card" id="bc2" onclick="selBot(2,this)">
+          <div class="bc-top">
+            <div class="bc-icon" style="background:var(--purple-pale);color:var(--purple);">ג</div>
+            <span class="badge badge-green"><span class="sdot sdot-on"></span>פעיל</span>
+          </div>
+          <div class="bc-name">גריל הבשרים</div>
+          <div class="bc-desc">תפריט, שעות פתיחה, הזמנת שולחן</div>
+          <div class="bc-foot">
+            <span class="bc-phone">052-9876543</span>
+            <span class="bc-count">415 הודעות</span>
+          </div>
+        </div>
+        <div class="add-card" onclick="window.location.href='robert-onboarding.html#bot'">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          <span>הוסף בוט חדש</span>
+        </div>
+      </div>
+
+      <!-- EDITOR -->
+      <div class="editor" id="editor">
+        <div class="ed-hdr">
+          <div class="ed-title" id="ed-title">עריכת בוט</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="ed-tabs">
+              <button class="etab act" onclick="etab('info',this)">פרטים</button>
+              <button class="etab" onclick="etab('faq',this)">שאלות נפוצות</button>
+              <button class="etab" onclick="etab('connect',this)">חיבור וואטסאפ</button>
+            </div>
+            <button class="ed-close" onclick="closeEd()">✕</button>
+          </div>
+        </div>
+        <div class="ed-body">
+          <div class="etab-pane act" id="ep-info">
+            <div class="form-row2">
+              <div class="fg"><label class="fl">שם העסק</label><input class="fi" id="ei-name" value="מספרת מיטל"></div>
+              <div class="fg"><label class="fl">סגנון דיבור</label><select class="fs"><option>חברותי ונעים</option><option>מקצועי ורשמי</option><option>קצר ולעניין</option></select></div>
+            </div>
+            <div class="form-row2">
+              <div class="fg">
+                <label class="fl">שם הבוט</label>
+                <input class="fi" id="ei-botname" value="מיטל" placeholder="למשל: מיטל, נציג, העוזר שלי...">
+                <span class="fhint">השם שלקוחות הקצה רואים בוואטסאפ — שונה מבוט לבוט</span>
+              </div>
+              <div class="fg">
+                <label class="fl">תצוגה מקדימה</label>
+                <div style="background:#075e54;border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:8px;margin-top:2px;">
+                  <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;" id="dash-bot-av">מ</div>
+                  <div style="font-size:12px;font-weight:700;color:#fff;" id="dash-bot-name-display">מיטל</div>
+                </div>
+              </div>
+            </div>
+            <div class="fg"><label class="fl">תיאור העסק והשירות</label><textarea class="fta">מספרת נשים ובנות במרכז תל אביב. מתמחות בתספורת, צביעה ועיצוב שיער. פתוחות א'-ו' 9:00-19:00.</textarea><span class="fhint">Robert משתמש בתיאור זה כדי לענות ללקוחות</span></div>
+            <div class="trow"><div class="tinfo"><h4>מסירה לנציג אנושי</h4><p>כשהבוט לא יודע לענות — מעביר אליך</p></div><label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label></div>
+            <div class="trow"><div class="tinfo"><h4>מצב שינה מחוץ לשעות פעילות</h4><p>שולח הודעה אוטומטית אחרי שעות הפעילות</p></div><label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label></div>
+            <div class="trow"><div class="tinfo"><h4>הבוט פעיל</h4><p>כיבוי זמני ללא מחיקה</p></div><label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label></div>
+          </div>
+          <div class="etab-pane" id="ep-faq">
+            <p style="font-size:13px;color:var(--t3);margin-bottom:14px;">הוסף שאלות שלקוחות שואלים לעתים קרובות — Robert יענה עליהן אוטומטית.</p>
+            <div id="faq-list">
+              <div class="faq-row"><input value="כמה עולה תספורת?"><input value="תספורת נשים ₪120, בנות ₪80"><span class="faq-del" onclick="this.parentElement.remove()">×</span></div>
+              <div class="faq-row"><input value="מה שעות הפעילות?"><input value="א'-ו' 9:00-19:00, שבת סגור"><span class="faq-del" onclick="this.parentElement.remove()">×</span></div>
+              <div class="faq-row"><input value="איך קובעים תור?"><input value="דרך הוואטסאפ שלנו או בטלפון 050-1234567"><span class="faq-del" onclick="this.parentElement.remove()">×</span></div>
+            </div>
+            <button class="btn btn-outline btn-sm" style="margin-top:4px;" onclick="addFaq()">+ הוסף שאלה</button>
+          </div>
+          <div class="etab-pane" id="ep-connect">
+            <div class="conn-box">
+              <div class="conn-row">
+                <div class="conn-ic conn-ic-on"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green-d)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div><div style="font-size:14px;font-weight:700;">מחובר — 050-1234567</div><div style="font-size:12px;color:var(--t3);margin-top:2px;">הבוט פעיל ועונה על הודעות</div></div>
+              </div>
+              <button class="btn btn-outline btn-sm">נתק מספר</button>
+            </div>
+            <div style="margin-top:16px;">
+              <p style="font-size:13px;font-weight:600;color:var(--t2);margin-bottom:10px;">חיבור מספר אחר</p>
+              <div style="display:flex;gap:8px;"><input class="fi" placeholder="05X-XXXXXXX" style="flex:1;"><button class="btn btn-primary btn-sm">חבר</button></div>
+            </div>
+          </div>
+          <div class="ed-actions">
+            <button class="btn btn-danger btn-sm">מחק בוט</button>
+            <button class="btn btn-outline btn-sm" onclick="closeEd()">ביטול</button>
+            <button class="btn btn-primary btn-sm" onclick="saveBot()">שמור שינויים</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ INBOX ══ -->
+    <div class="page" id="p-inbox">
+      <div class="ph"><div><div class="ph-title">Inbox</div><div class="ph-sub">שיחות הממתינות למענה אנושי</div></div></div>
+      <div class="inbox-wrap">
+        <div class="inbox-list">
+          <div class="inbox-search"><input placeholder="חיפוש שיחה..."></div>
+          <div class="conv-list">
+            <div class="conv-item act" onclick="selConv(this)">
+              <div class="conv-av" style="background:#ede9fe;color:#6d28d9;">ר</div>
+              <div style="flex:1;min-width:0;"><div class="conv-name">רחל לוי</div><div class="conv-prev">יש לך מקום לשישי בבוקר?</div></div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="conv-time">09:41</div><div class="conv-unread"></div></div>
+            </div>
+            <div class="conv-item" onclick="selConv(this)">
+              <div class="conv-av" style="background:#fef3c7;color:#b45309;">מ</div>
+              <div style="flex:1;min-width:0;"><div class="conv-name">משה כהן</div><div class="conv-prev">אפשר לדחות את התור?</div></div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="conv-time">08:22</div><div class="conv-unread"></div></div>
+            </div>
+            <div class="conv-item" onclick="selConv(this)">
+              <div class="conv-av" style="background:#dcfce7;color:#16a34a;">ש</div>
+              <div style="flex:1;min-width:0;"><div class="conv-name">שרה אברהם</div><div class="conv-prev">כמה עולה צביעה שלמה?</div></div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="conv-time">אתמול</div><div class="conv-unread"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="chat-wrap">
+          <div class="chat-hdr">
+            <div><div style="font-size:14px;font-weight:700;">רחל לוי</div><div style="font-size:12px;color:var(--t3);margin-top:1px;">מספרת מיטל · 052-1234567</div></div>
+            <span class="badge badge-amber">מענה אנושי</span>
+          </div>
+          <div class="chat-msgs">
+            <div class="bubble bin">יש לך מקום פנוי ביום שישי בבוקר?<div class="bt">09:38</div></div>
+            <div class="bubble bagent">היי רחל! ביום שישי יש מקומות ב-09:00 וב-11:00. מה מתאים לך?<div class="bt">09:38 · Robert</div></div>
+            <div class="bubble bin">אהה אין לי ב-11 שיעור לילדה. יש גם אחר הצהריים?<div class="bt">09:40</div></div>
+            <div class="bubble bagent">ביום שישי אנחנו סוגרות ב-14:00. יכולה ב-12:30?<div class="bt">09:40 · Robert</div></div>
+            <div class="bubble bin">יש לך מקום לשישי בבוקר?<div class="bt">09:41</div></div>
+          </div>
+          <div class="chat-input">
+            <input placeholder="כתוב תגובה...">
+            <button class="btn btn-primary btn-sm">שלח</button>
+            <button class="btn btn-outline btn-sm">החזר ל-Robert</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ HISTORY ══ -->
+    <div class="page" id="p-history">
+      <div class="ph"><div><div class="ph-title">היסטוריית שיחות</div><div class="ph-sub">כל השיחות שהבוטים שלך ניהלו</div></div></div>
+      <div class="hist-filters">
+        <button class="hf-pill act">הכל</button>
+        <button class="hf-pill" onclick="hpill(this)">הושלם ע"י בוט</button>
+        <button class="hf-pill" onclick="hpill(this)">הועבר לאדם</button>
+        <button class="hf-pill" onclick="hpill(this)">מספרת מיטל</button>
+        <button class="hf-pill" onclick="hpill(this)">גריל הבשרים</button>
+      </div>
+      <div class="card">
+        <table class="tbl">
+          <thead><tr><th>שם לקוח</th><th>בוט</th><th>נושא</th><th>תאריך</th><th>סטטוס</th><th></th></tr></thead>
+          <tbody>
+            <tr><td style="font-weight:600;">רחל לוי</td><td>מספרת מיטל</td><td>קביעת תור לשישי</td><td>היום 09:41</td><td><span class="badge badge-amber">הועבר לאדם</span></td><td><button class="btn btn-ghost btn-xs">צפה</button></td></tr>
+            <tr><td style="font-weight:600;">יוסי גולן</td><td>גריל הבשרים</td><td>הזמנת שולחן ל-6</td><td>היום 08:15</td><td><span class="badge badge-green">הושלם</span></td><td><button class="btn btn-ghost btn-xs">צפה</button></td></tr>
+            <tr><td style="font-weight:600;">דינה ברק</td><td>מספרת מיטל</td><td>שאלה על מחיר צביעה</td><td>אתמול 18:30</td><td><span class="badge badge-green">הושלם</span></td><td><button class="btn btn-ghost btn-xs">צפה</button></td></tr>
+            <tr><td style="font-weight:600;">אמיר כץ</td><td>גריל הבשרים</td><td>שאלות על התפריט</td><td>אתמול 14:12</td><td><span class="badge badge-green">הושלם</span></td><td><button class="btn btn-ghost btn-xs">צפה</button></td></tr>
+            <tr><td style="font-weight:600;">מיכל שמיר</td><td>מספרת מיטל</td><td>ביטול תור</td><td>אתמול 11:05</td><td><span class="badge badge-red">בוטל</span></td><td><button class="btn btn-ghost btn-xs">צפה</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ ANALYTICS ══ -->
+    <div class="page" id="p-analytics">
+      <div class="ph"><div><div class="ph-title">אנליטיקס</div><div class="ph-sub">ביצועי הבוטים שלך לאורך זמן</div></div></div>
+      <div class="grid-4" style="margin-bottom:16px;">
+        <div class="card sc"><div class="sc-label">הודעות החודש</div><div class="sc-val">847</div><div class="sc-sub up">↑ 23% מחודש שעבר</div></div>
+        <div class="card sc"><div class="sc-label">שיחות שהושלמו</div><div class="sc-val">124</div><div class="sc-sub up">98% ע"י הבוט</div></div>
+        <div class="card sc"><div class="sc-label">זמן תגובה ממוצע</div><div class="sc-val">3שנ'</div><div class="sc-sub up">מהיר מאוד</div></div>
+        <div class="card sc"><div class="sc-label">שביעות רצון</div><div class="sc-val">4.8</div><div class="sc-sub up">מתוך 5</div></div>
+      </div>
+      <div class="analytics-grid">
+        <div class="analytics-card">
+          <div class="card-title">הודעות לפי חודש</div>
+          <div class="chart-line-wrap" id="analytics-chart"></div>
+          <div class="cl-labels"><span>ינו'</span><span>פבר'</span><span>מרץ</span><span>אפר'</span><span>מאי</span><span>יוני</span></div>
+        </div>
+        <div class="analytics-card">
+          <div class="card-title">פירוט ביצועים</div>
+          <div class="metric-row"><span class="metric-name">שאלות שנענו ע"י בוט</span><span class="metric-val">94%</span></div>
+          <div class="metric-row"><span class="metric-name">שיחות שהועברו לאדם</span><span class="metric-val">6%</span></div>
+          <div class="metric-row"><span class="metric-name">ממוצע הודעות לשיחה</span><span class="metric-val">6.8</span></div>
+          <div class="metric-row"><span class="metric-name">שיא שיחות ביום</span><span class="metric-val">43</span></div>
+          <div class="metric-row"><span class="metric-name">שעת שיא</span><span class="metric-val">10:00–12:00</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TEMPLATES ══ -->
+    <div class="page" id="p-templates">
+      <div class="ph"><div><div class="ph-title">תבניות מוכנות</div><div class="ph-sub">בחר תבנית ותפעיל בוט תוך דקות</div></div></div>
+      <div class="tmpl-grid">
+        <div class="tmpl-card"><div class="tmpl-tag">יופי ובריאות</div><div class="tmpl-name">מספרה / קוסמטיקאית</div><div class="tmpl-desc">תורים, מחירים, שאלות נפוצות. מותאם לסלוני יופי.</div><button class="btn btn-primary btn-sm" onclick="window.location.href='robert-onboarding.html#bot'">השתמש בתבנית</button></div>
+        <div class="tmpl-card"><div class="tmpl-tag">מסעדנות</div><div class="tmpl-name">מסעדה / קפה</div><div class="tmpl-desc">תפריט, שעות, הזמנת שולחן, עמדות חנייה.</div><button class="btn btn-primary btn-sm" onclick="window.location.href='robert-onboarding.html#bot'">השתמש בתבנית</button></div>
+        <div class="tmpl-card"><div class="tmpl-tag">שירותים מקצועיים</div><div class="tmpl-name">יועץ / עורך דין / רואה חשבון</div><div class="tmpl-desc">קביעת פגישות, שאלות נפוצות, הכוונה ראשונית.</div><button class="btn btn-primary btn-sm" onclick="window.location.href='robert-onboarding.html#bot'">השתמש בתבנית</button></div>
+        <div class="tmpl-card"><div class="tmpl-tag">קמעונאות</div><div class="tmpl-name">חנות / אתר מכירות</div><div class="tmpl-desc">שאלות על מוצרים, מדיניות החזרה, מעקב הזמנה.</div><button class="btn btn-primary btn-sm" onclick="window.location.href='robert-onboarding.html#bot'">השתמש בתבנית</button></div>
+        <div class="tmpl-card"><div class="tmpl-tag">רפואה</div><div class="tmpl-name">מרפאה / קליניקה</div><div class="tmpl-desc">קביעת תורים, שאלות על שירותים, הכנה לביקור.</div><button class="btn btn-primary btn-sm" onclick="window.location.href='robert-onboarding.html#bot'">השתמש בתבנית</button></div>
+        <div class="tmpl-card"><div class="tmpl-tag">נדל"ן</div><div class="tmpl-name">סוכן נדל"ן</div><div class="tmpl-desc">פרטים על נכסים, קביעת סיורים, מידע על שכונות.</div><button class="btn btn-primary btn-sm" onclick="window.location.href='robert-onboarding.html#bot'">השתמש בתבנית</button></div>
+      </div>
+    </div>
+
+    <!-- ══ BILLING ══ -->
+    <div class="page" id="p-billing">
+      <div class="ph"><div><div class="ph-title">מנוי וחיוב</div><div class="ph-sub">ניהול המנוי, שינוי מסלול ותשלומים</div></div></div>
+      <div class="grid-2">
+        <div>
+          <div class="card card-pad" style="margin-bottom:16px;">
+            <div class="card-title">המסלול הנוכחי</div>
+            <div class="plan-box">
+              <div class="plan-box-name">מסלול מקצועי</div>
+              <div class="plan-box-price">₪199<sub>/חודש</sub></div>
+              <div class="plan-box-renew">חידוש אוטומטי · 1 ביולי 2026</div>
+            </div>
+            <div class="ubar-wrap"><div class="ubar-top"><span>הודעות החודש</span><span style="font-weight:600;">847 / 1,000</span></div><div class="ubar"><div class="ubar-fill" style="width:42%"></div></div></div>
+            <div class="ubar-wrap"><div class="ubar-top"><span>בוטים פעילים</span><span style="font-weight:600;">2 / 3</span></div><div class="ubar"><div class="ubar-fill" style="width:67%"></div></div></div>
+          </div>
+          <div class="card card-pad">
+            <div class="card-title">שינוי מסלול</div>
+            <div class="plans-compare">
+                <div class="plan-opt">
+                <div class="plan-opt-name">בסיסי</div>
+                <div class="plan-opt-price">₪99<sub>/חודש</sub></div>
+                <div class="plan-opt-feat">בוט אחד<br>300 הודעות<br>ניהול בסיסי</div>
+                <button class="btn btn-outline btn-xs" style="margin-top:12px;width:100%;">מעבר</button>
+              </div>
+              <div class="plan-opt cur">
+                <div class="plan-opt-badge">הנוכחי</div>
+                <div class="plan-opt-name">מקצועי</div>
+                <div class="plan-opt-price">₪199<sub>/חודש</sub></div>
+                <div class="plan-opt-feat">2 בוטים<br>1,000 הודעות<br>אנליטיקס</div>
+                <button class="btn btn-outline btn-xs" style="margin-top:12px;width:100%;opacity:.4;" disabled>פעיל</button>
+              </div>
+              <div class="plan-opt">
+                <div class="plan-opt-name">עסקים</div>
+                <div class="plan-opt-price">₪399<sub>/חודש</sub></div>
+                <div class="plan-opt-feat">5 בוטים<br>6,000 הודעות<br>עדיפות בתמיכה</div>
+                <button class="btn btn-primary btn-xs" style="margin-top:12px;width:100%;">שדרג</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card card-pad" style="margin-bottom:16px;">
+            <div class="card-title">פרטי תשלום</div>
+            <div class="cc-row">
+              <div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+              <div class="cc-info"><div class="cc-num">ויזה •••• 4242</div><div class="cc-exp">פג תוקף 12/27</div></div>
+              <button class="btn btn-outline btn-xs">עדכן</button>
+            </div>
+            <div class="card-title" style="margin-top:16px;">חשבוניות</div>
+            <table class="tbl">
+              <thead><tr><th>תאריך</th><th>סכום</th><th>סטטוס</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>יוני 2026</td><td style="font-weight:600;">₪199</td><td><span class="badge badge-green">שולם</span></td><td><button class="btn btn-ghost btn-xs">הורד</button></td></tr>
+                <tr><td>מאי 2026</td><td style="font-weight:600;">₪199</td><td><span class="badge badge-green">שולם</span></td><td><button class="btn btn-ghost btn-xs">הורד</button></td></tr>
+                <tr><td>אפריל 2026</td><td style="font-weight:600;">₪199</td><td><span class="badge badge-green">שולם</span></td><td><button class="btn btn-ghost btn-xs">הורד</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- MESSAGE PACKS -->
+          <div class="settings-card" style="margin-bottom:16px;">
+            <h3>📦 Packs — הודעות נוספות</h3>
+            <p style="font-size:13px;color:var(--t3);margin-bottom:14px;line-height:1.6;">נגמרו ההודעות שלך? קנה Pack — לא פוקע, עובר מחודש לחודש. המנוי מתנצל קודם, ה-Pack רק אחריו.</p>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
+              <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-size:11px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Starter</div>
+                <div style="font-size:15px;font-weight:800;color:var(--t1);">200 הודעות</div>
+                <div style="font-size:20px;font-weight:900;color:var(--green-d);margin:4px 0;">₪19</div>
+                <button class="btn btn-outline btn-xs" style="width:100%;">קנה</button>
+              </div>
+              <div style="background:#f0fdf4;border:1.5px solid var(--green);border-radius:10px;padding:12px;text-align:center;position:relative;">
+                <div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-size:10px;font-weight:800;padding:2px 10px;border-radius:100px;white-space:nowrap;">הכי נמכר</div>
+                <div style="font-size:11px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Regular</div>
+                <div style="font-size:15px;font-weight:800;color:var(--t1);">500 הודעות</div>
+                <div style="font-size:20px;font-weight:900;color:var(--green-d);margin:4px 0;">₪39</div>
+                <button class="btn btn-primary btn-xs" style="width:100%;">קנה</button>
+              </div>
+              <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-size:11px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Large</div>
+                <div style="font-size:15px;font-weight:800;color:var(--t1);">1,000 הודעות</div>
+                <div style="font-size:20px;font-weight:900;color:var(--green-d);margin:4px 0;">₪69</div>
+                <button class="btn btn-outline btn-xs" style="width:100%;">קנה</button>
+              </div>
+              <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-size:11px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">XL</div>
+                <div style="font-size:15px;font-weight:800;color:var(--t1);">3,000 הודעות</div>
+                <div style="font-size:20px;font-weight:900;color:var(--green-d);margin:4px 0;">₪179</div>
+                <button class="btn btn-outline btn-xs" style="width:100%;">קנה</button>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:10px;padding:10px 14px;">
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--t1);">מאגר Pack נוכחי</div>
+                <div style="font-size:12px;color:var(--t3);margin-top:2px;">נותרו 0 הודעות ב-Pack</div>
+              </div>
+              <span style="font-size:22px;font-weight:800;color:var(--t4);">0</span>
+            </div>
+          </div>
+
+          <div class="ref-box">
+            <div class="ref-title">חבר מביא חבר</div>
+            <div class="ref-sub">שתף את הלינק האישי שלך — כל חבר שנרשם דרכך מקבל ₪50 קרדיט, וגם אתה מקבל ₪50.</div>
+            <div class="ref-link-row">
+              <input class="ref-link" value="robert.bot/ref/dani-k" readonly>
+              <button class="btn btn-outline btn-sm" onclick="copyRef()">העתק</button>
+            </div>
+            <div class="ref-stats">
+              <div class="ref-stat"><div class="ref-stat-n">3</div><div class="ref-stat-l">חברים הצטרפו</div></div>
+              <div class="ref-stat"><div class="ref-stat-n">₪150</div><div class="ref-stat-l">קרדיט שנצבר</div></div>
+              <div class="ref-stat"><div class="ref-stat-n">₪50</div><div class="ref-stat-l">זמין לשימוש</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ACCOUNT ══ -->
+    <div class="page" id="p-account">
+      <div class="ph"><div><div class="ph-title">הגדרות חשבון</div><div class="ph-sub">פרטים אישיים, אבטחה והתראות</div></div></div>
+      <div class="grid-2">
+        <div class="card card-pad">
+          <div class="card-title">פרטים אישיים</div>
+          <div class="fg"><label class="fl">שם מלא</label><input class="fi" value="דני כהן"></div>
+          <div class="fg"><label class="fl">אימייל</label><input class="fi" value="dani@gmail.com"></div>
+          <div class="fg"><label class="fl">טלפון</label><input class="fi" value="052-1234567"></div>
+          <button class="btn btn-primary btn-sm">שמור שינויים</button>
+        </div>
+        <div class="card card-pad">
+          <div class="card-title">התראות</div>
+          <div class="trow"><div class="tinfo"><h4>התראה על שיחה שממתינה</h4><p>כשהבוט מעביר שיחה אליך</p></div><label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label></div>
+          <div class="trow"><div class="tinfo"><h4>סיכום יומי במייל</h4><p>הודעות, שיחות שנסגרו, ממתינות</p></div><label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label></div>
+          <div class="trow"><div class="tinfo"><h4>התראת חריגה בהודעות</h4><p>כשמגיעים ל-80% מהמכסה</p></div><label class="tog"><input type="checkbox"><span class="tog-sl"></span></label></div>
+        </div>
+        <div class="card card-pad">
+          <div class="card-title">אבטחה</div>
+          <div class="fg"><label class="fl">סיסמה נוכחית</label><input class="fi" type="password" value="••••••••"></div>
+          <div class="fg"><label class="fl">סיסמה חדשה</label><input class="fi" type="password" placeholder="לפחות 8 תווים"></div>
+          <button class="btn btn-outline btn-sm">עדכן סיסמה</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ STORE PAGE (UNIFIED) ══ -->
+    <div class="page" id="p-store">
+      <div class="ph"><div><div class="ph-title">מחירון וחנות</div><div class="ph-sub">מסלולים, Packs ושדרוגים</div></div></div>
+
+      <!-- SECTION TABS -->
+      <div style="display:flex;gap:6px;margin-bottom:20px;">
+        <button class="hf-pill act" id="stab-plans" onclick="switchStoreTab('plans',this)">מסלולים</button>
+        <button class="hf-pill" id="stab-packs" onclick="switchStoreTab('packs',this)">Packs — הודעות נוספות</button>
+      </div>
+
+      <!-- ── TAB: PLANS ── -->
+      <div id="stab-content-plans">
+        <!-- Current plan banner -->
+        <div style="background:linear-gradient(135deg,#1c1f2e,#2d3350);border-radius:var(--r-lg);padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">המסלול שלך</div>
+            <div style="font-size:18px;font-weight:800;color:#fff;">מקצועי — ₪199/חודש</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;">1,000 הודעות · 2 בוטים · חידוש 1.7.26</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary btn-sm" onclick="checkout('business_monthly')">שדרג לעסקים</button>
+          </div>
+        </div>
+
+        <!-- Plans grid -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:8px;">
+          <!-- Basic -->
+          <div style="background:var(--white);border:1px solid var(--bdr);border-radius:var(--r-lg);padding:18px;box-shadow:var(--shadow);">
+            <div style="font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">בסיסי</div>
+            <div style="font-size:24px;font-weight:900;letter-spacing:-1px;color:var(--t1);margin-bottom:2px;">₪99<span style="font-size:12px;font-weight:400;color:var(--t4);">/חודש</span></div>
+            <div style="font-size:11px;color:var(--t4);margin-bottom:12px;">₪79 בתשלום שנתי</div>
+            <div style="height:1px;background:var(--bdr);margin-bottom:10px;"></div>
+            <div style="font-size:12px;color:var(--t2);display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+              <div>✓ בוט אחד</div>
+              <div>✓ 300 הודעות</div>
+              <div>✓ שאלות ותפריט</div>
+              <div style="color:var(--t4);">✕ מסירה לנציג</div>
+              <div style="color:var(--t4);">✕ אנליטיקס</div>
+            </div>
+            <button class="btn btn-outline btn-xs" style="width:100%;" onclick="checkout('basic_monthly')">מעבר לבסיסי</button>
+          </div>
+          <!-- Advanced (current) -->
+          <div style="background:var(--white);border:2px solid var(--green);border-radius:var(--r-lg);padding:18px;box-shadow:0 0 0 1px var(--green),var(--shadow);position:relative;">
+            <div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-size:10px;font-weight:800;padding:2px 12px;border-radius:100px;white-space:nowrap;">המסלול שלך</div>
+            <div style="font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">מקצועי</div>
+            <div style="font-size:24px;font-weight:900;letter-spacing:-1px;color:var(--t1);margin-bottom:2px;">₪199<span style="font-size:12px;font-weight:400;color:var(--t4);">/חודש</span></div>
+            <div style="font-size:11px;color:var(--t4);margin-bottom:12px;">₪159 בתשלום שנתי</div>
+            <div style="height:1px;background:var(--bdr);margin-bottom:10px;"></div>
+            <div style="font-size:12px;color:var(--t2);display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+              <div>✓ 2 בוטים</div>
+              <div>✓ 1,000 הודעות</div>
+              <div>✓ AI + תורים</div>
+              <div>✓ מסירה לנציג</div>
+              <div>✓ אנליטיקס</div>
+            </div>
+            <button class="btn btn-outline btn-xs" style="width:100%;opacity:.4;" disabled>פעיל</button>
+          </div>
+          <!-- Pro -->
+          <div style="background:var(--white);border:1px solid var(--bdr);border-radius:var(--r-lg);padding:18px;box-shadow:var(--shadow);">
+            <div style="font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">עסקים</div>
+            <div style="font-size:24px;font-weight:900;letter-spacing:-1px;color:var(--t1);margin-bottom:2px;">₪399<span style="font-size:12px;font-weight:400;color:var(--t4);">/חודש</span></div>
+            <div style="font-size:11px;color:var(--t4);margin-bottom:12px;">₪319 בתשלום שנתי</div>
+            <div style="height:1px;background:var(--bdr);margin-bottom:10px;"></div>
+            <div style="font-size:12px;color:var(--t2);display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+              <div>✓ 5 בוטים</div>
+              <div>✓ 6,000 הודעות</div>
+              <div>✓ AI + זיכרון שיחה</div>
+              <div>✓ מסירה לנציג</div>
+              <div>✓ אנליטיקס מלא + עדיפות</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <button class="btn btn-primary btn-xs" style="width:100%;" onclick="checkout('business_monthly')">₪399/חודש</button>
+              <button class="btn btn-outline btn-xs" style="width:100%;font-size:11px;" onclick="checkout('business_annual')">₪319/חודש שנתי</button>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--t4);text-align:center;margin-top:8px;">שינוי מסלול יכנס לתוקף בתחילת תקופת החיוב הבאה</p>
+      </div>
+
+      <!-- ── TAB: PACKS ── -->
+      <div id="stab-content-packs" style="display:none;">
+
+        <!-- Info box -->
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:var(--r);padding:12px 14px;margin-bottom:16px;font-size:13px;color:#92400e;line-height:1.7;">
+          <strong>כיצד Pack עובד:</strong> מכסת המנוי <strong>מנוצלת קודם</strong> בכל חודש. רק לאחר שנגמרה — הבוט צורך מה-Pack. ה-Pack <strong>לא פוקע</strong> ועובר לחודש הבא.
+        </div>
+
+        <!-- NOT SUBSCRIBER warning (shown/hidden by JS) -->
+        <div id="pack-subscriber-warning" style="display:none;background:var(--red-pale);border:1px solid #fecaca;border-radius:var(--r);padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--red);text-align:center;">
+          רכישת Packs זמינה למנויים פעילים בלבד.
+          <a href="robert-onboarding.html" style="color:var(--red);font-weight:700;text-decoration:underline;">הירשם למנוי</a>
+        </div>
+
+        <!-- Packs grid -->
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;" id="packs-grid">
+          <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r-lg);padding:16px;text-align:center;">
+            <div style="font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">Starter</div>
+            <div style="font-size:17px;font-weight:800;color:var(--t1);margin-bottom:3px;">200 הודעות</div>
+            <div style="font-size:26px;font-weight:900;color:var(--green-d);letter-spacing:-1px;margin-bottom:2px;">₪19</div>
+            <div style="font-size:11px;color:var(--t4);margin-bottom:12px;">₪0.095 להודעה</div>
+            <button class="btn btn-outline btn-xs pack-buy-btn" style="width:100%;" onclick="buyPack('pack_starter')">רכוש</button>
+          </div>
+          <div style="background:#f0fdf4;border:2px solid var(--green);border-radius:var(--r-lg);padding:16px;text-align:center;position:relative;">
+            <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-size:10px;font-weight:800;padding:2px 10px;border-radius:100px;white-space:nowrap;">הכי נמכר</div>
+            <div style="font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">Regular</div>
+            <div style="font-size:17px;font-weight:800;color:var(--t1);margin-bottom:3px;">500 הודעות</div>
+            <div style="font-size:26px;font-weight:900;color:var(--green-d);letter-spacing:-1px;margin-bottom:2px;">₪39</div>
+            <div style="font-size:11px;color:var(--t4);margin-bottom:12px;">₪0.078 להודעה</div>
+            <button class="btn btn-primary btn-xs pack-buy-btn" style="width:100%;" onclick="buyPack('pack_regular')">רכוש</button>
+          </div>
+          <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r-lg);padding:16px;text-align:center;">
+            <div style="font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">Large</div>
+            <div style="font-size:17px;font-weight:800;color:var(--t1);margin-bottom:3px;">1,000 הודעות</div>
+            <div style="font-size:26px;font-weight:900;color:var(--green-d);letter-spacing:-1px;margin-bottom:2px;">₪69</div>
+            <div style="font-size:11px;color:var(--t4);margin-bottom:12px;">₪0.069 להודעה</div>
+            <button class="btn btn-outline btn-xs pack-buy-btn" style="width:100%;" onclick="buyPack('pack_large')">רכוש</button>
+          </div>
+          <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r-lg);padding:16px;text-align:center;">
+            <div style="font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">XL</div>
+            <div style="font-size:17px;font-weight:800;color:var(--t1);margin-bottom:3px;">3,000 הודעות</div>
+            <div style="font-size:26px;font-weight:900;color:var(--green-d);letter-spacing:-1px;margin-bottom:2px;">₪179</div>
+            <div style="font-size:11px;color:var(--t4);margin-bottom:12px;">₪0.060 להודעה</div>
+            <button class="btn btn-outline btn-xs pack-buy-btn" style="width:100%;" onclick="buyPack('pack_xl')">רכוש</button>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--t4);text-align:center;margin-top:12px;">כל הרכישות מאובטחות · Stripe · חשבונית תישלח למייל</p>
+      </div>
+
+    </div>
+
+    <!-- ══ SUPPORT ══ -->
+    <div class="page" id="p-support">
+      <div class="ph"><div><div class="ph-title">תמיכה</div><div class="ph-sub">מרכז עזרה ויצירת קשר</div></div></div>
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div class="card sc"><div class="sc-label">זמן תגובה ממוצע</div><div class="sc-val">שעתיים</div><div class="sc-sub up">זמין א'-ו'</div></div>
+        <div class="card sc"><div class="sc-label">גרסת מערכת</div><div class="sc-val">2.4.1</div><div class="sc-sub nt">עדכנית</div></div>
+      </div>
+      <div class="support-list">
+        <div class="support-item">
+          <div class="support-ic" style="background:var(--blue-pale)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></div>
+          <div><div class="support-title">מרכז עזרה</div><div class="support-sub">מדריכים, FAQ ותיעוד המוצר</div></div>
+          <svg style="margin-right:auto;color:var(--t4);" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+        <div class="support-item">
+          <div class="support-ic" style="background:var(--green-pale)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green-d)" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <div><div class="support-title">צ'אט עם התמיכה</div><div class="support-sub">תגובה בתוך שעתיים בימי עבודה</div></div>
+          <svg style="margin-right:auto;color:var(--t4);" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+        <div class="support-item">
+          <div class="support-ic" style="background:var(--amber-pale)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+          <div><div class="support-title">שלח מייל</div><div class="support-sub">support@robertbot.co.il</div></div>
+          <svg style="margin-right:auto;color:var(--t4);" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// chart bars
+const data = [32,45,28,62,41,55,47];
+const max = Math.max(...data);
+const cb = document.getElementById('chart-bars');
+if(cb) data.forEach(v=>{ const b=document.createElement('div'); b.className='cbar'; b.style.height=(v/max*100)+'%'; cb.appendChild(b); });
+
+const ac = document.getElementById('analytics-chart');
+const adata = [320,480,410,620,710,847];
+const amax = Math.max(...adata);
+if(ac) adata.forEach(v=>{ const b=document.createElement('div'); b.className='cl-bar'; b.style.height=(v/amax*100)+'%'; ac.appendChild(b); });
+
+function goPage(id, title) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('act'));
+  document.getElementById('p-'+id).classList.add('act');
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('act'));
+  // mark active sidebar item
+  document.querySelectorAll('.sb-item').forEach(i=>{
+    if(i.getAttribute('onclick') && i.getAttribute('onclick').includes("'"+id+"'")) i.classList.add('act');
+  });
+  closeSidebar();
+  closeEd();
+}
+
+function toggleSidebar() {
+  const sb = document.querySelector('.sb');
+  const ov = document.getElementById('sb-overlay');
+  if(sb.classList.contains('open')) {
+    sb.classList.remove('open');
+    ov.classList.remove('show');
+  } else {
+    sb.classList.add('open');
+    ov.classList.add('show');
+  }
+}
+
+function closeSidebar() {
+  document.querySelector('.sb').classList.remove('open');
+  document.getElementById('sb-overlay').classList.remove('show');
+}
+
+// legacy compat
+function go(id, el, title) { goPage(id, title); }
+function goBack() { closeSidebar(); }
+
+let curBot = null;
+function selBot(id, el) {
+  if(curBot===id){ closeEd(); return; }
+  document.querySelectorAll('.bot-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  curBot = id;
+  document.getElementById('ed-title').textContent = 'עריכת בוט — ' + el.querySelector('.bc-name').textContent;
+  const ed = document.getElementById('editor');
+  ed.classList.add('open');
+  setTimeout(()=>ed.scrollIntoView({behavior:'smooth',block:'nearest'}),80);
+}
+function openNew() {
+  closeEd();
+  curBot='new';
+  document.getElementById('ed-title').textContent = 'בוט חדש';
+  document.getElementById('ei-name').value='';
+  const ed = document.getElementById('editor');
+  ed.classList.add('open');
+  setTimeout(()=>ed.scrollIntoView({behavior:'smooth',block:'nearest'}),80);
+}
+function closeEd() {
+  document.getElementById('editor').classList.remove('open');
+  document.querySelectorAll('.bot-card').forEach(c=>c.classList.remove('sel'));
+  curBot=null;
+}
+// Subscription state — in production loaded from Supabase session
+const userState = {
+  isLoggedIn: true,
+  hasActiveSubscription: true, // false = logged in but no subscription
+  plan: 'advanced',
+};
+
+function openStore() {
+  goPage('store', 'מחירון וחנות');
+  // Show/hide pack buy buttons based on subscription
+  setTimeout(() => {
+    const warning = document.getElementById('pack-subscriber-warning');
+    const buyBtns = document.querySelectorAll('.pack-buy-btn');
+    if (!userState.hasActiveSubscription) {
+      if (warning) warning.style.display = 'block';
+      buyBtns.forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = '0.4';
+        btn.title = 'נדרש מנוי פעיל';
+      });
+    }
+  }, 50);
+}
+
+function switchStoreTab(tab, el) {
+  document.querySelectorAll('[id^="stab-content-"]').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.hf-pill').forEach(b => b.classList.remove('act'));
+  document.getElementById('stab-content-' + tab).style.display = 'block';
+  el.classList.add('act');
+}
+
+function buyPack(product) {
+  if (!userState.hasActiveSubscription) {
+    window.location.href = 'robert-onboarding.html';
+    return;
+  }
+  checkout(product);
+}
+
+function checkout(product) {
+  toast('מעביר לסליקה מאובטחת...');
+  setTimeout(() => {
+    // Production: window.location.href = '/api/billing/checkout?product=' + product;
+    alert('מעביר ל-Stripe Checkout: ' + product);
+  }, 800);
+}
+
+function saveBot() {
+  const n = document.getElementById('ei-name').value.trim();
+  if(!n){ alert('נא להכניס שם'); return; }
+  closeEd();
+  toast('הבוט "'+n+'" נשמר בהצלחה');
+}
+
+// Live preview for bot name in editor
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'ei-botname') {
+    const val = e.target.value || 'הבוט';
+    const el = document.getElementById('dash-bot-name-display');
+    const av = document.getElementById('dash-bot-av');
+    if (el) el.textContent = val;
+    if (av) av.textContent = val.charAt(0).toUpperCase();
+  }
+});
+
+function etab(id, el) {
+  document.querySelectorAll('.etab').forEach(t=>t.classList.remove('act'));
+  document.querySelectorAll('.etab-pane').forEach(p=>p.classList.remove('act'));
+  el.classList.add('act');
+  document.getElementById('ep-'+id).classList.add('act');
+}
+
+function addFaq() {
+  const r=document.createElement('div'); r.className='faq-row';
+  r.innerHTML='<input placeholder="שאלה"><input placeholder="תשובה"><span class="faq-del" onclick="this.parentElement.remove()">×</span>';
+  document.getElementById('faq-list').appendChild(r);
+  r.querySelector('input').focus();
+}
+
+function selConv(el) {
+  document.querySelectorAll('.conv-item').forEach(c=>c.classList.remove('act'));
+  el.classList.add('act');
+  const u=el.querySelector('.conv-unread');
+  if(u) u.remove();
+}
+
+function hpill(el) {
+  document.querySelectorAll('.hf-pill').forEach(p=>p.classList.remove('act'));
+  el.classList.add('act');
+}
+
+function copyRef() {
+  navigator.clipboard?.writeText('https://robertbot.co.il/ref/dani-k');
+  toast('הלינק הועתק');
+}
+
+function toast(msg) {
+  const t=document.createElement('div');
+  t.textContent=msg;
+  Object.assign(t.style,{
+    position:'fixed',bottom:'22px',left:'50%',transform:'translateX(-50%) translateY(10px)',
+    background:'#1c1f2e',color:'#fff',padding:'10px 20px',borderRadius:'9px',
+    fontSize:'13.5px',fontWeight:'600',zIndex:'9999',
+    boxShadow:'0 4px 16px rgba(0,0,0,.25)',
+    transition:'all .2s ease',opacity:'0'
+  });
+  document.body.appendChild(t);
+  requestAnimationFrame(()=>{ t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)'; });
+  setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),300); },2400);
+}
+</script>
+</body>
+</html>

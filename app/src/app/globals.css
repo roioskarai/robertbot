@@ -1,0 +1,53 @@
+/* ─────────────────────────────────────
+   Robert — GLOBAL TOKENS + RESET + BASE
+   Canonical app palette (slate + #22c55e green).
+   Pages that need a different shade (e.g. the landing
+   page's #25D366 green) re-declare tokens on their own
+   page-wrapper class inside their CSS module.
+───────────────────────────────────── */
+:root {
+  --bg:          #f4f5f9;
+  --white:       #ffffff;
+  --sidebar-bg:  #1c1f2e;
+  --sidebar-h:   #252a3d;
+  --sidebar-act: #2d3350;
+  --green:       #22c55e;
+  --green-d:     #16a34a;
+  --green-pale:  #dcfce7;
+  --green-p:     #dcfce7;
+  --green-text:  #15803d;
+  --purple:      #6d28d9;
+  --purple-pale: #ede9fe;
+  --purple-p:    #ede9fe;
+  --blue:        #2563eb;
+  --blue-pale:   #dbeafe;
+  --red:         #dc2626;
+  --red-pale:    #fee2e2;
+  --amber:       #d97706;
+  --amber-pale:  #fef3c7;
+  --t1:          #0f172a;
+  --t2:          #334155;
+  --t3:          #64748b;
+  --t4:          #94a3b8;
+  --bdr:         #e2e8f0;
+  --bdr2:        #cbd5e1;
+  --shadow-sm:   0 1px 2px rgba(0,0,0,.05);
+  --shadow:      0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.05);
+  --shadow-md:   0 4px 16px rgba(0,0,0,.10);
+  --r:           10px;
+  --r-lg:        14px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body { min-height: 100%; }
+
+body {
+  font-family: var(--font-rubik), 'Rubik', sans-serif;
+  background: var(--bg);
+  color: var(--t1);
+  direction: rtl;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }

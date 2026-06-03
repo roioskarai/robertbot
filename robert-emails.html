@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robert — תבניות מייל</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Rubik',sans-serif; background:#f0f2f8; direction:rtl; padding:24px 16px 60px; }
+.page-title { font-size:20px; font-weight:800; color:#0f172a; margin-bottom:4px; text-align:center; }
+.page-sub { font-size:13px; color:#64748b; margin-bottom:28px; text-align:center; }
+
+/* TABS */
+.tabs { display:flex; gap:8px; justify-content:center; margin-bottom:24px; flex-wrap:wrap; }
+.tab { padding:8px 18px; border-radius:100px; font-size:13px; font-weight:600; cursor:pointer; border:1.5px solid #e2e8f0; background:#fff; color:#64748b; transition:all .18s; font-family:'Rubik',sans-serif; }
+.tab.act { background:#0f172a; color:#fff; border-color:#0f172a; }
+
+.email-pane { display:none; }
+.email-pane.act { display:block; }
+
+/* EMAIL WRAPPER */
+.email-wrap {
+  max-width:520px; margin:0 auto;
+  background:#fff; border-radius:16px;
+  overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,.09);
+  border:1px solid #e2e8f0;
+}
+
+/* EMAIL HEADER */
+.email-header {
+  background:linear-gradient(135deg,#0f172a,#1e3a5f);
+  padding:28px 32px 24px;
+  text-align:center;
+}
+.email-logo { display:flex; align-items:center; justify-content:center; gap:9px; margin-bottom:4px; }
+.email-logo-mark {
+  width:32px; height:32px; border-radius:8px;
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  display:flex; align-items:center; justify-content:center;
+}
+.email-logo-mark svg { width:17px; height:17px; }
+.email-logo-name { font-size:20px; font-weight:900; color:#fff; letter-spacing:-.3px; }
+.email-logo-name em { font-style:normal; color:#22c55e; }
+.email-tagline { font-size:12px; color:rgba(255,255,255,.5); margin-top:4px; }
+
+/* EMAIL BODY */
+.email-body { padding:32px; }
+.email-hi { font-size:22px; font-weight:800; color:#0f172a; letter-spacing:-.4px; margin-bottom:10px; }
+.email-text { font-size:14.5px; color:#475569; line-height:1.75; margin-bottom:20px; }
+.email-text strong { color:#0f172a; font-weight:700; }
+
+/* CTA BUTTON */
+.email-btn-wrap { text-align:center; margin:24px 0; }
+.email-btn {
+  display:inline-block; padding:14px 36px; border-radius:10px;
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  color:#fff; font-size:15px; font-weight:700;
+  text-decoration:none; letter-spacing:-.2px;
+  box-shadow:0 4px 16px rgba(34,197,94,.3);
+}
+
+/* OTP BOX */
+.otp-box {
+  background:#f8fafc; border:2px dashed #e2e8f0;
+  border-radius:14px; padding:24px;
+  text-align:center; margin:20px 0;
+}
+.otp-label { font-size:12px; font-weight:600; color:#94a3b8; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px; }
+.otp-code { font-size:42px; font-weight:900; letter-spacing:10px; color:#0f172a; font-family:'Courier New',monospace; }
+.otp-expires { font-size:12px; color:#94a3b8; margin-top:10px; }
+
+/* INFO BOX */
+.info-box {
+  background:#f0fdf4; border:1px solid #bbf7d0;
+  border-radius:10px; padding:14px 16px; margin:16px 0;
+}
+.info-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #dcfce7; }
+.info-row:last-child { border-bottom:none; }
+.info-key { font-size:13px; color:#64748b; font-weight:500; }
+.info-val { font-size:13px; font-weight:700; color:#0f172a; }
+
+/* WARNING BOX */
+.warn-box {
+  background:#fffbeb; border:1px solid #fde68a;
+  border-radius:10px; padding:14px 16px; margin:16px 0;
+  display:flex; gap:10px; align-items:flex-start;
+}
+.warn-icon { font-size:18px; flex-shrink:0; }
+.warn-text { font-size:13px; color:#92400e; line-height:1.6; }
+
+/* DIVIDER */
+.email-divider { height:1px; background:#f1f5f9; margin:20px 0; }
+
+/* FOOTER */
+.email-footer {
+  background:#f8fafc; padding:20px 32px;
+  border-top:1px solid #e2e8f0; text-align:center;
+}
+.email-footer p { font-size:11.5px; color:#94a3b8; line-height:1.8; }
+.email-footer a { color:#22c55e; text-decoration:none; font-weight:600; }
+
+/* RENEWAL PROGRESS */
+.renew-bar-wrap { margin:16px 0; }
+.renew-bar-top { display:flex; justify-content:space-between; font-size:12px; color:#64748b; margin-bottom:6px; font-weight:500; }
+.renew-bar { height:7px; background:#e2e8f0; border-radius:100px; overflow:hidden; }
+.renew-fill { height:100%; border-radius:100px; background:linear-gradient(90deg,#22c55e,#16a34a); }
+.renew-fill.warn { background:linear-gradient(90deg,#f59e0b,#d97706); }
+.renew-fill.danger { background:linear-gradient(90deg,#ef4444,#dc2626); }
+</style>
+</head>
+<body>
+
+<div class="page-title">תבניות מייל — Robert</div>
+<div class="page-sub">3 תבניות מוכנות לשימוש עם Claude Code</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab act" onclick="showTab('welcome',this)">ברוך הבא</button>
+  <button class="tab" onclick="showTab('otp',this)">קוד אימות</button>
+  <button class="tab" onclick="showTab('renewal',this)">תזכורת חידוש</button>
+</div>
+
+<!-- ══ TAB 1: WELCOME ══ -->
+<div class="email-pane act" id="t-welcome">
+  <div class="email-wrap">
+    <div class="email-header">
+      <div class="email-logo">
+        <div class="email-logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8l4 4-4 4"/></svg>
+        </div>
+        <div class="email-logo-name">Robert<em>.</em></div>
+      </div>
+      <div class="email-tagline">הבוט שעובד בשבילך 24/7</div>
+    </div>
+    <div class="email-body">
+      <div class="email-hi">ברוך הבא, {{שם}}! 👋</div>
+      <div class="email-text">
+        תודה שנרשמת ל-Robert. החשבון שלך נוצר בהצלחה ואתה מוכן להתחיל.<br><br>
+        יש לך <strong>7 ימי ניסיון חינם</strong> לגלות איך Robert עונה ללקוחות שלך, קובע פגישות ומנהל שיחות — 24 שעות ביממה, 7 ימים בשבוע.
+      </div>
+
+      <div class="info-box">
+        <div class="info-row"><span class="info-key">מסלול</span><span class="info-val">{{מסלול}}</span></div>
+        <div class="info-row"><span class="info-key">ניסיון חינם עד</span><span class="info-val">{{תאריך_סיום_trial}}</span></div>
+        <div class="info-row"><span class="info-key">מייל</span><span class="info-val">{{מייל}}</span></div>
+      </div>
+
+      <div class="email-btn-wrap">
+        <a href="{{dashboard_url}}" class="email-btn">כניסה לאזור האישי ←</a>
+      </div>
+
+      <div class="email-divider"></div>
+      <div class="email-text" style="font-size:13px;">
+        לשאלות ועזרה — <strong>support@robertbot.co.il</strong><br>
+        אנחנו כאן ונשמח לעזור.
+      </div>
+    </div>
+    <div class="email-footer">
+      <p>
+        קיבלת מייל זה כי נרשמת ל-Robert.<br>
+        <a href="#">ביטול הרשמה</a> · <a href="#">תנאי שימוש</a> · <a href="#">פרטיות</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 2: OTP ══ -->
+<div class="email-pane" id="t-otp">
+  <div class="email-wrap">
+    <div class="email-header">
+      <div class="email-logo">
+        <div class="email-logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8l4 4-4 4"/></svg>
+        </div>
+        <div class="email-logo-name">Robert<em>.</em></div>
+      </div>
+      <div class="email-tagline">אימות חשבון</div>
+    </div>
+    <div class="email-body">
+      <div class="email-hi">אמת את החשבון שלך</div>
+      <div class="email-text">
+        קיבלנו בקשה לאמת את כתובת המייל שלך.<br>
+        הכנס את הקוד הבא באתר כדי להמשיך:
+      </div>
+
+      <div class="otp-box">
+        <div class="otp-label">קוד האימות שלך</div>
+        <div class="otp-code">{{קוד}}</div>
+        <div class="otp-expires">הקוד בתוקף ל-10 דקות בלבד</div>
+      </div>
+
+      <div class="warn-box">
+        <span class="warn-icon">🔒</span>
+        <div class="warn-text">אם לא ביקשת קוד זה — התעלם מהמייל. החשבון שלך בטוח.</div>
+      </div>
+
+      <div class="email-divider"></div>
+      <div class="email-text" style="font-size:13px;color:#94a3b8;">
+        לא עובד? העתק את הקוד ידנית לאתר.
+      </div>
+    </div>
+    <div class="email-footer">
+      <p>
+        Robert · <a href="#">support@robertbot.co.il</a><br>
+        <a href="#">ביטול הרשמה</a> · <a href="#">פרטיות</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 3: RENEWAL ══ -->
+<div class="email-pane" id="t-renewal">
+  <div class="email-wrap">
+    <div class="email-header">
+      <div class="email-logo">
+        <div class="email-logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8l4 4-4 4"/></svg>
+        </div>
+        <div class="email-logo-name">Robert<em>.</em></div>
+      </div>
+      <div class="email-tagline">תזכורת חידוש מנוי</div>
+    </div>
+    <div class="email-body">
+      <div class="email-hi">המנוי שלך מתחדש בקרוב</div>
+      <div class="email-text">
+        היי {{שם}}, רצינו להזכיר לך שהמנוי שלך ל-Robert מתחדש אוטומטית בעוד <strong>3 ימים</strong>.
+      </div>
+
+      <div class="info-box">
+        <div class="info-row"><span class="info-key">מסלול</span><span class="info-val">{{מסלול}}</span></div>
+        <div class="info-row"><span class="info-key">סכום לחיוב</span><span class="info-val">{{מחיר}}</span></div>
+        <div class="info-row"><span class="info-key">תאריך חידוש</span><span class="info-val">{{תאריך_חידוש}}</span></div>
+        <div class="info-row"><span class="info-key">כרטיס אשראי</span><span class="info-val">•••• {{4_ספרות_אחרונות}}</span></div>
+      </div>
+
+      <div class="renew-bar-wrap">
+        <div class="renew-bar-top">
+          <span>שימוש החודש</span>
+          <span>{{הודעות_שנשלחו}} / {{מכסה_הודעות}}</span>
+        </div>
+        <div class="renew-bar"><div class="renew-fill warn" style="width:{{אחוז_שימוש}}%"></div></div>
+      </div>
+
+      <div class="email-btn-wrap">
+        <a href="{{billing_url}}" class="email-btn">ניהול המנוי ←</a>
+      </div>
+
+      <div class="email-divider"></div>
+      <div class="email-text" style="font-size:13px;">
+        לא רוצה להתחדש? תוכל <a href="{{cancel_url}}" style="color:#22c55e;font-weight:600;">לבטל כאן</a> לפני תאריך החידוש — ללא קנסות.
+      </div>
+    </div>
+    <div class="email-footer">
+      <p>
+        Robert · <a href="#">support@robertbot.co.il</a><br>
+        <a href="#">ביטול הרשמה</a> · <a href="#">תנאי שימוש</a> · <a href="#">פרטיות</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(id, el) {
+  document.querySelectorAll('.email-pane').forEach(p=>p.classList.remove('act'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('act'));
+  document.getElementById('t-'+id).classList.add('act');
+  el.classList.add('act');
+}
+</script>
+</body>
+</html>

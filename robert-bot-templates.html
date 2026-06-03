@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robert — תבניות שיחה לבוט</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f4f5f9; --white:#fff;
+  --green:#22c55e; --green-d:#16a34a; --green-p:#dcfce7;
+  --t1:#0f172a; --t2:#334155; --t3:#64748b; --t4:#94a3b8;
+  --bdr:#e2e8f0; --bdr2:#cbd5e1;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Rubik',sans-serif;background:var(--bg);color:var(--t1);direction:rtl;-webkit-font-smoothing:antialiased;}
+
+/* TOP NAV */
+.topnav{background:var(--white);border-bottom:1px solid var(--bdr);padding:14px 16px;position:sticky;top:0;z-index:100;}
+.topnav h1{font-size:16px;font-weight:800;color:var(--t1);margin-bottom:2px;}
+.topnav p{font-size:12px;color:var(--t3);}
+
+/* CATEGORY TABS */
+.cat-tabs{display:flex;gap:6px;padding:14px 16px 0;overflow-x:auto;background:var(--white);border-bottom:1px solid var(--bdr);scrollbar-width:none;}
+.cat-tabs::-webkit-scrollbar{display:none;}
+.cat-tab{padding:7px 14px;border-radius:100px;font-size:12.5px;font-weight:600;cursor:pointer;border:1.5px solid var(--bdr);background:var(--white);color:var(--t3);white-space:nowrap;transition:all .15s;font-family:'Rubik',sans-serif;margin-bottom:12px;}
+.cat-tab.act{background:var(--t1);color:#fff;border-color:var(--t1);}
+
+/* CONTENT */
+.content{padding:16px;}
+.cat-pane{display:none;}
+.cat-pane.act{display:flex;flex-direction:column;gap:20px;}
+
+/* SECTION */
+.sec-label{font-size:11px;font-weight:700;color:var(--t4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+
+/* VARIANT SELECTOR */
+.variants{display:flex;flex-direction:column;gap:12px;}
+.variant-card{background:var(--white);border:1.5px solid var(--bdr);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:all .2s;}
+.variant-card:hover{border-color:var(--bdr2);}
+.variant-card.sel{border-color:var(--green-d);}
+.vc-head{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;background:var(--bg);}
+.vc-name{font-size:12.5px;font-weight:700;color:var(--t1);}
+.vc-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;}
+.b-friendly{background:#dcfce7;color:#15803d;}
+.b-pro{background:#dbeafe;color:#1d4ed8;}
+.b-short{background:#fef3c7;color:#b45309;}
+.vc-body{padding:12px 14px;}
+
+/* WHATSAPP MOCKUP */
+.wa-mock{background:#ece5dd;border-radius:10px;padding:10px 10px 6px;margin-bottom:8px;}
+.bubble-row{display:flex;margin-bottom:6px;}
+.bubble-row.r{justify-content:flex-end;}
+.bubble{display:inline-block;padding:7px 11px;border-radius:10px;font-size:12.5px;line-height:1.6;max-width:90%;}
+.b-in{background:#fff;border-radius:10px 10px 10px 2px;box-shadow:0 1px 2px rgba(0,0,0,.07);}
+.b-out{background:#dcf8c6;border-radius:10px 10px 2px 10px;box-shadow:0 1px 2px rgba(0,0,0,.07);}
+.btime{font-size:9px;color:rgba(0,0,0,.3);margin-top:2px;text-align:left;}
+
+/* QUICK REPLY BUTTONS */
+.qr-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.qr-btn{background:#fff;border:1px solid #25d366;border-radius:100px;padding:5px 12px;font-size:12px;font-weight:600;color:#16a34a;white-space:nowrap;}
+
+/* VAR */
+.v{display:inline;background:#e0e7ff;color:#3730a3;font-size:10.5px;font-weight:700;padding:1px 5px;border-radius:4px;font-family:monospace;}
+
+/* NOTE */
+.vc-note{font-size:11.5px;color:var(--t3);line-height:1.6;padding-top:8px;border-top:1px solid var(--bdr);}
+
+/* FLOW DIAGRAM */
+.flow{display:flex;flex-direction:column;gap:0;}
+.flow-step{display:flex;gap:10px;align-items:flex-start;}
+.flow-line{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.flow-dot{width:10px;height:10px;border-radius:50%;background:var(--green-d);flex-shrink:0;margin-top:4px;}
+.flow-vline{width:2px;background:var(--bdr);flex:1;min-height:16px;margin:2px 0;}
+.flow-text{font-size:12.5px;color:var(--t2);padding-bottom:12px;line-height:1.5;}
+.flow-text strong{color:var(--t1);font-weight:600;}
+.flow-text .qr-btn{display:inline-block;margin:3px 2px;}
+
+/* TEMPLATE MODE TOGGLE */
+.mode-toggle-wrap{display:flex;align-items:center;justify-content:space-between;background:var(--white);border:1px solid var(--bdr);border-radius:12px;padding:12px 14px;margin-bottom:12px;box-shadow:var(--shadow);}
+.mode-toggle-label{font-size:13px;font-weight:600;color:var(--t1);}
+.mode-toggle-sub{font-size:11.5px;color:var(--t3);margin-top:2px;}
+.mode-toggle{display:flex;background:var(--bg);border-radius:100px;padding:3px;gap:2px;border:1px solid var(--bdr);}
+.mode-btn{padding:5px 12px;border-radius:100px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--t3);font-family:'Rubik',sans-serif;transition:all .18s;white-space:nowrap;}
+.mode-btn.act{background:var(--white);color:var(--t1);box-shadow:0 1px 3px rgba(0,0,0,.1);}
+
+/* CUSTOM INPUT AREA */
+.custom-area{background:var(--white);border:1.5px solid var(--green-d);border-radius:12px;padding:14px;margin-bottom:12px;display:none;}
+.custom-area.show{display:block;}
+.custom-area label{font-size:12px;font-weight:700;color:var(--t2);display:block;margin-bottom:6px;}
+.custom-textarea{width:100%;padding:9px 11px;border:1.5px solid var(--bdr2);border-radius:8px;font-size:13px;font-family:'Rubik',sans-serif;color:var(--t1);resize:none;outline:none;line-height:1.6;min-height:70px;transition:border-color .18s;}
+.custom-textarea:focus{border-color:var(--green-d);}
+.custom-hint{font-size:11px;color:var(--t4);margin-top:5px;}
+.custom-btns-label{font-size:12px;font-weight:700;color:var(--t2);margin-top:12px;margin-bottom:6px;display:block;}
+.custom-btn-row{display:flex;gap:6px;margin-bottom:6px;align-items:center;}
+.custom-btn-input{flex:1;padding:6px 10px;border:1.5px solid var(--bdr2);border-radius:8px;font-size:12.5px;font-family:'Rubik',sans-serif;color:var(--t1);outline:none;}
+.custom-btn-input:focus{border-color:var(--green-d);}
+.add-btn-link{font-size:12px;font-weight:600;color:var(--green-d);background:transparent;border:none;cursor:pointer;font-family:'Rubik',sans-serif;padding:4px 0;}
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <h1>תבניות שיחה — Robert</h1>
+  <p>3 גרסאות לכל קטגוריה · הבוט מוביל, הלקוח בוחר</p>
+  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 14px;margin-top:8px;font-size:12.5px;color:#15803d;line-height:1.6;">
+    💡 <strong>שם הבוט:</strong> במקום "Robert" יופיע השם שבחרת בהגדרות — <code style="background:#dcfce7;padding:1px 5px;border-radius:4px;">{{שם_בוט}}</code>. כל לקוח שלך בוחר שם אחר לבוט שלו.
+  </div>
+</div>
+
+<!-- CATEGORY TABS -->
+<div class="cat-tabs">
+  <button class="cat-tab act" onclick="showCat('welcome',this)">פתיחה</button>
+  <button class="cat-tab" onclick="showCat('appointment',this)">קביעת תור</button>
+  <button class="cat-tab" onclick="showCat('hours',this)">שעות</button>
+  <button class="cat-tab" onclick="showCat('handoff',this)">מסירה</button>
+  <button class="cat-tab" onclick="showCat('notunderstood',this)">לא הבין</button>
+  <button class="cat-tab" onclick="showCat('followup',this)">מעקב</button>
+</div>
+
+<div class="content">
+
+<!-- ══════════════════════════════
+     פתיחה
+══════════════════════════════ -->
+<div class="cat-pane act" id="c-welcome">
+  <div class="mode-toggle-wrap">
+    <div>
+      <div class="mode-toggle-label">מצב עריכה</div>
+      <div class="mode-toggle-sub">בחר תבנית מוכנה או כתוב בעצמך</div>
+    </div>
+    <div class="mode-toggle">
+      <button class="mode-btn act" onclick="setMode('welcome','template',this)">תבניות מוכנות</button>
+      <button class="mode-btn" onclick="setMode('welcome','custom',this)">כתוב בעצמי</button>
+    </div>
+  </div>
+
+  <div class="custom-area" id="custom-welcome">
+    <label>📝 הודעת הבוט</label>
+    <textarea class="custom-textarea" placeholder="כתוב את ההודעה שהבוט ישלח...&#10;&#10;טיפ: השתמש ב {שם_לקוח} ו-{שם_עסק} בתוך הטקסט"></textarea>
+    <div class="custom-hint">💡 משתנים זמינים: {שם_לקוח} · {שם_עסק} · {שעות} · {תאריך}</div>
+    <span class="custom-btns-label">⚡ כפתורי בחירה מהירה (אופציונלי)</span>
+    <div id="btns-welcome">
+      <div class="custom-btn-row">
+        <input class="custom-btn-input" placeholder="טקסט כפתור 1...">
+        <span style="color:var(--t4);cursor:pointer;font-size:16px;" onclick="this.parentElement.remove()">×</span>
+      </div>
+      <div class="custom-btn-row">
+        <input class="custom-btn-input" placeholder="טקסט כפתור 2...">
+        <span style="color:var(--t4);cursor:pointer;font-size:16px;" onclick="this.parentElement.remove()">×</span>
+      </div>
+    </div>
+    <button class="add-btn-link" onclick="addBtn('welcome')">+ הוסף כפתור</button>
+  </div>
+
+  <div class="sec-label">הודעת פתיחה — 3 גרסאות</div>
+  <div class="variants">
+
+    <!-- V1 -->
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">חברותי ונעים</span>
+        <span class="vc-badge b-friendly">מומלץ</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row r"><div><div class="bubble b-out">שלום רציתי לשאול</div><div class="btime">10:22</div></div></div>
+          <div class="bubble-row"><div><div class="bubble b-in">היי! 👋 אני <span class="v">{{שם_בוט}}</span>, הנציג של <span class="v">{{שם_עסק}}</span>.<br>שמחים שפנית! במה אוכל לעזור?<br><br></div><div class="btime">10:22</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">📅 קביעת תור</span>
+            <span class="qr-btn">💰 מחירים</span>
+            <span class="qr-btn">🕐 שעות פעילות</span>
+            <span class="qr-btn">👤 נציג</span>
+          </div>
+        </div>
+        <div class="vc-note">כפתורי בחירה מהירה — הלקוח לוחץ, לא כותב.<br><span style="color:var(--green-d);font-weight:600;">✏️ לחץ על כפתור "כתוב בעצמי" לעריכה חופשית של כל טקסט</span></div>
+      </div>
+    </div>
+
+    <!-- V2 -->
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">מקצועי ורשמי</span>
+        <span class="vc-badge b-pro">עסקים</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row r"><div><div class="bubble b-out">שלום</div><div class="btime">14:05</div></div></div>
+          <div class="bubble-row"><div><div class="bubble b-in">שלום וברוכים הבאים ל<span class="v">{{שם_עסק}}</span>.<br>אשמח לסייע לכם.<br><br>כיצד אוכל לעזור?</div><div class="btime">14:05</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">קביעת פגישה</span>
+            <span class="qr-btn">שירותים ומחירים</span>
+            <span class="qr-btn">שעות פעילות</span>
+            <span class="qr-btn">דבר עם נציג</span>
+          </div>
+        </div>
+        <div class="vc-note">ללא אימוג'ים. מתאים ליועצים, עורכי דין, רואי חשבון.</div>
+      </div>
+    </div>
+
+    <!-- V3 -->
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">קצר ולעניין</span>
+        <span class="vc-badge b-short">מהיר</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row r"><div><div class="bubble b-out">היי</div><div class="btime">09:10</div></div></div>
+          <div class="bubble-row"><div><div class="bubble b-in"><span class="v">{{שם_עסק}}</span> — במה לעזור?</div><div class="btime">09:10</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">תור</span>
+            <span class="qr-btn">מחיר</span>
+            <span class="qr-btn">שעות</span>
+            <span class="qr-btn">נציג</span>
+          </div>
+        </div>
+        <div class="vc-note">מינימליסטי. מתאים למסעדות, מאפיות, עסקים עם תנועה גבוהה.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     קביעת תור — זרימה מלאה
+══════════════════════════════ -->
+<div class="cat-pane" id="c-appointment">
+
+  <div class="sec-label">זרימת קביעת תור — איך זה עובד</div>
+  <div style="background:var(--white);border:1px solid var(--bdr);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);margin-bottom:4px;">
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-line"><div class="flow-dot"></div><div class="flow-vline"></div></div>
+        <div class="flow-text"><strong>1. לקוח מבקש תור</strong><br>כותב "תור" / "אני רוצה לקבוע" / לוחץ כפתור</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-line"><div class="flow-dot"></div><div class="flow-vline"></div></div>
+        <div class="flow-text"><strong>2. בחירת שירות</strong><br>הבוט מציג את רשימת השירותים של העסק ככפתורים<br><span class="qr-btn">✂️ תספורת ₪120</span> <span class="qr-btn">💅 לק ג׳ל ₪80</span> <span class="qr-btn">🧖 טיפול פנים ₪200</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-line"><div class="flow-dot"></div><div class="flow-vline"></div></div>
+        <div class="flow-text"><strong>3. בחירת תאריך</strong><br>הבוט סורק תורים פנויים ומציע 5 תאריכים קרובים<br><span class="qr-btn">ראשון 15.6</span> <span class="qr-btn">שלישי 17.6</span> <span class="qr-btn">חמישי 19.6</span> <span class="qr-btn">ראשון 22.6</span> <span class="qr-btn">שלישי 24.6</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-line"><div class="flow-dot"></div><div class="flow-vline"></div></div>
+        <div class="flow-text"><strong>4. בחירת שעה</strong><br>אחרי בחירת תאריך — נפתחות השעות הפנויות באותו יום<br><span class="qr-btn">09:00</span> <span class="qr-btn">10:30</span> <span class="qr-btn">13:00</span> <span class="qr-btn">15:30</span> <span class="qr-btn">17:00</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-line"><div class="flow-dot"></div><div class="flow-vline"></div></div>
+        <div class="flow-text"><strong>5. אישור ✅</strong><br>הבוט מציג סיכום ומבקש אישור אחרון</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-line"><div class="flow-dot"></div></div>
+        <div class="flow-text"><strong>6. תזכורת אוטומטית</strong><br>יום לפני — הבוט שולח תזכורת עם אפשרות ביטול</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--t4);margin-top:8px;padding-top:8px;border-top:1px solid var(--bdr);">
+      ⚙️ <strong>בעל העסק מגדיר:</strong> מרווחי תור (15/30/45/60 דקות) · ימי עבודה · שעות · חופשות
+    </div>
+  </div>
+
+  <div class="sec-label">3 גרסאות לשלב קביעת התור</div>
+  <div class="variants">
+
+    <!-- V1 -->
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">חברותי — עם אימוג'ים</span>
+        <span class="vc-badge b-friendly">מומלץ</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row"><div><div class="bubble b-in">סופר! 🎉 בוא נקבע לך תור.<br>איזה שירות תרצה?</div><div class="btime">10:05</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">✂️ תספורת ₪120</span>
+            <span class="qr-btn">💅 לק ג׳ל ₪80</span>
+            <span class="qr-btn">🧖 טיפול פנים ₪200</span>
+          </div>
+          <div style="margin-top:8px;"></div>
+          <div class="bubble-row r"><div><div class="bubble b-out">תספורת ₪120</div><div class="btime">10:05</div></div></div>
+          <div class="bubble-row"><div><div class="bubble b-in">מצוין! 💇<br>איזה תאריך נוח לך?</div><div class="btime">10:05</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">ראשון 15.6</span>
+            <span class="qr-btn">שלישי 17.6</span>
+            <span class="qr-btn">חמישי 19.6</span>
+            <span class="qr-btn">ראשון 22.6</span>
+            <span class="qr-btn">תאריך אחר</span>
+          </div>
+          <div style="margin-top:8px;"></div>
+          <div class="bubble-row r"><div><div class="bubble b-out">שלישי 17.6</div><div class="btime">10:06</div></div></div>
+          <div class="bubble-row"><div><div class="bubble b-in">יופי! 🗓️ השעות הפנויות ב-17.6:</div><div class="btime">10:06</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">09:00</span>
+            <span class="qr-btn">10:30</span>
+            <span class="qr-btn">13:00</span>
+            <span class="qr-btn">15:30</span>
+            <span class="qr-btn">17:00</span>
+          </div>
+        </div>
+        <div class="vc-note">הלקוח לוחץ בלבד — אפס הקלדה. מתאים לסלוני יופי, מספרות, קוסמטיקה.</div>
+      </div>
+    </div>
+
+    <!-- V2 -->
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">מקצועי — ללא אימוג'ים</span>
+        <span class="vc-badge b-pro">עסקים</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row"><div><div class="bubble b-in">לקביעת פגישה — בחר שירות:</div><div class="btime">11:00</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">ייעוץ ראשוני</span>
+            <span class="qr-btn">ייעוץ שוטף</span>
+            <span class="qr-btn">בדיקת מסמכים</span>
+          </div>
+          <div style="margin-top:8px;"></div>
+          <div class="bubble-row r"><div><div class="bubble b-out">ייעוץ ראשוני</div><div class="btime">11:01</div></div></div>
+          <div class="bubble-row"><div><div class="bubble b-in">בחר תאריך לפגישה:</div><div class="btime">11:01</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">ראשון 15.6</span>
+            <span class="qr-btn">שני 16.6</span>
+            <span class="qr-btn">שלישי 17.6</span>
+            <span class="qr-btn">רביעי 18.6</span>
+            <span class="qr-btn">תאריך אחר</span>
+          </div>
+        </div>
+        <div class="vc-note">ללא אימוג'ים. מתאים לרופאים, עורכי דין, יועצים.</div>
+      </div>
+    </div>
+
+    <!-- V3 -->
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">אישור תור — סיכום</span>
+        <span class="vc-badge b-short">שלב אחרון</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row r"><div><div class="bubble b-out">17:00</div><div class="btime">10:07</div></div></div>
+          <div class="bubble-row"><div><div class="bubble b-in">✅ אשר את הפרטים:<br><br>📋 <b>תספורת</b><br>📅 שלישי 17.6<br>🕐 17:00<br>📍 <span class="v">{{כתובת}}</span><br>💰 ₪120<br><br>הכל נכון?</div><div class="btime">10:07</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">✅ אשר תור</span>
+            <span class="qr-btn">✏️ שנה פרטים</span>
+          </div>
+          <div style="margin-top:8px;"></div>
+          <div class="bubble-row r"><div><div class="bubble b-out">✅ אשר תור</div><div class="btime">10:07</div></div></div>
+          <div class="bubble-row"><div><div class="bubble b-in">🎉 התור נקבע!<br>ישלח אליך תזכורת מחר.<br>לביטול — שלח "בטל תור"</div><div class="btime">10:07</div></div></div>
+        </div>
+        <div class="vc-note">סיכום לפני אישור + כפתור שינוי. מונע טעויות ומבטל צורך בתיקונים.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     שעות סגירה
+══════════════════════════════ -->
+<div class="cat-pane" id="c-hours">
+  <div class="sec-label">מחוץ לשעות — 3 גרסאות</div>
+  <div class="variants">
+
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">חברותי עם קביעת תור</span>
+        <span class="vc-badge b-friendly">מומלץ</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row"><div><div class="bubble b-in">היי! 🌙 אנחנו סגורים כרגע.<br>שעות פעילות: <span class="v">{{שעות}}</span><br><br>מה תרצה לעשות?</div><div class="btime">23:10</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">📅 קבע תור למחר</span>
+            <span class="qr-btn">📩 השאר הודעה</span>
+          </div>
+        </div>
+        <div class="vc-note">לא מסיים את השיחה — מציע פעולה. לקוח שמקבע תור בלילה = לקוח שנשמר.</div>
+      </div>
+    </div>
+
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">מקצועי — קצר</span>
+        <span class="vc-badge b-pro">עסקים</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row"><div><div class="bubble b-in">שלום.<br>העסק סגור כרגע — שעות פעילות: <span class="v">{{שעות}}</span><br>נחזור אליך בפתיחה.</div><div class="btime">21:05</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">קביעת פגישה</span>
+            <span class="qr-btn">השאר הודעה</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">חג / סגירה מיוחדת</span>
+        <span class="vc-badge b-short">מיוחד</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row"><div><div class="bubble b-in">שלום! 🎉<br>אנחנו סגורים היום — <span class="v">{{סיבה}}</span>.<br>חוזרים ב-<span class="v">{{תאריך_חזרה}}</span>.<br><br>אפשר לקבוע תור כבר עכשיו:</div><div class="btime">09:00</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">📅 קבע תור</span>
+          </div>
+        </div>
+        <div class="vc-note">גם בסגירה — הבוט עושה עבודה שיווקית ומכניס תורים.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     מסירה לנציג
+══════════════════════════════ -->
+<div class="cat-pane" id="c-handoff">
+  <div class="sec-label">מסירה לנציג אנושי — 3 גרסאות</div>
+  <div class="variants">
+
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">מסירה חלקה</span>
+        <span class="vc-badge b-friendly">מומלץ</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row"><div><div class="bubble b-in">שאלה מצוינת! 🙏<br>בשביל זה אני מעביר אותך לנציג — הוא יענה לך בדיוק.<br><br>זמן המתנה: <span class="v">{{זמן}}</span></div><div class="btime">11:30</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">✅ המשך לנציג</span>
+            <span class="qr-btn">🔙 שאלה אחרת</span>
+          </div>
+        </div>
+        <div class="vc-note">נותן ללקוח שליטה — יכול לחזור לבוט אם רוצה. מפחית טעינה על הנציג.</div>
+      </div>
+    </div>
+
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">מסירה מחוץ לשעות</span>
+        <span class="vc-badge b-short">לילה</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row"><div><div class="bubble b-in">קיבלתי! ✅<br>הנציג יחזור אליך מחר בין <span class="v">{{שעות}}</span>.<br>ההודעה שלך נשמרה — לא תצטרך לחזור עליה. 👌</div><div class="btime">22:15</div></div></div>
+        </div>
+        <div class="vc-note">מבטיח ללקוח שהוא לא נשכח. מפחית חרדה ומונע הודעות כפולות.</div>
+      </div>
+    </div>
+
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">לקוח ביקש נציג בעצמו</span>
+        <span class="vc-badge b-pro">ישיר</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row r"><div><div class="bubble b-out">אני רוצה לדבר עם בן אדם</div><div class="btime">15:20</div></div></div>
+          <div class="bubble-row"><div><div class="bubble b-in">בטח! 👍<br>מעביר אותך עכשיו.<br>נחזור תוך <span class="v">{{זמן}}</span>.</div><div class="btime">15:20</div></div></div>
+        </div>
+        <div class="vc-note">קצר ויעיל — לא מתנגד ולא מנסה להשאיר בבוט. מכבד את בחירת הלקוח.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     לא הבין
+══════════════════════════════ -->
+<div class="cat-pane" id="c-notunderstood">
+  <div class="sec-label">כשהבוט לא מבין — 3 גרסאות</div>
+  <div class="variants">
+
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">חזרה לתפריט</span>
+        <span class="vc-badge b-friendly">מומלץ</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row r"><div><div class="bubble b-out">מה עם ה...</div><div class="btime">13:10</div></div></div>
+          <div class="bubble-row"><div><div class="bubble b-in">לא הצלחתי להבין 🙈<br>בחר מהתפריט ואסדר לך:</div><div class="btime">13:10</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">📅 תור</span>
+            <span class="qr-btn">💰 מחיר</span>
+            <span class="qr-btn">🕐 שעות</span>
+            <span class="qr-btn">👤 נציג</span>
+          </div>
+        </div>
+        <div class="vc-note">לא משאיר את הלקוח תקוע — מחזיר לתפריט מיידית.</div>
+      </div>
+    </div>
+
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">ניסיון שני → נציג</span>
+        <span class="vc-badge b-short">אוטומטי</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row"><div><div class="bubble b-in">קצת קשה לי עם זה 😔<br>אעביר אותך לנציג שיעזור לך בדיוק.</div><div class="btime">13:12</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">✅ העבר לנציג</span>
+            <span class="qr-btn">🔙 נסה שוב</span>
+          </div>
+        </div>
+        <div class="vc-note">מופעל אחרי 2 ניסיונות כושלים. לא מתוסכל — מסיר עצמו מהדרך בחן.</div>
+      </div>
+    </div>
+
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">מחוץ לתחום</span>
+        <span class="vc-badge b-pro">ממוקד</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row r"><div><div class="bubble b-out">מה מחיר ביטקוין</div><div class="btime">09:50</div></div></div>
+          <div class="bubble-row"><div><div class="bubble b-in">אני מתמחה ב<span class="v">{{שם_עסק}}</span> בלבד 😊<br>לגבי השירותים שלנו — אשמח לעזור!</div><div class="btime">09:50</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">📅 קבע תור</span>
+            <span class="qr-btn">💰 מחירים</span>
+          </div>
+        </div>
+        <div class="vc-note">לא מבזבז זמן — מחזיר להמרה מהר. עם חיוך.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     מעקב
+══════════════════════════════ -->
+<div class="cat-pane" id="c-followup">
+  <div class="sec-label">מעקב אחרי ביקור — 3 גרסאות</div>
+  <div class="variants">
+
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">בקשת חוות דעת — כפתורים</span>
+        <span class="vc-badge b-friendly">מומלץ</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row"><div><div class="bubble b-in">שלום! 😊 ביקרת אצלנו אתמול.<br>איך היה?</div><div class="btime">10:00</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">⭐⭐⭐⭐⭐ מעולה</span>
+            <span class="qr-btn">⭐⭐⭐⭐ טוב</span>
+            <span class="qr-btn">⭐⭐⭐ בסדר</span>
+            <span class="qr-btn">👎 לא טוב</span>
+          </div>
+        </div>
+        <div class="vc-note">לחיצה אחת — לא צריך לכתוב כלום. 4-5 כוכבים → מפנה לגוגל. 1-3 → מסירה מיידית לבעל העסק.</div>
+      </div>
+    </div>
+
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">חוות דעת חיובית → גוגל</span>
+        <span class="vc-badge b-friendly">המרה</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row r"><div><div class="bubble b-out">⭐⭐⭐⭐⭐ מעולה</div><div class="btime">10:01</div></div></div>
+          <div class="bubble-row"><div><div class="bubble b-in">תודה רבה! ❤️<br>אם תרצה לשתף — ביקורת קצרה בגוגל עוזרת לנו מאוד 🙏</div><div class="btime">10:01</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">⭐ כתוב ביקורת בגוגל</span>
+            <span class="qr-btn">📅 קבע תור הבא</span>
+          </div>
+        </div>
+        <div class="vc-note">לקוח מרוצה = הזדמנות לביקורת + הזמנה לחזור. שני ערוצי המרה בהודעה אחת.</div>
+      </div>
+    </div>
+
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">לקוח לא חזר — הזמנה</span>
+        <span class="vc-badge b-short">Retention</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row"><div><div class="bubble b-in">שלום! 😊 מזמן לא ראינו אותך.<br>רוצה לקבוע תור?</div><div class="btime">10:00</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">📅 כן, קבע לי תור</span>
+            <span class="qr-btn">🔕 לא עכשיו</span>
+          </div>
+        </div>
+        <div class="vc-note">נשלח אחרי X ימים ללא ביקור (בעל העסק מגדיר). "לא עכשיו" — מפסיק לחודש.</div>
+      </div>
+    </div>
+
+    <!-- NEGATIVE REVIEW -->
+    <div class="variant-card" onclick="selVariant(this)">
+      <div class="vc-head">
+        <span class="vc-name">ביקורת שלילית — פירוט ולמידה</span>
+        <span class="vc-badge" style="background:#fee2e2;color:#dc2626;">חשוב</span>
+      </div>
+      <div class="vc-body">
+        <div class="wa-mock">
+          <div class="bubble-row r"><div><div class="bubble b-out">👎 לא טוב</div><div class="btime">10:01</div></div></div>
+          <div class="bubble-row"><div><div class="bubble b-in">מצטערים מאוד לשמוע 🙏<br>חשוב לנו להבין מה לשפר.<br>מה לא עמד בציפיות?</div><div class="btime">10:01</div></div></div>
+          <div class="qr-wrap">
+            <span class="qr-btn">⏰ זמן המתנה ארוך</span>
+            <span class="qr-btn">💇 איכות השירות</span>
+            <span class="qr-btn">💬 יחס הצוות</span>
+            <span class="qr-btn">💰 מחיר</span>
+            <span class="qr-btn">✏️ אחר</span>
+          </div>
+          <div style="margin-top:8px;"></div>
+          <div class="bubble-row r"><div><div class="bubble b-out">איכות השירות</div><div class="btime">10:02</div></div></div>
+          <div class="bubble-row"><div><div class="bubble b-in">תודה על הכנות 🙏<br>אפשר לפרט קצת יותר?<br>(כתוב בחופשיות)</div><div class="btime">10:02</div></div></div>
+          <div style="margin-top:8px;"></div>
+          <div class="bubble-row r"><div><div class="bubble b-out">הגיעה מאוחר ב-20 דקות</div><div class="btime">10:03</div></div></div>
+          <div class="bubble-row"><div><div class="bubble b-in">קיבלתי, תודה. ✅<br>בעל העסק יחזור אליך אישית בהקדם.</div><div class="btime">10:03</div></div></div>
+        </div>
+        <div class="vc-note" style="background:#fff8f8;border-color:#fecaca;border-radius:8px;padding:8px 10px;border:1px solid #fecaca;">
+          <strong>מה בעל העסק מקבל ב-Dashboard:</strong><br>
+          📋 סיבת הביקורת השלילית<br>
+          💬 הפירוט המלא שהלקוח כתב<br>
+          🔔 התראה מיידית למסירה לטיפול<br>
+          📊 צבירה לאורך זמן — לדוח שיפור חודשי
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+function showCat(id, el) {
+  document.querySelectorAll('.cat-pane').forEach(p=>p.classList.remove('act'));
+  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('act'));
+  document.getElementById('c-'+id).classList.add('act');
+  el.classList.add('act');
+  window.scrollTo(0,60);
+}
+
+function selVariant(card) {
+  const siblings = card.parentElement.querySelectorAll('.variant-card');
+  siblings.forEach(s=>s.classList.remove('sel'));
+  card.classList.toggle('sel');
+}
+
+function setMode(catId, mode, btn) {
+  // toggle buttons
+  btn.parentElement.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('act'));
+  btn.classList.add('act');
+  // show/hide
+  const customArea = document.getElementById('custom-'+catId);
+  const variantsArea = document.querySelector('#c-'+catId+' .variants');
+  const secLabel = document.querySelector('#c-'+catId+' .sec-label');
+  if (mode === 'custom') {
+    customArea.classList.add('show');
+    if (variantsArea) variantsArea.style.display = 'none';
+    if (secLabel) secLabel.style.display = 'none';
+  } else {
+    customArea.classList.remove('show');
+    if (variantsArea) variantsArea.style.display = 'flex';
+    if (secLabel) secLabel.style.display = 'block';
+  }
+}
+
+function addBtn(catId) {
+  const container = document.getElementById('btns-'+catId);
+  const row = document.createElement('div');
+  row.className = 'custom-btn-row';
+  row.innerHTML = '<input class="custom-btn-input" placeholder="טקסט כפתור..."><span style="color:var(--t4);cursor:pointer;font-size:16px;" onclick="this.parentElement.remove()">×</span>';
+  container.appendChild(row);
+  row.querySelector('input').focus();
+}
+</script>
+</body>
+</html>

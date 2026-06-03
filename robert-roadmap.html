@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robert — תוכנית דרך</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f8fc;
+  --white: #ffffff;
+  --t1: #111827;
+  --t2: #374151;
+  --t3: #6b7280;
+  --t4: #9ca3af;
+  --bdr: #e5e7eb;
+  --green: #16a34a;
+  --green-pale: #dcfce7;
+  --purple: #6d28d9;
+  --purple-pale: #ede9fe;
+  --blue: #1d4ed8;
+  --blue-pale: #dbeafe;
+  --amber: #b45309;
+  --amber-pale: #fef3c7;
+  --pink-pale: #fce7f3;
+  --pink: #9d174d;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.05);
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Rubik', sans-serif;
+  background: var(--bg);
+  color: var(--t1);
+  direction: rtl;
+  padding: 32px 24px 60px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page { max-width: 760px; margin: 0 auto; }
+
+h1 { font-size: 26px; font-weight: 800; letter-spacing: -1px; margin-bottom: 6px; }
+.sub { font-size: 15px; color: var(--t3); margin-bottom: 28px; }
+
+/* summary strip */
+.strip {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  background: var(--white); border: 1px solid var(--bdr);
+  border-radius: 16px; overflow: hidden; margin-bottom: 28px;
+  box-shadow: var(--shadow);
+}
+.strip-cell { padding: 16px 12px; text-align: center; border-left: 1px solid var(--bdr); }
+.strip-cell:last-child { border-left: none; }
+.strip-n { font-size: 26px; font-weight: 800; color: var(--t1); }
+.strip-l { font-size: 12px; color: var(--t3); margin-top: 3px; }
+
+/* phase */
+.phase { background: var(--white); border: 1px solid var(--bdr); border-radius: 16px; margin-bottom: 14px; overflow: hidden; box-shadow: var(--shadow); }
+.phase-hdr {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 18px; cursor: pointer; user-select: none;
+  transition: background .15s;
+}
+.phase-hdr:hover { background: #fafafa; }
+.badge {
+  font-size: 11px; font-weight: 700; padding: 4px 12px;
+  border-radius: 100px; white-space: nowrap;
+}
+.b1 { background: var(--purple-pale); color: var(--purple); }
+.b2 { background: var(--green-pale); color: var(--green); }
+.b3 { background: var(--amber-pale); color: var(--amber); }
+.b4 { background: var(--blue-pale); color: var(--blue); }
+
+.phase-title { font-size: 15px; font-weight: 700; flex: 1; }
+.phase-wk { font-size: 12px; color: var(--t4); }
+.arr { font-size: 11px; color: var(--t4); transition: transform .25s; }
+.phase.open .arr { transform: rotate(180deg); }
+
+.phase-body { display: none; border-top: 1px solid var(--bdr); padding: 16px 18px; }
+.phase.open .phase-body { display: block; }
+
+/* tasks */
+.tasks { display: flex; flex-direction: column; gap: 8px; }
+.task {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 11px 14px; border-radius: 10px;
+  border: 1px solid var(--bdr);
+  transition: border-color .15s;
+}
+.task:hover { border-color: #d1d5db; }
+.task-n { font-size: 11px; font-weight: 600; color: var(--t4); min-width: 18px; margin-top: 1px; }
+.task-title { font-size: 14px; font-weight: 600; color: var(--t1); margin-bottom: 3px; }
+.task-desc { font-size: 12.5px; color: var(--t3); line-height: 1.55; }
+.tag {
+  display: inline-block; font-size: 11px; font-weight: 600;
+  padding: 2px 9px; border-radius: 100px; margin-top: 6px;
+}
+.tt { background: var(--blue-pale); color: var(--blue); }
+.td { background: var(--green-pale); color: var(--green); }
+.tm { background: var(--pink-pale); color: var(--pink); }
+.ta { background: #e0e7ff; color: #3730a3; }
+
+/* done state */
+.task.done { background: #f0fdf4; border-color: #bbf7d0; }
+.task.done .task-title { color: var(--green); text-decoration: line-through; text-decoration-color: #86efac; }
+.task.done .task-desc { color: var(--t4); }
+.done-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 700; color: var(--green);
+  background: var(--green-pale); padding: 2px 9px;
+  border-radius: 100px; margin-top: 6px;
+}
+.phase-done-count {
+  font-size: 11px; font-weight: 600;
+  background: var(--green-pale); color: var(--green);
+  padding: 3px 10px; border-radius: 100px;
+}
+
+/* targets */
+.targets { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+.target { padding: 12px 14px; border-radius: 10px; border: 1px solid var(--bdr); }
+.target-lbl { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+.target-val { font-size: 22px; font-weight: 800; color: var(--t1); }
+.target-note { font-size: 11px; color: var(--t3); margin-top: 2px; }
+.tg-green { background: var(--green-pale); }
+.tg-green .target-lbl { color: var(--green); }
+.tg-blue { background: var(--blue-pale); }
+.tg-blue .target-lbl { color: var(--blue); }
+
+.divider-label {
+  text-align: center; font-size: 11px; color: var(--t4);
+  margin: 14px 0 12px; display: flex; align-items: center; gap: 8px;
+}
+.divider-label::before, .divider-label::after { content: ''; flex: 1; height: 1px; background: var(--bdr); }
+
+@media(max-width:600px){
+  .strip { grid-template-columns: repeat(2,1fr); }
+  .targets { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>תוכנית דרך — Robert 🤖</h1>
+  <p class="sub">4 שלבים מדף הנחיתה ועד מערכת שמנהלת את עצמה</p>
+
+  <div class="strip">
+    <div class="strip-cell"><div class="strip-n">4</div><div class="strip-l">שלבים</div></div>
+    <div class="strip-cell"><div class="strip-n">18</div><div class="strip-l">משימות</div></div>
+    <div class="strip-cell"><div class="strip-n">~12</div><div class="strip-l">שבועות</div></div>
+    <div class="strip-cell"><div class="strip-n">0</div><div class="strip-l">קוד ממך</div></div>
+  </div>
+
+  <!-- DESIGN PHASE — DONE -->
+  <div class="phase open" id="p0" style="border-color:#bbf7d0;background:#f0fdf4;">
+    <div class="phase-hdr" onclick="tog('p0')" style="background:#f0fdf4;">
+      <span class="badge" style="background:var(--green-pale);color:var(--green);">עיצוב</span>
+      <span class="phase-title">עיצוב מלא — UI/UX</span>
+      <span class="phase-done-count" style="background:var(--green-pale);color:var(--green);">5 / 5 בוצע ✓</span>
+      <span class="arr">▼</span>
+    </div>
+    <div class="phase-body">
+      <div class="tasks">
+        <div class="task done"><span class="task-n">✓</span><div><div class="task-title">דף נחיתה</div><div class="task-desc">דף שיווקי מלא בעברית — מחירים, יתרונות, testimonials, FAQ</div><span class="done-badge">✓ בוצע</span></div></div>
+        <div class="task done"><span class="task-n">✓</span><div><div class="task-title">דף הרשמה + Onboarding</div><div class="task-desc">5 שלבי איפיון בוט — סוג עסק, פרטים, שירותים, סגנון, וואטסאפ</div><span class="done-badge">✓ בוצע</span></div></div>
+        <div class="task done"><span class="task-n">✓</span><div><div class="task-title">Dashboard — אזור אישי</div><div class="task-desc">8 לשוניות — בוטים, Inbox, היסטוריה, אנליטיקס, תבניות, מנוי, הגדרות, תמיכה</div><span class="done-badge">✓ בוצע</span></div></div>
+        <div class="task done"><span class="task-n">✓</span><div><div class="task-title">דף 404</div><div class="task-desc">דף שגיאה מעוצב</div><span class="done-badge">✓ בוצע</span></div></div>
+        <div class="task done"><span class="task-n">✓</span><div><div class="task-title">Favicon + חיבור בין דפים</div><div class="task-desc">Favicon כחול-ירוק + ניווט מלא בין כל הדפים</div><span class="done-badge">✓ בוצע</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 1 -->
+  <div class="phase open" id="p1">
+    <div class="phase-hdr" onclick="tog('p1')">
+      <span class="badge b1">שלב 1</span>
+      <span class="phase-title">תשתית — אתר + תשלום + הרשמה</span>
+      <span class="phase-done-count">1 / 4 בוצע</span>
+      <span class="phase-wk">שבועות 1–2</span>
+      <span class="arr">▼</span>
+    </div>
+    <div class="phase-body">
+      <div class="tasks">
+        <div class="task done"><span class="task-n">✓</span><div><div class="task-title">דומיין + Hosting</div><div class="task-desc">robertbot.co.il רשום ✓ — Vercel להעלאה עם Claude Code</div><span class="done-badge">✓ בוצע</span></div></div>
+        <div class="task"><span class="task-n">2</span><div><div class="task-title">העלאה ל-Vercel</div><div class="task-desc">העלאת קבצי ה-HTML + חיבור הדומיין — Claude Code</div><span class="tag tt">Claude Code</span></div></div>
+        <div class="task"><span class="task-n">3</span><div><div class="task-title">סליקה — Stripe</div><div class="task-desc">Stripe Checkout — לקוח משלם, מקבל גישה אוטומטית למסלול שבחר</div><span class="tag tt">Claude Code</span></div></div>
+        <div class="task"><span class="task-n">4</span><div><div class="task-title">הרשמה + Auth — Supabase</div><div class="task-desc">Google login + אימייל. אחרי תשלום → חשבון נוצר אוטומטית</div><span class="tag tt">Claude Code</span></div></div>
+        <div class="task"><span class="task-n">5</span><div><div class="task-title">לוגיקת 7 ימי ניסיון</div><div class="task-desc">Timer אוטומטי — מסיים trial → מייל → חיוב או ניתוק הבוט</div><span class="tag tt">Claude Code</span></div></div>
+      </div>
+    </div>
+    <!-- PHASE 2 -->
+  <div class="phase" id="p2">
+    <div class="phase-hdr" onclick="tog('p2')">
+      <span class="badge b2">שלב 2</span>
+      <span class="phase-title">לב המערכת — Backend + חיבורים</span>
+      <span style="font-size:11px;font-weight:700;background:#fef3c7;color:#b45309;padding:3px 10px;border-radius:100px;">בתהליך עם Claude Code</span>
+      <span class="phase-wk">שבועות 3–5</span>
+      <span class="arr">▼</span>
+    </div>
+    <div class="phase-body">
+      <div class="tasks">
+        <div class="task">
+          <span class="task-n">1</span>
+          <div>
+            <div class="task-title">Dashboard — אזור אישי</div>
+            <div class="task-desc">לוח ניהול: רשימת בוטים, סטטוס חיבור, שימוש הודעות, מנוי</div>
+            <span class="tag td">עיצוב + טכני</span>
+          </div>
+        </div>
+        <div class="task">
+          <span class="task-n">2</span>
+          <div>
+            <div class="task-title">Wizard בניית הבוט — 4 צעדים</div>
+            <div class="task-desc">שם עסק ← תיאור שירות ← שאלות נפוצות ← סגנון דיבור ← preview חי</div>
+            <span class="tag td">עיצוב</span>
+          </div>
+        </div>
+        <div class="task">
+          <span class="task-n">3</span>
+          <div>
+            <div class="task-title">מנוע AI — System Prompt דינמי</div>
+            <div class="task-desc">Claude/GPT-4o יוצר system prompt מהגדרות הלקוח, שמור ב-Supabase</div>
+            <span class="tag tt">טכני</span>
+          </div>
+        </div>
+        <div class="task">
+          <span class="task-n">4</span>
+          <div>
+            <div class="task-title">חיבור Twilio WhatsApp API</div>
+            <div class="task-desc">Webhook מ-Twilio → AI → תשובה חוזרת. הלקוח מחבר מספר בלחיצה</div>
+            <span class="tag tt">טכני</span>
+          </div>
+        </div>
+        <div class="task">
+          <span class="task-n">5</span>
+          <div>
+            <div class="task-title">Human Handoff — מסירה לאדם</div>
+            <div class="task-desc">כפתור "העבר לנציג" + inbox בדashboard + סיכום ההיסטוריה לבעל העסק</div>
+            <span class="tag tt">טכני</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase" id="p3">
+    <div class="phase-hdr" onclick="tog('p3')">
+      <span class="badge b3">שלב 3</span>
+      <span class="phase-title">השקה + לקוחות ראשונים</span>
+      <span class="phase-wk">שבועות 6–8</span>
+      <span class="arr">▼</span>
+    </div>
+    <div class="phase-body">
+      <div class="tasks">
+        <div class="task">
+          <span class="task-n">1</span>
+          <div>
+            <div class="task-title">Beta — 10 עסקים ראשונים בחינם</div>
+            <div class="task-desc">חינם תמורת פידבק + testimonials. פייסבוק: קבוצות בעלי עסקים, מספרות, קוסמטיקאיות</div>
+            <span class="tag tm">שיווק</span>
+          </div>
+        </div>
+        <div class="task">
+          <span class="task-n">2</span>
+          <div>
+            <div class="task-title">Testimonials + צילומסך שיחות</div>
+            <div class="task-desc">3-5 ציטוטים אמיתיים + screenshots מוואטסאפ → עולים לדף הנחיתה</div>
+            <span class="tag tm">שיווק</span>
+          </div>
+        </div>
+        <div class="task">
+          <span class="task-n">3</span>
+          <div>
+            <div class="task-title">SEO — 3 מאמרים ראשונים</div>
+            <div class="task-desc">"בוט לוואטסאפ לעסקים", "איך לחסוך על שירות לקוחות", "בוט AI לעברית"</div>
+            <span class="tag tm">שיווק</span>
+          </div>
+        </div>
+        <div class="task">
+          <span class="task-n">4</span>
+          <div>
+            <div class="task-title">פרסום ממומן ראשוני — $200-300</div>
+            <div class="task-desc">Meta Ads — בעלי עסקים 30-55, ישראל. A/B על 2 כותרות, תקציב קטן לבדיקה</div>
+            <span class="tag tm">שיווק</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase" id="p4">
+    <div class="phase-hdr" onclick="tog('p4')">
+      <span class="badge b4">שלב 4</span>
+      <span class="phase-title">סוכני AI — המערכת מנהלת את עצמה</span>
+      <span class="phase-wk">שבועות 9–12</span>
+      <span class="arr">▼</span>
+    </div>
+    <div class="phase-body">
+      <div class="tasks">
+        <div class="task">
+          <span class="task-n">1</span>
+          <div>
+            <div class="task-title">סוכן שיווק — תוכן אוטומטי</div>
+            <div class="task-desc">מייצר פוסטים שבועיים לאינסטגרם/לינקדאין, מנטר ביצועים, מציע שינויים</div>
+            <span class="tag ta">AI Agent</span>
+          </div>
+        </div>
+        <div class="task">
+          <span class="task-n">2</span>
+          <div>
+            <div class="task-title">סוכן שירות לקוחות</div>
+            <div class="task-desc">עונה לפניות אימייל/צ'אט של לקוחות Robert עצמו, פותר בעיות נפוצות אוטומטית</div>
+            <span class="tag ta">AI Agent</span>
+          </div>
+        </div>
+        <div class="task">
+          <span class="task-n">3</span>
+          <div>
+            <div class="task-title">סוכן ניתוח ושיפור</div>
+            <div class="task-desc">מנתח שיחות כל הבוטים, מזהה כשלים, מציע שיפורי prompt אוטומטית</div>
+            <span class="tag ta">AI Agent</span>
+          </div>
+        </div>
+        <div class="task">
+          <span class="task-n">4</span>
+          <div>
+            <div class="task-title">סוכן Retention + חיוב</div>
+            <div class="task-desc">מזהה לקוחות שעומדים לבטל, שולח הצעת הנחה אוטומטית, מנהל חידושים</div>
+            <span class="tag ta">AI Agent</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider-label">יעד — סוף שלב 4</div>
+
+      <div class="targets">
+        <div class="target tg-green">
+          <div class="target-lbl">הכנסה חודשית יעד</div>
+          <div class="target-val">₪15,000+</div>
+          <div class="target-note">75 לקוחות × ₪199 ממוצע</div>
+        </div>
+        <div class="target tg-blue">
+          <div class="target-lbl">עבודה ידנית שלך</div>
+          <div class="target-val">~0 שעות</div>
+          <div class="target-note">הסוכנים מנהלים הכל</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+  function tog(id){
+    const el=document.getElementById(id);
+    el.classList.toggle('open');
+  }
+</script>
+</body>
+</html>
