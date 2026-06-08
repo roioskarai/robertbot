@@ -12,3 +12,9 @@ Thumbs.db
 
 # Git push helper (local only)
 git-push.bat
+
+# Claude Code — local runtime artifacts (agents in .claude/agents/ STAY tracked)
+.claude/scheduled_tasks.lock
+.claude/*.lock
+.claude/settings.local.json
+.claude/plans/
