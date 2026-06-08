@@ -131,6 +131,42 @@ export function trialEndingEmail(opts: { name: string; trialEndsAt: string }): {
   return { subject: "הניסיון החינם שלך ב-Robert מסתיים בקרוב", html: shell("תזכורת סיום ניסיון", body) };
 }
 
+// Hebrew labels for the agent registry names.
+const AGENT_HE: Record<string, string> = {
+  "conversation-analyst": "מנתח שיחות",
+  retention: "שימור לקוחות",
+  knowledge: "סוכן ידע",
+  orchestrator: "מנצח התפעול",
+};
+
+/**
+ * Daily owner report — the digest the ops-orchestrator sends to the platform
+ * owner: one line per agent (status + Hebrew summary) and the count of
+ * proposals waiting for approval.
+ */
+export function dailyOwnerReportEmail(opts: {
+  date: string;
+  items: { agent: string; status: string; summary: string; proposals: number }[];
+}): { subject: string; html: string } {
+  const dot = (s: string) =>
+    s === "success" ? "🟢" : s === "skipped" ? "⚪" : "🔴";
+  const rows = opts.items
+    .map((i) => infoRow(`${dot(i.status)} ${AGENT_HE[i.agent] ?? i.agent}`, i.summary))
+    .join("");
+  const totalProposals = opts.items.reduce((n, i) => n + i.proposals, 0);
+  const body =
+    hi(`דוח יומי — ${opts.date} 🤖`) +
+    text(
+      `סיכום פעילות הסוכנים שמנהלים את Robert. <strong>${totalProposals} הצעות</strong> ממתינות לאישורך.`,
+    ) +
+    infoBox(rows) +
+    btn(`${APP_URL}/dashboard`, "כניסה לאזור האישי ←");
+  return {
+    subject: `דוח יומי של Robert — ${totalProposals} הצעות ממתינות`,
+    html: shell("הסוכנים מנהלים בשבילך", body),
+  };
+}
+
 // ── Sender ────────────────────────────────────────────────
 
 export async function sendEmail(to: string, subject: string, html: string) {

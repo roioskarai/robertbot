@@ -53,6 +53,37 @@ Source of truth: `src/lib/plans.ts` — `PLAN_LIMITS`, `PRICING`, `MESSAGE_PACKS
 - `generateReply(bot, history, message)` — calls Claude API, returns `BotReply { text, buttons, handoff }`
 - `parseBotReply(raw)` — strips `[BUTTONS: a|b|c]` and `[HANDOFF]` tokens
 
+### AI agent layer (`src/lib/agents/`)
+
+Autonomous agents that run the SaaS ("the system manages itself" — roadmap phase 4).
+**Reliability invariant: agents are draft-only.** They never edit a live bot or send a
+paying-customer message/charge directly — they write `proposed_actions` for human
+approval. Every run is logged to `agent_runs` and is idempotent per day via `dedupKey`.
+
+- `runner.ts` — shared runtime: `runAgent(agent, mode)` executes an agent, enforces
+  idempotency, persists to `agent_runs`, never throws. `callClaude()` (token-counted)
+  and `extractJson()` (defensive parse) are reused by every agent. No-ops cleanly when
+  Supabase isn't configured (`supabaseAdminConfigured()`), matching demo mode.
+- `registry.ts` — `SCHEDULED_AGENTS` map (what the orchestrator/route can run by name).
+- **conversation-analyst** — reads conversations across all bots, drafts per-bot prompt
+  + FAQ improvements (`proposed_actions`, target = bot_id).
+- **retention** — finds churn signals (trial ending, paused, cancelled, low usage),
+  drafts personalized Hebrew win-back offers. Strictly draft-only (money-touching).
+- **knowledge** (`extractBusinessKnowledge`) — interactive product agent: turns pasted
+  business text into `description` + `services` + `faq` for onboarding. Pure function;
+  exposed at `POST /api/agents/knowledge` (auth). Powers the "10-minute bot".
+- `orchestrator.ts` — `runOrchestrator(mode)` runs the scheduled agents, compiles the
+  Hebrew **daily owner report** (`dailyOwnerReportEmail` in `resend.ts`), and emails it
+  in `live` mode when `OWNER_EMAIL` + Resend are set.
+
+Schema: `supabase/agents.sql` (`agent_runs` table + RLS) — run after `schema.sql`.
+Engineering sub-agents that help build/maintain this repo live in `.claude/agents/`
+(supabase-architect, api-route-builder, integrations-engineer, bot-prompt-engineer,
+multitenant-security-reviewer, qa-verifier).
+
+Env vars: `CRON_SECRET` (run auth), `OWNER_EMAIL` (report recipient),
+`ANTHROPIC_AGENT_MODEL` (optional model override for agents).
+
 ### Key flows
 
 **WhatsApp message → reply** (`/api/webhook/whatsapp`):
@@ -87,3 +118,5 @@ All pages render with hardcoded fallback data when Supabase keys are placeholder
 | `/api/webhook/whatsapp` | Twilio inbound (AI engine entry point) |
 | `/api/webhook/stripe` | Stripe payment events |
 | `/api/cron/trial` | daily trial expiry (call with `?secret=CRON_SECRET`) |
+| `/api/agents/run/[agent]` | run an operational agent or `orchestrator` (secret/Bearer-guarded; `?mode=dry\|live`) |
+| `/api/agents/knowledge` | interactive knowledge agent (auth; POST `{text}`) |
