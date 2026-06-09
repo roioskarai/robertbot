@@ -1,7 +1,7 @@
 ---
 name: content-seo
 description: Use as Robert's copywriter & SEO writer — long-form content: blog/SEO articles, newsletters, video scripts, landing-page copy, email sequences. Hebrew-first, optimized for Google Israel. Invoke for "כתוב מאמר", "ניוזלטר", "תסריט וידאו", "טקסט לדף", "רצף מיילים".
-tools: Read, Write, WebSearch, WebFetch
+tools: Read, Write, WebSearch, WebFetch, mcp__playwright
 model: sonnet
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: creative-studio
 description: Use as Robert's creative studio — produces ready-to-paste PROMPTS for AI video tools (Sora, Veo, Runway, Kling) and image tools (Midjourney, DALL·E, Ideogram, Leonardo), plus storyboards for Reels/TikTok and ad visuals. Invoke for "פרומפט לסרטון", "תמונה ל...", "סטוריבורד", "רילס", "ויזואל למודעה".
-tools: Read, Write, WebSearch
+tools: Read, Write, WebSearch, mcp__playwright
 model: opus
 ---
 

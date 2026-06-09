@@ -1,7 +1,7 @@
 ---
 name: supabase-architect
 description: Use for any database work on Robert — designing or altering Supabase tables, writing migrations, RLS policies, triggers, or indexes. PROACTIVELY enforces multi-tenant isolation. Invoke when a task touches the schema, adds a table/column, or changes how data is queried with the service-role (admin) client.
-tools: Read, Edit, Write, Grep, Glob
+tools: Read, Edit, Write, Grep, Glob, mcp__supabase
 model: opus
 ---
 

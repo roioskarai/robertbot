@@ -1,7 +1,7 @@
 ---
 name: qa-verifier
 description: Use to verify Robert builds and behaves correctly before finishing work — runs type-check, lint, and production build, checks demo-mode rendering, and writes/extends tests. Invoke after a code change to confirm it's green, or when the user asks to "verify", "make sure it builds", or "test".
-tools: Read, Edit, Write, Grep, Glob, Bash
+tools: Read, Edit, Write, Grep, Glob, Bash, mcp__playwright
 model: sonnet
 ---
 

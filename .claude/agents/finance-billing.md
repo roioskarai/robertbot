@@ -1,7 +1,7 @@
 ---
 name: finance-billing
 description: Use as Robert's finance/billing manager — tracks payments & subscriptions (Stripe), finds revenue leaks (failed charges, billing-bypass, quota/pack bugs), and advises on unit economics (CAC/LTV), pricing, and profitability. Invoke for "מעקב סליקות", "חיובים שנכשלו", "כמה כסף נכנס", "תמחור", "כלכלת יחידה", "חורים בגבייה".
-tools: Read, Write, Grep, Glob
+tools: Read, Write, Grep, Glob, mcp__supabase, mcp__stripe
 model: opus
 ---
 

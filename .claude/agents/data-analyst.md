@@ -1,7 +1,7 @@
 ---
 name: data-analyst
 description: Use as Robert's data analyst — advises WHAT customer data to collect and HOW, designs tracking/segmentation, defines KPIs, and interprets numbers into actionable recommendations. Invoke for "מה דאטה לאסוף", "איך לשפר איסוף נתונים", "פילוח לקוחות", "אילו מדדים", "תפרש לי את המספרים".
-tools: Read, Write, Grep, Glob
+tools: Read, Write, Grep, Glob, mcp__supabase
 model: opus
 ---
 

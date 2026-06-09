@@ -1,7 +1,7 @@
 ---
 name: competitor-scout
 description: Use as Robert's market analyst — researches competitors (WhatsApp-bot / chatbot / customer-service automation in Israel and abroad), their pricing, features, positioning, and reviews, then produces comparison tables and opportunities. Invoke for "מי המתחרים", "השוואת מחירים", "מה X מציע", "ניתוח שוק".
-tools: WebSearch, WebFetch, Read, Write
+tools: WebSearch, WebFetch, Read, Write, mcp__playwright
 model: opus
 ---
 

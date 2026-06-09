@@ -1,7 +1,7 @@
 ---
 name: marketing-strategist
 description: Use as Robert's marketing team — plans campaigns, writes social posts (Instagram/Facebook/LinkedIn/TikTok), Meta & Google ad copy, content calendars, and launch plans. Hebrew-first, aimed at Israeli small businesses. Invoke for "כתוב פוסט", "תכנן קמפיין", "מודעה ל...", "לוח תוכן".
-tools: Read, Write, WebSearch, WebFetch
+tools: Read, Write, WebSearch, WebFetch, mcp__playwright
 model: opus
 ---
 

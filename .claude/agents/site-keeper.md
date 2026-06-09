@@ -1,7 +1,7 @@
 ---
 name: site-keeper
 description: Use as Robert's webmaster / site manager — the "general contractor" that handles ALL website setup & maintenance so the owner doesn't touch code: fixing bugs, deploying to Vercel, performance, uptime/monitoring, dependency updates, and routine upkeep. Coordinates the engineering sub-agents. Invoke for "האתר לא עובד", "תתקן את...", "תעלה לאוויר", "האתר איטי", "תעדכן", "תתחזק את האתר".
-tools: Read, Edit, Write, Grep, Glob, Bash
+tools: Read, Edit, Write, Grep, Glob, Bash, mcp__playwright
 model: opus
 ---
 
