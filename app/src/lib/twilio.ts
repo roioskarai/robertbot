@@ -32,11 +32,17 @@ export function toWhatsApp(phone: string): string {
   return "whatsapp:" + p;
 }
 
-/** Sends a WhatsApp message via Twilio. */
-export async function sendWhatsApp(to: string, body: string) {
+/**
+ * Sends a WhatsApp message via Twilio.
+ * `from` is the tenant bot's OWN connected sender — pass it for multi-tenant
+ * isolation. Falls back to the global TWILIO_WHATSAPP_NUMBER only when a bot
+ * has no connected number yet (e.g. shared onboarding sandbox).
+ */
+export async function sendWhatsApp(to: string, body: string, from?: string) {
   const client = getTwilio();
+  const sender = from ? toWhatsApp(from) : process.env.TWILIO_WHATSAPP_NUMBER!;
   return client.messages.create({
-    from: process.env.TWILIO_WHATSAPP_NUMBER!,
+    from: sender,
     to: toWhatsApp(to),
     body,
   });

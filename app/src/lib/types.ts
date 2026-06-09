@@ -1,5 +1,6 @@
 import type { BillingCycle, PlanId } from "./plans";
 import type { PaymentProviderId } from "./payments/types";
+import type { WhatsAppProviderId } from "./whatsapp/types";
 
 export type Role = "admin" | "tenant";
 export type SubscriptionStatus = "trial" | "active" | "cancelled" | "paused";
@@ -63,6 +64,12 @@ export interface Bot {
   style: BotStyle;
   whatsapp_number: string | null;
   twilio_sid: string | null;
+  // WhatsApp connection (multi-tenant isolation) — each tenant owns its WABA.
+  wa_provider: WhatsAppProviderId | null;
+  meta_business_id: string | null;
+  meta_waba_id: string | null;
+  meta_phone_number_id: string | null;
+  wa_access_token: string | null;
   active: boolean;
   system_prompt: string | null;
   message_templates: Record<string, unknown> | null;

@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, unauthorized } from "@/lib/errors";
-import { hasTwilioCreds, sendWhatsApp } from "@/lib/twilio";
+import { getWhatsAppProvider, hasWhatsApp } from "@/lib/whatsapp";
+import type { Bot } from "@/lib/types";
 
 type Ctx = { params: { id: string } };
 
@@ -42,12 +43,19 @@ export async function POST(req: Request, { params }: Ctx) {
     .update({ status: "human", last_message_at: new Date().toISOString() })
     .eq("id", params.id);
 
-  // Deliver to the customer over WhatsApp (best-effort).
-  if (hasTwilioCreds()) {
-    try {
-      await sendWhatsApp(conv.customer_phone, text);
-    } catch {
-      /* delivery failure shouldn't drop the saved message */
+  // Deliver to the customer over WhatsApp FROM this bot's own sender (best-effort).
+  if (hasWhatsApp()) {
+    const { data: bot } = await supabase
+      .from("bots")
+      .select("*")
+      .eq("id", conv.bot_id)
+      .maybeSingle();
+    if (bot) {
+      try {
+        await getWhatsAppProvider().sendMessage(bot as Bot, conv.customer_phone, text);
+      } catch {
+        /* delivery failure shouldn't drop the saved message */
+      }
     }
   }
 

@@ -47,6 +47,13 @@ CREATE TABLE IF NOT EXISTS bots (
   style TEXT DEFAULT 'friendly' CHECK (style IN ('friendly', 'professional', 'short')),
   whatsapp_number TEXT,
   twilio_sid TEXT,
+  -- WhatsApp connection (multi-tenant isolation). Each tenant owns its own
+  -- Meta Portfolio + WABA via Embedded Signup; tokens are per-tenant.
+  wa_provider TEXT CHECK (wa_provider IN ('twilio', 'meta')), -- ADDED
+  meta_business_id TEXT,        -- ADDED: tenant's Meta Business Portfolio id
+  meta_waba_id TEXT,            -- ADDED: tenant's WhatsApp Business Account id
+  meta_phone_number_id TEXT,    -- ADDED: tenant's sender phone-number id (inbound routing)
+  wa_access_token TEXT,         -- ADDED: tenant's WABA access token (store encrypted)
   active BOOLEAN DEFAULT false,
   system_prompt TEXT,              -- Generated AI system prompt
   message_templates JSONB,         -- Custom templates chosen by tenant
@@ -55,6 +62,7 @@ CREATE TABLE IF NOT EXISTS bots (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS bots_whatsapp_idx ON bots(whatsapp_number);
+CREATE INDEX IF NOT EXISTS bots_meta_phone_idx ON bots(meta_phone_number_id);
 
 -- ── Conversations ────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS conversations (

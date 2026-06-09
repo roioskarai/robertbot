@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import twilio from "twilio";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateReply, hasAnthropicKey } from "@/lib/claude";
-import { sendWhatsApp, appendButtons, hasTwilioCreds } from "@/lib/twilio";
+import { getWhatsAppProvider, hasWhatsApp } from "@/lib/whatsapp";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { PLAN_LIMITS, type PlanId } from "@/lib/plans";
 import type { Bot } from "@/lib/types";
@@ -163,12 +163,13 @@ export async function POST(req: Request) {
       .eq("id", conversationId);
   }
 
-  const outText = appendButtons(reply.text, reply.buttons);
+  const wa = getWhatsAppProvider();
+  const outText = wa.formatButtons(reply.text, reply.buttons);
 
-  // Deliver the reply.
-  if (hasTwilioCreds()) {
+  // Deliver the reply FROM this bot's own sender (tenant isolation).
+  if (hasWhatsApp()) {
     try {
-      await sendWhatsApp(from, outText);
+      await wa.sendMessage(bot, from, outText);
     } catch {
       /* keep going — message is still recorded */
     }
