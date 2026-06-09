@@ -15,8 +15,11 @@ CREATE TABLE IF NOT EXISTS users (
   billing_cycle TEXT DEFAULT 'monthly' CHECK (billing_cycle IN ('monthly', 'annual')),
   trial_ends_at TIMESTAMPTZ DEFAULT NOW() + INTERVAL '7 days',
   subscription_status TEXT DEFAULT 'trial' CHECK (subscription_status IN ('trial', 'active', 'cancelled', 'paused')),
-  stripe_customer_id TEXT,
-  stripe_subscription_id TEXT,
+  payment_provider TEXT CHECK (payment_provider IN ('grow', 'stripe')), -- ADDED: active billing provider
+  payment_customer_id TEXT,               -- ADDED: provider-agnostic customer id
+  payment_subscription_id TEXT,           -- ADDED: provider-agnostic subscription/recurring id
+  stripe_customer_id TEXT,                -- legacy (kept for backward compat)
+  stripe_subscription_id TEXT,            -- legacy (kept for backward compat)
   pack_balance INT DEFAULT 0,             -- ADDED: never-expiring message pack balance
   trial_reminder_sent BOOLEAN DEFAULT false, -- ADDED: day-5 trial email guard
   created_at TIMESTAMPTZ DEFAULT NOW()

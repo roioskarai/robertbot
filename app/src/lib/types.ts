@@ -1,4 +1,5 @@
 import type { BillingCycle, PlanId } from "./plans";
+import type { PaymentProviderId } from "./payments/types";
 
 export type Role = "admin" | "tenant";
 export type SubscriptionStatus = "trial" | "active" | "cancelled" | "paused";
@@ -15,6 +16,11 @@ export interface DBUser {
   billing_cycle: BillingCycle;
   trial_ends_at: string;
   subscription_status: SubscriptionStatus;
+  // Provider-agnostic billing identifiers (Grow / Stripe). The legacy
+  // stripe_* columns are retained for backward compatibility.
+  payment_provider: PaymentProviderId | null;
+  payment_customer_id: string | null;
+  payment_subscription_id: string | null;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
   pack_balance: number;

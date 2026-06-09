@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
-import { getStripe, hasStripeKey, planLineItem, packLineItem } from "@/lib/stripe";
+import { getPaymentProvider, hasPayment } from "@/lib/payments";
 import { parseProduct } from "@/lib/plans";
 import { jsonError, unauthorized } from "@/lib/errors";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-// POST /api/billing/checkout  body: { product: "advanced_monthly" | "pack_regular" | ... }
+// POST /api/billing/checkout  body: { product: "pro_monthly" | "pack_regular" | ... }
 export async function POST(req: Request) {
   const session = await getSessionUser();
   if (!session) return unauthorized();
 
-  if (!hasStripeKey()) return jsonError("סליקה אינה זמינה כרגע (חסר STRIPE_SECRET_KEY)", 503);
+  if (!hasPayment()) return jsonError("סליקה אינה זמינה כרגע", 503);
 
   let body: { product?: string };
   try {
@@ -28,42 +28,33 @@ export async function POST(req: Request) {
     return jsonError("רכישת Packs זמינה למנויים פעילים בלבד", 403);
   }
 
-  const stripe = getStripe();
+  const provider = getPaymentProvider();
   const supabase = createClient();
 
-  // Reuse / create the Stripe customer.
-  let customerId = session.profile?.stripe_customer_id ?? undefined;
-  if (!customerId) {
-    const customer = await stripe.customers.create({
+  try {
+    const out = await provider.createCheckout({
+      userId: session.authId,
       email: session.email,
-      metadata: { user_id: session.authId },
-    });
-    customerId = customer.id;
-    await supabase
-      .from("users")
-      .update({ stripe_customer_id: customerId })
-      .eq("id", session.authId);
-  }
-
-  const checkout = await stripe.checkout.sessions.create({
-    mode: parsed.kind === "plan" ? "subscription" : "payment",
-    customer: customerId,
-    line_items: [
-      parsed.kind === "plan"
-        ? planLineItem(parsed.plan, parsed.cycle)
-        : packLineItem(parsed.pack),
-    ],
-    success_url: `${APP_URL}/dashboard?checkout=success`,
-    cancel_url: `${APP_URL}/dashboard?checkout=cancel`,
-    locale: "auto",
-    metadata: {
-      user_id: session.authId,
       product: body.product!,
-      ...(parsed.kind === "plan"
-        ? { plan: parsed.plan, cycle: parsed.cycle }
-        : { pack: parsed.pack }),
-    },
-  });
+      kind: parsed.kind,
+      plan: parsed.kind === "plan" ? parsed.plan : undefined,
+      cycle: parsed.kind === "plan" ? parsed.cycle : undefined,
+      pack: parsed.kind === "pack" ? parsed.pack : undefined,
+      customerId: session.profile?.payment_customer_id ?? session.profile?.stripe_customer_id,
+      successUrl: `${APP_URL}/dashboard?checkout=success`,
+      cancelUrl: `${APP_URL}/dashboard?checkout=cancel`,
+    });
 
-  return NextResponse.json({ url: checkout.url });
+    // Persist a newly created provider customer id, if any.
+    if (out.customerId) {
+      await supabase
+        .from("users")
+        .update({ payment_provider: provider.id, payment_customer_id: out.customerId })
+        .eq("id", session.authId);
+    }
+
+    return NextResponse.json({ url: out.url });
+  } catch (e) {
+    return jsonError(e instanceof Error ? e.message : "פתיחת התשלום נכשלה", 502);
+  }
 }

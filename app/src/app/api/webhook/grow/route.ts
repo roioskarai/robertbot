@@ -1,17 +1,18 @@
 import { NextResponse } from "next/server";
-import { stripeProvider } from "@/lib/payments/stripe-provider";
+import { growProvider } from "@/lib/payments/grow-provider";
 import { applyPaymentEvent } from "@/lib/payments";
 
 export const dynamic = "force-dynamic";
 
-// Stripe webhook — verifies the signature (raw body) and applies the
-// normalized event. Kept available behind the payment abstraction.
+// Grow (Meshulam) server-to-server callback. Verifies the shared secret,
+// normalizes the payload and applies it. Configure this URL as the "notify"
+// endpoint in the Grow dashboard.
 export async function POST(req: Request) {
-  if (!stripeProvider.isConfigured() || !process.env.STRIPE_WEBHOOK_SECRET) {
-    return NextResponse.json({ error: "Stripe not configured" }, { status: 503 });
+  if (!growProvider.isConfigured()) {
+    return NextResponse.json({ error: "Grow not configured" }, { status: 503 });
   }
   try {
-    const event = await stripeProvider.parseWebhook(req);
+    const event = await growProvider.parseWebhook(req);
     await applyPaymentEvent(event);
   } catch (e) {
     return NextResponse.json(
