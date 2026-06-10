@@ -1,66 +1,120 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { TrendingUp, DollarSign, Users, XCircle, RefreshCw } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
 
 interface Billing {
   summary: { mrr: number; arr: number; payingCustomers: number; trials: number; cancelled: number; currency: string };
   byPlan: Record<string, { count: number; mrr: number; label: string }>;
-  customers: { id: string; email: string; plan: string; cycle: string; provider: string | null; since: string }[];
+  customers: { id: string; email: string; plan: string; cycle: string; provider: string|null; since: string }[];
 }
 
 export default function AdminBilling() {
-  const [b, setB] = useState<Billing | null>(null);
+  const [b, setB] = useState<Billing|null>(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetch("/api/admin/billing").then((r) => r.json()).then(setB);
-  }, []);
+  function load() {
+    setLoading(true);
+    fetch("/api/admin/billing").then(r=>r.json()).then(d=>{setB(d); setLoading(false);});
+  }
+  useEffect(load,[]);
 
-  if (!b) return <p className={styles.sub}>טוען…</p>;
-  const c = b.summary.currency;
+  const c = b?.summary.currency ?? "₪";
 
   return (
     <>
-      <h1 className={styles.h1}>כספים</h1>
-      <p className={styles.sub}>הכנסות ומנויים</p>
-
-      <div className={`${styles.grid} ${styles.grid4}`}>
-        <Stat label="MRR" value={`${c}${b.summary.mrr.toLocaleString()}`} />
-        <Stat label="ARR (שנתי)" value={`${c}${b.summary.arr.toLocaleString()}`} />
-        <Stat label="לקוחות משלמים" value={b.summary.payingCustomers} />
-        <Stat label="בניסיון" value={b.summary.trials} />
+      <div className={styles.pageHeader}>
+        <div>
+          <h1 className={styles.pageTitle}>כספים</h1>
+          <p className={styles.pageDesc}>הכנסות ומנויים</p>
+        </div>
+        <button className={`${styles.btn} ${styles.btnGhost}`} onClick={load}>
+          <RefreshCw size={14} strokeWidth={2}/> רענן
+        </button>
       </div>
 
-      <div className={`${styles.grid} ${styles.grid2}`} style={{ marginTop: 24 }}>
+      <div className={`${styles.grid} ${styles.g4}`} style={{marginBottom:20}}>
+        {[
+          { icon:<DollarSign size={18} strokeWidth={2}/>, label:"MRR", value: loading?"…":`${c}${b?.summary.mrr.toLocaleString()}` },
+          { icon:<TrendingUp size={18} strokeWidth={2}/>, label:"ARR (שנתי)", value: loading?"…":`${c}${b?.summary.arr.toLocaleString()}` },
+          { icon:<Users size={18} strokeWidth={2}/>, label:"משלמים", value: loading?"…":b?.summary.payingCustomers },
+          { icon:<XCircle size={18} strokeWidth={2}/>, label:"ביטולים", value: loading?"…":b?.summary.cancelled, type:"danger" },
+        ].map((s,i)=>(
+          <div key={i} className={styles.statCard}>
+            <div className={styles.statTop}>
+              <div className={`${styles.statIconWrap} ${s.type?styles[s.type]:""}`}>{s.icon}</div>
+            </div>
+            <div className={styles.statValue}>{s.value}</div>
+            <div className={styles.statLabel}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className={`${styles.grid} ${styles.g2}`}>
+        {/* Plan breakdown */}
         <div className={styles.card}>
-          <div className={styles.statLabel}>הכנסה לפי מסלול</div>
-          <table className={styles.table}>
-            <thead><tr><th>מסלול</th><th>לקוחות</th><th>MRR</th></tr></thead>
-            <tbody>
-              {Object.entries(b.byPlan).length === 0 && <tr><td colSpan={3} className={styles.muted}>אין מנויים</td></tr>}
-              {Object.entries(b.byPlan).map(([k, v]) => (
-                <tr key={k}><td>{v.label}</td><td>{v.count}</td><td>{c}{v.mrr.toLocaleString()}</td></tr>
-              ))}
-            </tbody>
-          </table>
+          <div className={styles.cardTitle}>הכנסה לפי מסלול</div>
+          {loading
+            ? [0,1,2,3].map(i=>(
+                <div key={i} style={{padding:"12px 0", borderBottom:"1px solid var(--border-soft)"}}>
+                  <div className={`${styles.skeleton} ${styles.skBlock}`} style={{width:"70%",marginBottom:8}}/>
+                  <div className={`${styles.skeleton} ${styles.skBlock} ${styles.h8}`}/>
+                </div>
+              ))
+            : !b || Object.keys(b.byPlan).length===0
+              ? <div className={styles.empty}><div className={styles.emptyText}>אין מנויים עדיין</div></div>
+              : Object.entries(b.byPlan).map(([k,v])=>{
+                  const total = Object.values(b.byPlan).reduce((a,x)=>a+x.mrr,0);
+                  const pct = total ? Math.round(v.mrr/total*100) : 0;
+                  return (
+                    <div key={k} style={{padding:"14px 0", borderBottom:"1px solid var(--border-soft)"}}>
+                      <div className={styles.row} style={{marginBottom:8}}>
+                        <span className={styles.strong}>{v.label}</span>
+                        <span className={styles.muted} style={{marginRight:"auto"}}>{v.count} לקוחות</span>
+                        <span className={styles.strong} dir="ltr">{c}{v.mrr.toLocaleString()}</span>
+                      </div>
+                      <div style={{height:4, background:"var(--surface-2)", borderRadius:4, overflow:"hidden"}}>
+                        <div style={{height:"100%", width:`${pct}%`, background:"var(--accent)", borderRadius:4, transition:"width .5s ease"}}/>
+                      </div>
+                    </div>
+                  );
+                })
+          }
         </div>
-        <div className={styles.card}>
-          <div className={styles.statLabel}>לקוחות משלמים</div>
-          <table className={styles.table}>
-            <thead><tr><th>אימייל</th><th>מסלול</th><th>ספק</th></tr></thead>
-            <tbody>
-              {b.customers.length === 0 && <tr><td colSpan={3} className={styles.muted}>אין עדיין</td></tr>}
-              {b.customers.map((cu) => (
-                <tr key={cu.id}><td>{cu.email}</td><td>{cu.plan}</td><td>{cu.provider ?? "—"}</td></tr>
-              ))}
-            </tbody>
-          </table>
+
+        {/* Customers table */}
+        <div className={styles.card} style={{padding:0, overflow:"hidden"}}>
+          <div style={{padding:"14px 18px", borderBottom:"1px solid var(--border)"}}>
+            <div className={styles.cardTitle} style={{margin:0}}>לקוחות משלמים</div>
+          </div>
+          <div className={styles.tableScroll}>
+            <table className={styles.table}>
+              <thead>
+                <tr><th>אימייל</th><th>מסלול</th><th>מחזור</th><th>ספק</th></tr>
+              </thead>
+              <tbody>
+                {loading && [0,1,2,3].map(i=>(
+                  <tr key={i}>{[160,80,70,60].map((w,j)=>(
+                    <td key={j}><div className={`${styles.skeleton} ${styles.skBlock}`} style={{width:w}}/></td>
+                  ))}</tr>
+                ))}
+                {!loading && (!b?.customers.length)
+                  ? <tr><td colSpan={4}><div className={styles.tableEmpty}>אין לקוחות עדיין</div></td></tr>
+                  : b?.customers.map(cu=>(
+                      <tr key={cu.id}>
+                        <td className={styles.strong} style={{fontSize:13}}>{cu.email}</td>
+                        <td><span className={`${styles.badge} ${styles.badgeGreen}`}>{cu.plan}</span></td>
+                        <td className={styles.muted}>{cu.cycle==="annual"?"שנתי":"חודשי"}</td>
+                        <td className={styles.muted}>{cu.provider??"—"}</td>
+                      </tr>
+                    ))
+                }
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </>
   );
-}
-
-function Stat({ label, value }: { label: string; value: string | number }) {
-  return <div className={styles.card}><div className={styles.statLabel}>{label}</div><div className={styles.statValue}>{value}</div></div>;
 }

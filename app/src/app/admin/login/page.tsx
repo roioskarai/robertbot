@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Activity, Mail, Lock, KeyRound } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
 
 type Step = "login" | "setup" | "verify";
@@ -19,8 +20,7 @@ export default function AdminLoginPage() {
 
   async function submitLogin(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true);
-    setError(null);
+    setBusy(true); setError(null);
     try {
       const res = await fetch("/api/admin/login", {
         method: "POST",
@@ -32,25 +32,19 @@ export default function AdminLoginPage() {
       if (json.needs2fa) {
         setStep("verify");
       } else {
-        // First time — generate the enrollment QR.
-        const setupRes = await fetch("/api/admin/2fa/setup", { method: "POST" });
-        const setupJson = await setupRes.json();
-        if (!setupRes.ok) throw new Error(setupJson.error || "הגדרת 2FA נכשלה");
-        setQr(setupJson.qr);
-        setManualKey(setupJson.manualKey);
-        setStep("setup");
+        const s = await fetch("/api/admin/2fa/setup", { method: "POST" });
+        const sj = await s.json();
+        if (!s.ok) throw new Error(sj.error || "שגיאת 2FA");
+        setQr(sj.qr); setManualKey(sj.manualKey); setStep("setup");
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "שגיאה");
-    } finally {
-      setBusy(false);
-    }
+    } finally { setBusy(false); }
   }
 
   async function submitCode(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true);
-    setError(null);
+    setBusy(true); setError(null);
     try {
       const endpoint = step === "setup" ? "/api/admin/2fa/enable" : "/api/admin/2fa/verify";
       const res = await fetch(endpoint, {
@@ -60,60 +54,81 @@ export default function AdminLoginPage() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "הקוד שגוי");
-      router.push("/admin");
-      router.refresh();
+      router.push("/admin"); router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "שגיאה");
-    } finally {
-      setBusy(false);
-    }
+    } finally { setBusy(false); }
   }
 
   return (
-    <div className={styles.authWrap}>
+    <div className={`${styles.authWrap} ${styles.root}`}>
       <div className={styles.authCard}>
+        <div className={styles.authLogo}>
+          <div className={styles.authLogoIcon}>
+            <Activity size={20} color="#0a1a10" strokeWidth={2.5} />
+          </div>
+        </div>
+
         {step === "login" && (
           <form onSubmit={submitLogin}>
             <h1 className={styles.authTitle}>כניסת מנהל</h1>
-            <p className={styles.authSub}>Robert — פאנל ניהול מאובטח</p>
+            <p className={styles.authSub}>פאנל ניהול מאובטח — Robert</p>
             <div className={styles.field}>
               <label className={styles.label}>אימייל</label>
-              <input className={styles.input} type="email" value={email} dir="ltr"
-                onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+              <div style={{ position: "relative" }}>
+                <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "var(--t4)" }}>
+                  <Mail size={15} strokeWidth={1.8} />
+                </span>
+                <input className={styles.input} style={{ paddingRight: 36 }}
+                  type="email" value={email} dir="ltr"
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@example.com" required autoComplete="email" />
+              </div>
             </div>
             <div className={styles.field}>
               <label className={styles.label}>סיסמה</label>
-              <input className={styles.input} type="password" value={password} dir="ltr"
-                onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
+              <div style={{ position: "relative" }}>
+                <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "var(--t4)" }}>
+                  <Lock size={15} strokeWidth={1.8} />
+                </span>
+                <input className={styles.input} style={{ paddingRight: 36 }}
+                  type="password" value={password} dir="ltr"
+                  onChange={(e) => setPassword(e.target.value)}
+                  required autoComplete="current-password" />
+              </div>
             </div>
-            <button className={`${styles.btn} ${styles.btnPrimary} ${styles.fullBtn}`} disabled={busy}>
+            <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnFull}`} disabled={busy}>
               {busy ? "מתחבר…" : "המשך"}
             </button>
-            {error && <div className={styles.error}>{error}</div>}
+            {error && <div className={styles.errMsg}>{error}</div>}
           </form>
         )}
 
         {step === "setup" && (
           <form onSubmit={submitCode}>
             <h1 className={styles.authTitle}>הגדרת אימות דו-שלבי</h1>
-            <p className={styles.authSub}>סרוק עם Google Authenticator והזן את הקוד</p>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            {qr && <img className={styles.qr} src={qr} alt="QR" width={220} height={220} />}
+            <p className={styles.authSub}>סרוק עם Google Authenticator</p>
+            {qr && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img className={styles.qr} src={qr} alt="QR" width={220} height={220} />
+            )}
             {manualKey && (
               <>
-                <p className={styles.muted} style={{ textAlign: "center", marginBottom: 6 }}>או הזן ידנית:</p>
+                <div className={styles.authDivider}><span className={styles.authDividerText}>או הזן ידנית</span></div>
                 <div className={styles.manualKey}>{manualKey}</div>
               </>
             )}
             <div className={styles.field}>
+              <label className={styles.label}>קוד מ-Google Authenticator</label>
               <input className={`${styles.input} ${styles.codeInput}`} value={code} dir="ltr"
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                 placeholder="000000" inputMode="numeric" maxLength={6} required autoFocus />
             </div>
-            <button className={`${styles.btn} ${styles.btnPrimary} ${styles.fullBtn}`} disabled={busy}>
-              {busy ? "מאמת…" : "הפעל 2FA והיכנס"}
+            <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnFull}`}
+              disabled={busy || code.length !== 6}>
+              {busy ? "מפעיל…" : "הפעל 2FA והיכנס"}
             </button>
-            {error && <div className={styles.error}>{error}</div>}
+            {error && <div className={styles.errMsg}>{error}</div>}
           </form>
         )}
 
@@ -122,14 +137,19 @@ export default function AdminLoginPage() {
             <h1 className={styles.authTitle}>קוד אימות</h1>
             <p className={styles.authSub}>הזן את הקוד מ-Google Authenticator</p>
             <div className={styles.field}>
+              <label className={styles.label}>
+                <KeyRound size={13} strokeWidth={2} style={{ display: "inline", marginLeft: 5 }} />
+                קוד בן 6 ספרות
+              </label>
               <input className={`${styles.input} ${styles.codeInput}`} value={code} dir="ltr"
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                 placeholder="000000" inputMode="numeric" maxLength={6} required autoFocus />
             </div>
-            <button className={`${styles.btn} ${styles.btnPrimary} ${styles.fullBtn}`} disabled={busy}>
+            <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnFull}`}
+              disabled={busy || code.length !== 6}>
               {busy ? "מאמת…" : "כניסה"}
             </button>
-            {error && <div className={styles.error}>{error}</div>}
+            {error && <div className={styles.errMsg}>{error}</div>}
           </form>
         )}
       </div>
