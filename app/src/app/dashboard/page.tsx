@@ -7,6 +7,7 @@ import { scoped } from "@/lib/cx";
 import { useToast } from "@/components/Toast";
 import { createClient } from "@/lib/supabase/client";
 import PricingPlans from "@/components/PricingPlans";
+import ConnectWhatsApp from "@/components/ConnectWhatsApp";
 import type { Bot } from "@/lib/types";
 import { isPlanId, type PlanId } from "@/lib/plans";
 
@@ -558,8 +559,17 @@ export default function DashboardPage() {
                     </div>
                     {editBot.whatsapp_number && <button className={c("btn btn-outline btn-sm")} onClick={() => setEditBot({ ...editBot, whatsapp_number: null, active: false })}>נתק מספר</button>}
                   </div>
+                  {!editBot.whatsapp_number && editBot.id && (
+                    <div style={{ marginTop: 16 }}>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: "var(--t2)", marginBottom: 10 }}>חיבור אוטומטי (מומלץ)</p>
+                      <ConnectWhatsApp
+                        botId={editBot.id}
+                        onConnected={(b) => setEditBot({ ...editBot, whatsapp_number: b.whatsapp_number ?? null, active: true })}
+                      />
+                    </div>
+                  )}
                   <div style={{ marginTop: 16 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: "var(--t2)", marginBottom: 10 }}>חיבור מספר אחר</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: "var(--t2)", marginBottom: 10 }}>חיבור מספר ידני</p>
                     <div style={{ display: "flex", gap: 8 }}>
                       <input className={c("fi")} placeholder="05X-XXXXXXX" style={{ flex: 1 }} onChange={(e) => setEditBot({ ...editBot, whatsapp_number: e.target.value })} value={editBot.whatsapp_number ?? ""} />
                       <button className={c("btn btn-primary btn-sm")} onClick={() => toast("נשלח קוד אימות")}>חבר</button>

@@ -10,9 +10,10 @@
 // connected WABA. Until then the selector defaults to Twilio.
 
 import type { Bot } from "@/lib/types";
+import { decryptSecret } from "@/lib/crypto";
 import type { WhatsAppProvider } from "./types";
 
-const GRAPH = "https://graph.facebook.com/v21.0";
+export const GRAPH = "https://graph.facebook.com/v21.0";
 
 export function hasMetaCreds(): boolean {
   return Boolean(process.env.META_APP_ID && process.env.META_APP_SECRET);
@@ -21,7 +22,10 @@ export function hasMetaCreds(): boolean {
 /** A bot is Meta-connected once it has its own WABA phone number + token. */
 function metaSender(bot: Bot): { phoneNumberId: string; token: string } | null {
   if (bot.meta_phone_number_id && bot.wa_access_token) {
-    return { phoneNumberId: bot.meta_phone_number_id, token: bot.wa_access_token };
+    return {
+      phoneNumberId: bot.meta_phone_number_id,
+      token: decryptSecret(bot.wa_access_token),
+    };
   }
   return null;
 }
