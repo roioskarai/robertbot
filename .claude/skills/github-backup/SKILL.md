@@ -46,16 +46,21 @@ git -C $root commit -m @'
 
 ### 5. Push לשני החשבונות
 ```powershell
-# חשבון ראשי (RoiOskar) — דרך gh credential helper
+# חשבון ראשי (RoiOskar) — דרך gh token
+$t1 = gh auth token
+git -C $root remote set-url origin "https://RoiOskar:${t1}@github.com/RoiOskar/robertbot.git"
 git -C $root push origin main
+git -C $root remote set-url origin "https://github.com/RoiOskar/robertbot.git"
+Write-Output "✅ RoiOskar — נדחף"
 
 # חשבון גיבוי (roioskarai) — דרך token מ-settings.local.json
-$t = $env:GITHUB_BACKUP_TOKEN
-$u = $env:GITHUB_BACKUP_USER
-$r = $env:GITHUB_BACKUP_REPO
-if ($t -and $u -and $r) {
-    git -C $root push "https://${u}:${t}@github.com/${u}/${r}.git" main
-    Write-Output "גיבוי ל-$u/$r הושלם"
+$cfg = Get-Content "$root\.claude\settings.local.json" | ConvertFrom-Json
+$t2 = $cfg.env.GITHUB_BACKUP_TOKEN
+$u  = $cfg.env.GITHUB_BACKUP_USER
+$r  = $cfg.env.GITHUB_BACKUP_REPO
+if ($t2 -and $u -and $r) {
+    git -C $root push "https://${u}:${t2}@github.com/${u}/${r}.git" main
+    Write-Output "✅ $u/$r — נדחף"
 } else {
     Write-Output "⚠️ GITHUB_BACKUP_TOKEN לא מוגדר — דחיפה רק ל-RoiOskar"
 }
