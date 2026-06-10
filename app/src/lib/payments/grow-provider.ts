@@ -7,6 +7,7 @@
 // Grow dashboard, and the exact field names below against Grow's current docs
 // (https://grow-il.readme.io/). Everything is env-gated so demo mode stays safe.
 
+import { createHmac, timingSafeEqual } from "crypto";
 import { PRICING, packById } from "@/lib/plans";
 import type { PackId, PlanId, BillingCycle } from "@/lib/plans";
 import type {
@@ -95,9 +96,10 @@ export const growProvider: PaymentProvider = {
       successUrl: input.successUrl,
       cancelUrl: input.cancelUrl,
       // Custom fields ride along and come back on the webhook → tenant mapping.
+      // cField10 is intentionally omitted — the webhook is authenticated by
+      // HMAC-SHA256 of the callback body, not a shared secret in the payload.
       cField1: input.userId,
       cField2: input.product,
-      cField10: process.env.GROW_WEBHOOK_SECRET || "",
     });
 
     const url = (data.url as string) || (data.paymentUrl as string);
@@ -111,8 +113,9 @@ export const growProvider: PaymentProvider = {
   },
 
   async pauseSubscription(subscriptionId: string): Promise<void> {
-    // Grow has no native "pause" — stop the recurring charge; the DB marks the
-    // subscription paused so the owner can re-create it on resume.
+    // Grow has no native "pause" — cancels the recurring charge at the Grow level.
+    // The billing/pause route must set subscription_status="cancelled" in the DB
+    // (not "paused") so the UI shows the correct state and resume creates a new checkout.
     await growRequest("cancelRecurringPayment", { recurringId: subscriptionId });
   },
 
@@ -131,10 +134,24 @@ export const growProvider: PaymentProvider = {
     const f = (key: string): string =>
       p[key] ?? (p["data"] ? (JSON.parse(p["data"])[key] as string) : "") ?? "";
 
-    // Verify the shared secret carried in the custom field.
+    // Timing-safe HMAC-SHA256 verification. GROW_WEBHOOK_SECRET is a server-only
+    // key — never sent to the browser or embedded in the checkout payload.
+    // Grow signs the raw callback body; if they don't, we fall back to rejecting
+    // unsigned requests when the secret is configured.
     const secret = process.env.GROW_WEBHOOK_SECRET;
-    if (secret && f("cField10") !== secret) {
-      throw new Error("Grow webhook secret mismatch");
+    if (secret) {
+      const sig = (p["signature"] ?? p["hmac"] ?? "") as string;
+      if (sig) {
+        const expected = createHmac("sha256", secret).update(raw).digest("hex");
+        const a = Buffer.from(expected, "hex");
+        const b = Buffer.from(sig.replace(/^sha256=/, ""), "hex");
+        if (a.length !== b.length || !timingSafeEqual(a, b)) {
+          throw new Error("Grow webhook signature mismatch");
+        }
+      } else {
+        // No signature header — reject when secret is configured (prevents replay).
+        throw new Error("Grow webhook: missing signature");
+      }
     }
 
     const userId = f("cField1");
@@ -143,10 +160,9 @@ export const growProvider: PaymentProvider = {
 
     // Successful transaction status. Grow uses statusCode/transactionTypeId;
     // treat an approved charge as success (confirm exact codes in dashboard).
-    const ok =
-      f("status") === "1" ||
-      f("statusCode") === "2" || // 2 = approved (common Grow code)
-      f("transactionTypeId") !== "";
+    // Only treat explicit success codes as payment confirmed.
+    // statusCode=2 is the standard Grow "approved" code; verify in dashboard.
+    const ok = f("status") === "1" || f("statusCode") === "2";
     if (!ok) return { type: "ignore" };
 
     const subscriptionId = f("recurringId") || f("transactionId") || null;

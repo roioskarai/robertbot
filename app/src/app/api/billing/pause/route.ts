@@ -21,10 +21,17 @@ export async function POST() {
     }
   }
 
+  // Grow cancels the recurring charge (no native pause) → mark as cancelled.
+  // Stripe supports real pause → mark as paused.
+  const provider = getPaymentProvider();
+  const newStatus = provider.id === "grow" ? "cancelled" : "paused";
   await supabase
     .from("users")
-    .update({ subscription_status: "paused" })
+    .update({ subscription_status: newStatus })
     .eq("id", session.authId);
 
-  return NextResponse.json({ ok: true, message: "המנוי הושהה." });
+  const msg = provider.id === "grow"
+    ? "המנוי בוטל. כדי להמשיך — פתח מנוי חדש."
+    : "המנוי הושהה.";
+  return NextResponse.json({ ok: true, message: msg });
 }

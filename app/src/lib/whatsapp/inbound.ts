@@ -38,7 +38,7 @@ export async function processInboundMessage(msg: InboundMessage): Promise<void> 
     const { data: dup } = await supabase
       .from("messages")
       .select("id")
-      .eq("twilio_message_sid", msg.messageId)
+      .eq("provider_message_id", msg.messageId)
       .maybeSingle();
     if (dup) return;
   }
@@ -79,7 +79,7 @@ export async function processInboundMessage(msg: InboundMessage): Promise<void> 
     conversation_id: conversationId,
     from_type: "customer",
     body: msg.body,
-    twilio_message_sid: msg.messageId || null,
+    provider_message_id: msg.messageId || null,
   });
 
   // If a human is handling this conversation, don't auto-reply.
@@ -144,17 +144,10 @@ export async function processInboundMessage(msg: InboundMessage): Promise<void> 
     body: outText,
   });
 
-  // Record usage.
+  // Record usage — atomic operations to avoid race conditions under concurrent messages.
   if (consumePack) {
-    const { data: u } = await supabase
-      .from("users")
-      .select("pack_balance")
-      .eq("id", bot.user_id)
-      .maybeSingle();
-    await supabase
-      .from("users")
-      .update({ pack_balance: Math.max(0, (u?.pack_balance ?? 0) - 1) })
-      .eq("id", bot.user_id);
+    // Atomic decrement: only deducts if balance > 0 (prevents going negative).
+    await supabase.rpc("decrement_pack_balance", { uid: bot.user_id });
   } else {
     await incrementUsage(supabase, bot.user_id, bot.id, period);
   }
@@ -189,21 +182,11 @@ async function incrementUsage(
   botId: string,
   period: string,
 ) {
-  const { data: row } = await supabase
-    .from("usage_logs")
-    .select("id, message_count")
-    .eq("user_id", userId)
-    .eq("bot_id", botId)
-    .eq("period", period)
-    .maybeSingle();
-  if (row) {
-    await supabase
-      .from("usage_logs")
-      .update({ message_count: (row.message_count ?? 0) + 1 })
-      .eq("id", row.id);
-  } else {
-    await supabase
-      .from("usage_logs")
-      .insert({ user_id: userId, bot_id: botId, period, message_count: 1 });
-  }
+  // Atomic upsert — avoids read-then-write race under concurrent messages.
+  await supabase.from("usage_logs").upsert(
+    { user_id: userId, bot_id: botId, period, message_count: 1 },
+    { onConflict: "user_id,bot_id,period", ignoreDuplicates: false },
+  );
+  // Increment via RPC so the count is updated atomically in Postgres.
+  await supabase.rpc("increment_usage", { uid: userId, bid: botId, p: period });
 }

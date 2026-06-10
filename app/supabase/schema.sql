@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS messages (
   conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE,
   from_type TEXT CHECK (from_type IN ('customer', 'bot', 'human')),
   body TEXT NOT NULL,
-  twilio_message_sid TEXT UNIQUE,  -- ADDED: webhook idempotency / dedup
+  provider_message_id TEXT UNIQUE,  -- ADDED: webhook idempotency / dedup (Twilio SID or Meta wamid)
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

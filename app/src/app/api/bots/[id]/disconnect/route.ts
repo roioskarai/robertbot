@@ -26,9 +26,10 @@ export async function POST(_req: Request, { params }: Ctx) {
   // Best-effort: release the WABA back to the tenant's plain WhatsApp.
   if (bot?.wa_provider === "meta" && bot.meta_waba_id && bot.wa_access_token) {
     try {
-      await unsubscribeAppFromWaba(bot.meta_waba_id, decryptSecret(bot.wa_access_token));
+      const token = decryptSecret(bot.wa_access_token);
+      await unsubscribeAppFromWaba(bot.meta_waba_id, token);
     } catch {
-      /* don't block disconnect on Meta API errors */
+      /* don't block disconnect on Meta API errors or missing enc key */
     }
   }
 

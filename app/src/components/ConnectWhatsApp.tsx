@@ -9,10 +9,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 declare global {
   interface Window {
-    FB?: any;
+    FB?: {
+      init(opts: Record<string, unknown>): void;
+      login(cb: (res: { authResponse?: { code?: string } }) => void, opts: Record<string, unknown>): void;
+    };
     fbAsyncInit?: () => void;
   }
 }
@@ -78,7 +80,7 @@ export default function ConnectWhatsApp({ botId, onConnected }: Props) {
     if (!cfg?.enabled || !cfg.appId) return;
     if (window.FB) return;
     window.fbAsyncInit = function () {
-      window.FB.init({
+      window.FB?.init({
         appId: cfg.appId,
         autoLogAppEvents: true,
         xfbml: true,
@@ -123,7 +125,7 @@ export default function ConnectWhatsApp({ botId, onConnected }: Props) {
     if (!window.FB || !cfg) return;
     setError(null);
     window.FB.login(
-      (response: any) => {
+      (response) => {
         const code = response?.authResponse?.code;
         if (code) finish(code);
         else {

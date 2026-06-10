@@ -27,6 +27,7 @@ export async function POST(req: Request, { params }: Ctx) {
     phoneNumberId?: string;
     businessId?: string;
     displayNumber?: string;
+    force?: boolean;
   };
   try {
     body = await req.json();
@@ -39,10 +40,15 @@ export async function POST(req: Request, { params }: Ctx) {
   // RLS guarantees the user can only update a bot they own.
   const { data: ownBot } = await supabase
     .from("bots")
-    .select("id")
+    .select("id, meta_waba_id")
     .eq("id", params.id)
     .maybeSingle();
   if (!ownBot) return jsonError("הבוט לא נמצא", 404);
+
+  // Guard against silently overwriting an active Meta connection.
+  if (ownBot.meta_waba_id && !body.force) {
+    return jsonError("הבוט כבר מחובר לוואטסאפ. נתק קודם או שלח force:true לחיבור מחדש.", 409);
+  }
 
   try {
     const token = await exchangeCodeForToken(body.code);

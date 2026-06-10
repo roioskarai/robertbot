@@ -93,7 +93,7 @@ export interface Message {
   conversation_id: string;
   from_type: FromType;
   body: string;
-  twilio_message_sid: string | null;
+  provider_message_id: string | null;
   created_at: string;
 }
 

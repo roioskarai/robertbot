@@ -50,6 +50,11 @@ function messageText(m: MetaMessage): string {
 // POST — Meta WhatsApp Cloud API inbound. Routes by phone_number_id so each
 // tenant's WABA is fully isolated.
 export async function POST(req: Request) {
+  if (!process.env.META_APP_SECRET) {
+    // Config warning — not a client error. Log server-side and reject safely.
+    console.error("[meta-webhook] META_APP_SECRET not set — all inbound messages rejected");
+    return new NextResponse("not configured", { status: 503 });
+  }
   const raw = await req.text();
   if (!validSignature(raw, req.headers.get("x-hub-signature-256"))) {
     return new NextResponse("invalid signature", { status: 403 });
