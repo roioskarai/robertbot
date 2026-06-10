@@ -1,0 +1,136 @@
+/* Admin panel — standalone dark theme (independent of the marketing site CSS). */
+
+.wrap {
+  display: flex;
+  min-height: 100vh;
+  background: #0f1117;
+  color: #e7e9ee;
+  font-family: "Rubik", system-ui, sans-serif;
+  direction: rtl;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 240px;
+  background: #161922;
+  border-left: 1px solid #232733;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 14px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 18px;
+  padding: 6px 8px 18px;
+  color: #fff;
+}
+.brandDot {
+  width: 26px; height: 26px; border-radius: 8px;
+  background: linear-gradient(135deg, #6366f1, #22c55e);
+}
+.nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.navItem {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px;
+  color: #aab2c5; font-size: 14px; font-weight: 600;
+  cursor: pointer; text-decoration: none; transition: all .15s;
+}
+.navItem:hover { background: #1d2230; color: #fff; }
+.navItemActive { background: #2a3142; color: #fff; }
+.logout {
+  margin-top: auto; padding: 10px 12px; border-radius: 10px;
+  background: transparent; border: 1px solid #2a3142; color: #aab2c5;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.logout:hover { background: #2a1820; color: #ef9a9a; border-color: #5a2a32; }
+
+/* ── Main ── */
+.main { flex: 1; padding: 28px 32px; max-width: 1200px; }
+.h1 { font-size: 24px; font-weight: 800; color: #fff; margin: 0 0 4px; }
+.sub { color: #8b93a7; font-size: 14px; margin: 0 0 24px; }
+
+/* ── Cards / grid ── */
+.grid { display: grid; gap: 16px; }
+.grid4 { grid-template-columns: repeat(4, 1fr); }
+.grid3 { grid-template-columns: repeat(3, 1fr); }
+.grid2 { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 900px) { .grid4, .grid3, .grid2 { grid-template-columns: 1fr 1fr; } }
+
+.card {
+  background: #161922; border: 1px solid #232733;
+  border-radius: 14px; padding: 18px 20px;
+}
+.statLabel { color: #8b93a7; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.statValue { font-size: 28px; font-weight: 800; color: #fff; }
+.statSub { font-size: 12px; color: #6b7280; }
+.statHint { font-size: 12px; color: #22c55e; margin-top: 4px; }
+
+/* ── Table ── */
+.table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table th {
+  text-align: right; color: #8b93a7; font-weight: 600;
+  padding: 10px 12px; border-bottom: 1px solid #232733; white-space: nowrap;
+}
+.table td { padding: 11px 12px; border-bottom: 1px solid #1c202b; color: #d4d8e2; }
+.table tr:hover td { background: #1a1e28; }
+
+.badge {
+  display: inline-block; padding: 3px 9px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+}
+.badgeActive { background: #14331f; color: #4ade80; }
+.badgeTrial { background: #2a2a14; color: #fde047; }
+.badgeCancelled { background: #331616; color: #f87171; }
+.badgePaused { background: #2a2030; color: #c084fc; }
+.badgeAdmin { background: #1a2340; color: #93b4ff; }
+
+/* ── Forms / buttons ── */
+.btn {
+  padding: 9px 16px; border-radius: 9px; font-size: 13px; font-weight: 700;
+  border: none; cursor: pointer; transition: all .15s;
+}
+.btnPrimary { background: #6366f1; color: #fff; }
+.btnPrimary:hover { background: #4f52e0; }
+.btnGhost { background: #1d2230; color: #d4d8e2; border: 1px solid #2a3142; }
+.btnGhost:hover { background: #252b3a; }
+.btnDanger { background: #3a1820; color: #f87171; border: 1px solid #5a2a32; }
+.input {
+  width: 100%; padding: 11px 13px; border-radius: 9px;
+  background: #0f1117; border: 1px solid #2a3142; color: #fff; font-size: 14px;
+}
+.input:focus { outline: none; border-color: #6366f1; }
+.row { display: flex; gap: 10px; align-items: center; }
+.toolbar { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+
+/* ── Login / 2FA ── */
+.authWrap {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: #0f1117; direction: rtl; font-family: "Rubik", system-ui, sans-serif;
+  padding: 20px;
+}
+.authCard {
+  width: 100%; max-width: 400px; background: #161922;
+  border: 1px solid #232733; border-radius: 18px; padding: 32px;
+}
+.authTitle { font-size: 22px; font-weight: 800; color: #fff; margin: 0 0 6px; text-align: center; }
+.authSub { color: #8b93a7; font-size: 14px; text-align: center; margin: 0 0 24px; }
+.field { margin-bottom: 14px; }
+.label { display: block; font-size: 13px; color: #aab2c5; margin-bottom: 6px; font-weight: 600; }
+.error { color: #f87171; font-size: 13px; margin-top: 10px; text-align: center; }
+.qr { display: block; margin: 0 auto 14px; border-radius: 12px; background: #fff; padding: 8px; }
+.manualKey {
+  background: #0f1117; border: 1px dashed #2a3142; border-radius: 8px;
+  padding: 10px; text-align: center; font-family: monospace; font-size: 13px;
+  color: #93b4ff; letter-spacing: 1px; margin-bottom: 14px; word-break: break-all;
+}
+.codeInput {
+  text-align: center; letter-spacing: 8px; font-size: 22px; font-weight: 700;
+}
+.fullBtn { width: 100%; padding: 12px; font-size: 15px; }
+.muted { color: #6b7280; font-size: 12px; }

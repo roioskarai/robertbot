@@ -182,11 +182,7 @@ async function incrementUsage(
   botId: string,
   period: string,
 ) {
-  // Atomic upsert — avoids read-then-write race under concurrent messages.
-  await supabase.from("usage_logs").upsert(
-    { user_id: userId, bot_id: botId, period, message_count: 1 },
-    { onConflict: "user_id,bot_id,period", ignoreDuplicates: false },
-  );
-  // Increment via RPC so the count is updated atomically in Postgres.
+  // Atomic insert-or-increment in Postgres (see migration 0004) — avoids the
+  // read-then-write race under concurrent messages.
   await supabase.rpc("increment_usage", { uid: userId, bid: botId, p: period });
 }

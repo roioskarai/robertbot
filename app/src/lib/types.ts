@@ -25,6 +25,11 @@ export interface DBUser {
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
   pack_balance: number;
+  // Admin / security
+  totp_enabled?: boolean;
+  totp_secret?: string | null; // encrypted; server-only, never sent to client
+  is_suspended?: boolean;
+  last_login_at?: string | null;
   created_at: string;
 }
 

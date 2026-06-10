@@ -22,6 +22,10 @@ CREATE TABLE IF NOT EXISTS users (
   stripe_subscription_id TEXT,            -- legacy (kept for backward compat)
   pack_balance INT DEFAULT 0,             -- ADDED: never-expiring message pack balance
   trial_reminder_sent BOOLEAN DEFAULT false, -- ADDED: day-5 trial email guard
+  totp_secret TEXT,                       -- ADDED: 2FA secret (encrypted via lib/crypto.ts)
+  totp_enabled BOOLEAN DEFAULT false,     -- ADDED: 2FA active flag
+  is_suspended BOOLEAN DEFAULT false,     -- ADDED: admin can suspend a tenant
+  last_login_at TIMESTAMPTZ,              -- ADDED: last successful login
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -146,12 +150,29 @@ CREATE POLICY "tenant_own_usage" ON usage_logs
 -- ════════════════════════════════════════════════════════════
 CREATE OR REPLACE FUNCTION handle_new_user() RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.users (id, email, full_name)
-  VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name'))
+  INSERT INTO public.users (id, email, full_name, role)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name'),
+    CASE WHEN NEW.email = 'roioskarai@gmail.com' THEN 'admin' ELSE 'tenant' END
+  )
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Atomic counters (used by the WhatsApp message pipeline).
+CREATE OR REPLACE FUNCTION decrement_pack_balance(uid UUID) RETURNS void AS $$
+  UPDATE users SET pack_balance = GREATEST(0, pack_balance - 1) WHERE id = uid;
+$$ LANGUAGE sql;
+
+CREATE OR REPLACE FUNCTION increment_usage(uid UUID, bid UUID, p TEXT) RETURNS void AS $$
+  INSERT INTO usage_logs (user_id, bot_id, period, message_count)
+  VALUES (uid, bid, p, 1)
+  ON CONFLICT (user_id, bot_id, period)
+  DO UPDATE SET message_count = usage_logs.message_count + 1;
+$$ LANGUAGE sql;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
