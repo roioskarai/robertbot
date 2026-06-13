@@ -404,10 +404,10 @@ export default function LandingPage() {
 
       {/* CTA */}
       <div className={c("cta-band")}>
-        <h2>מוכן שRobert יעבוד בשבילך?</h2>
+        <h2>מוכן ש- Robert יעבוד בשבילך?</h2>
         <p>7 ימים חינם. ללא כרטיס אשראי. מבטל מתי שרוצה.</p>
         <Link href="/onboarding" className={c("btn-primary")} style={{ display: "inline-flex" }}>
-          צור את הבוט שלך עכשיו — חינם 🚀
+          צור את הבוט שלך עכשיו — חינם
         </Link>
       </div>
 
