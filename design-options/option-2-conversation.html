@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Robert — אפשרות 2: Conversation (השיחה במרכז)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#25D366; --green-d:#128C7E; --green-pale:#e8faf0;
+    --bg:#f0f6f3; --white:#fff; --t1:#0c1b14; --t2:#3f5249; --t3:#6b7d74; --bdr:#dce8e2;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Rubik',sans-serif;background:
+      radial-gradient(900px 600px at 50% -10%, var(--green-pale), transparent 60%), var(--bg);
+    color:var(--t1);direction:rtl;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+
+  nav{display:flex;align-items:center;justify-content:space-between;max-width:1160px;margin:0 auto;padding:20px 32px}
+  .logo{font-size:22px;font-weight:900;letter-spacing:-.5px}
+  .logo em{font-style:normal;color:var(--green-d)}
+  .nav-links{display:flex;gap:24px;align-items:center}
+  .nav-links a{color:var(--t3);font-size:14px;font-weight:500}
+  .nav-links a:hover{color:var(--t1)}
+  .nav-cta{background:var(--green-d);color:#fff !important;padding:9px 20px;border-radius:100px;font-weight:700;font-size:14px}
+
+  .hero{max-width:760px;margin:0 auto;text-align:center;padding:54px 24px 24px}
+  .pill{display:inline-flex;align-items:center;gap:7px;background:var(--white);border:1px solid var(--bdr);
+    box-shadow:0 4px 14px rgba(18,140,126,.08);padding:7px 16px;border-radius:100px;font-size:13px;font-weight:600;color:var(--green-d);margin-bottom:24px}
+  .pill .d{width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 1.8s infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+  h1{font-size:clamp(38px,5.4vw,62px);font-weight:900;line-height:1.08;letter-spacing:-2px;margin-bottom:18px}
+  h1 .hl{color:var(--green-d)}
+  .sub{font-size:18px;color:var(--t2);line-height:1.7;max-width:540px;margin:0 auto 30px}
+  .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .btn-primary{background:var(--green-d);color:#fff;padding:15px 30px;border-radius:100px;font-size:16px;font-weight:700;
+    box-shadow:0 10px 26px rgba(18,140,126,.3);transition:.2s}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(18,140,126,.4)}
+  .btn-ghost{background:var(--white);border:1px solid var(--bdr);color:var(--t1);padding:15px 28px;border-radius:100px;font-size:16px;font-weight:600}
+
+  /* big conversation showcase */
+  .show{max-width:560px;margin:46px auto 10px;position:relative}
+  .feat-pill{position:absolute;background:var(--white);border:1px solid var(--bdr);border-radius:14px;
+    box-shadow:0 12px 30px rgba(12,27,20,.10);padding:11px 15px;display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;z-index:5}
+  .feat-pill .ic{width:30px;height:30px;border-radius:9px;background:var(--green-pale);display:flex;align-items:center;justify-content:center;font-size:15px}
+  .fp1{top:40px;inset-inline-start:-120px;animation:bob 5s ease-in-out infinite}
+  .fp2{top:200px;inset-inline-end:-120px;animation:bob 5s ease-in-out infinite .8s}
+  .fp3{bottom:60px;inset-inline-start:-100px;animation:bob 5s ease-in-out infinite 1.6s}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+
+  .wa{background:#fff;border-radius:22px;box-shadow:0 30px 70px rgba(12,27,20,.16);overflow:hidden;border:1px solid var(--bdr)}
+  .wa-hdr{background:linear-gradient(135deg,#075e54,#128C7E);padding:15px 18px;display:flex;align-items:center;gap:12px}
+  .wa-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#25D366,#5fffa0);display:flex;align-items:center;justify-content:center;font-weight:900;color:#042;font-size:17px}
+  .wa-hdr .nm{font-size:15px;font-weight:700;color:#fff}
+  .wa-hdr .st{font-size:12px;color:rgba(255,255,255,.78);margin-top:2px}
+  .wa-body{padding:20px 16px;background:#e5ddd5;
+    background-image:radial-gradient(rgba(0,0,0,.03) 1px, transparent 1px);background-size:18px 18px;
+    display:flex;flex-direction:column;gap:11px;min-height:330px}
+  .m{max-width:80%;padding:11px 14px;border-radius:14px;font-size:14px;line-height:1.55;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+  .mi{align-self:flex-start;background:#fff;color:#111;border-bottom-right-radius:3px}
+  .mo{align-self:flex-end;background:#dcf8c6;color:#143d1f;border-bottom-left-radius:3px}
+  .mt{font-size:10px;color:rgba(0,0,0,.35);margin-top:3px;text-align:left}
+  .typing{align-self:flex-end;background:#dcf8c6;border-bottom-left-radius:3px;display:flex;gap:4px;padding:13px 16px;border-radius:14px}
+  .typing i{width:7px;height:7px;border-radius:50%;background:#128C7E;opacity:.5;animation:t 1.2s infinite}
+  .typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+  @keyframes t{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+
+  .logos{max-width:900px;margin:60px auto 70px;text-align:center;padding:0 24px}
+  .logos p{font-size:13px;color:var(--t3);margin-bottom:16px;font-weight:500}
+  .logos .row{display:flex;gap:34px;justify-content:center;flex-wrap:wrap;opacity:.65;font-weight:800;font-size:18px;color:var(--t2)}
+
+  @media(max-width:900px){.nav-links{display:none}.feat-pill{display:none}.show{margin-top:30px}}
+</style>
+</head>
+<body>
+  <nav>
+    <div class="logo">Robert<em>.</em></div>
+    <div class="nav-links">
+      <a href="#">איך זה עובד</a><a href="#">יתרונות</a><a href="#">מחירים</a><a href="#">כניסה</a>
+      <a href="#" class="nav-cta">הרשמה חינם</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="pill"><span class="d"></span>הצ׳אט שעובד בשבילך — גם עכשיו</div>
+    <h1>כל הודעה בוואטסאפ<br>הופכת ל<span class="hl">לקוח משלם</span></h1>
+    <p class="sub">Robert מנהל את השיחות שלך מההתחלה ועד סגירת העסקה — עונה, מייעץ וקובע תורים, בדיוק כמו שאתה היית עושה. רק שהוא לא ישן.</p>
+    <div class="btns">
+      <a href="#" class="btn-primary">התחל בחינם — 5 דקות הקמה</a>
+      <a href="#" class="btn-ghost">איך זה עובד?</a>
+    </div>
+  </section>
+
+  <section class="show">
+    <div class="feat-pill fp1"><span class="ic">⚡</span>עונה תוך 3 שניות</div>
+    <div class="feat-pill fp2"><span class="ic">📅</span>קובע תורים לבד</div>
+    <div class="feat-pill fp3"><span class="ic">🧠</span>מכיר את העסק שלך</div>
+    <div class="wa">
+      <div class="wa-hdr">
+        <div class="wa-av">R</div>
+        <div><div class="nm">Robert — מספרת מיטל</div><div class="st">מקליד…</div></div>
+      </div>
+      <div class="wa-body">
+        <div class="m mi">היי, אפשר תור לתספורת מחר?<div class="mt">10:02</div></div>
+        <div class="m mo">בכיף! 😊 מחר פנוי ב-11:00 או ב-15:30. מה נוח לך?<div class="mt">10:02</div></div>
+        <div class="m mi">11:00 מושלם<div class="mt">10:03</div></div>
+        <div class="m mo">קבעתי לך תור מחר ב-11:00 ✅ שלחתי תזכורת ליום לפני. נתראה! 💚<div class="mt">10:03</div></div>
+        <div class="m mi">איזה שירות אתם נותנים! תודה 🙏<div class="mt">10:03</div></div>
+        <div class="typing"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="logos">
+    <p>עסקים מכל הארץ כבר עובדים עם Robert</p>
+    <div class="row"><span>מספרות</span><span>מסעדות</span><span>קליניקות</span><span>בעלי מקצוע</span><span>חנויות</span></div>
+  </section>
+</body>
+</html>

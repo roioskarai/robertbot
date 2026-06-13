@@ -305,7 +305,7 @@ function OnboardingInner() {
               בהרשמה אתה מסכים ל<a href="/legal">תנאי השימוש</a> ו<a href="/legal">מדיניות הפרטיות</a>
             </div>
             <div className={c("signup-login")}>
-              כבר יש לך חשבון? <a onClick={() => router.push("/dashboard")}>התחבר</a>
+              כבר יש לך חשבון? <a onClick={() => router.push("/login")}>התחבר</a>
             </div>
           </div>
         </div>

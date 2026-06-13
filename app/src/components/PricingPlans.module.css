@@ -14,6 +14,21 @@
   --r-xl:      20px;
 }
 
+/* Dark mode — only inside a marketing surface (landing page) so the same
+   component stays light inside the dashboard. Tokens cascade from the page. */
+:global(html[data-theme="dark"] [data-marketing]) .plansRoot {
+  --ink:       #f1f5f9;
+  --ink2:      #cbd5e1;
+  --muted:     #94a3b8;
+  --faint:     #8595ad;
+  --border:    #2a3550;
+  --surface:   #141c2e;
+  --green:     #25c264;
+  --green-l:   #34d77e;
+  --green-pale:#10261a;
+}
+:global(html[data-theme="dark"] [data-marketing]) .chip-blue { background:#16243f; color:#7cb0ff; }
+
 .plans { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:16px; }
 
 .plan {

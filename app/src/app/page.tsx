@@ -5,6 +5,7 @@ import Link from "next/link";
 import styles from "./landing.module.css";
 import { scoped } from "@/lib/cx";
 import PricingPlans from "@/components/PricingPlans";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const c = scoped(styles);
 
@@ -62,42 +63,45 @@ export default function LandingPage() {
   };
 
   return (
-    <div ref={rootRef} className={`${styles.landing} ${annual ? styles.annual : ""}`}>
+    <div ref={rootRef} data-marketing="" className={`${styles.landing} ${annual ? styles.annual : ""}`}>
       {/* NAV */}
       <nav className={c("nav")}>
         <div className={c("logo")}>
           Robert<em>.</em>
         </div>
-        <ul className={c("nav-links")}>
-          <li>
-            <a href="#how" onClick={scrollTo("#how")}>
-              איך זה עובד
-            </a>
-          </li>
-          <li>
-            <a href="#features" onClick={scrollTo("#features")}>
-              יתרונות
-            </a>
-          </li>
-          <li>
-            <Link href="/pricing">מחירים</Link>
-          </li>
-          <li>
-            <a href="#faq" onClick={scrollTo("#faq")}>
-              שאלות
-            </a>
-          </li>
-          <li>
-            <Link href="/dashboard" className={c("nav-login")}>
-              כניסה
-            </Link>
-          </li>
-          <li>
-            <Link href="/onboarding" className={c("nav-cta")}>
-              הרשמה חינם
-            </Link>
-          </li>
-        </ul>
+        <div className={c("nav-right")}>
+          <ul className={c("nav-links")}>
+            <li>
+              <a href="#how" onClick={scrollTo("#how")}>
+                איך זה עובד
+              </a>
+            </li>
+            <li>
+              <a href="#features" onClick={scrollTo("#features")}>
+                יתרונות
+              </a>
+            </li>
+            <li>
+              <Link href="/pricing">מחירים</Link>
+            </li>
+            <li>
+              <a href="#faq" onClick={scrollTo("#faq")}>
+                שאלות
+              </a>
+            </li>
+            <li>
+              <Link href="/login" className={c("nav-login")}>
+                כניסה
+              </Link>
+            </li>
+            <li>
+              <Link href="/onboarding" className={c("nav-cta")}>
+                הרשמה חינם
+              </Link>
+            </li>
+          </ul>
+          <ThemeToggle className={c("nav-theme")} />
+        </div>
       </nav>
 
       {/* HERO */}

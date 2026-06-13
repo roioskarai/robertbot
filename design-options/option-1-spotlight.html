@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Robert — אפשרות 1: Spotlight (כהה ודרמטי)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#25D366; --green-d:#1fb858; --green-glow:rgba(37,211,102,.55);
+    --bg:#070b14; --bg2:#0c1322; --card:#111a2b;
+    --bdr:#1d273c; --t1:#f2f6fc; --t2:#aeb9cc; --t3:#6b7890;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Rubik',sans-serif;background:var(--bg);color:var(--t1);direction:rtl;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+
+  /* glow backdrop */
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(700px 500px at 78% 8%, rgba(37,211,102,.18), transparent 60%),
+      radial-gradient(600px 460px at 10% 90%, rgba(56,189,248,.10), transparent 60%);}
+
+  nav{position:relative;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:20px 44px}
+  .logo{font-size:22px;font-weight:900;letter-spacing:-.5px}
+  .logo em{font-style:normal;color:var(--green)}
+  .nav-links{display:flex;gap:26px;align-items:center}
+  .nav-links a{color:var(--t2);font-size:14px;font-weight:500;transition:.18s}
+  .nav-links a:hover{color:#fff}
+  .nav-cta{background:var(--green);color:#04130a !important;padding:9px 20px;border-radius:10px;font-weight:800;font-size:14px;box-shadow:0 6px 22px var(--green-glow)}
+
+  .hero{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:70px 44px 90px;
+    display:grid;grid-template-columns:1.1fr .9fr;gap:50px;align-items:center}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--green);
+    background:rgba(37,211,102,.10);border:1px solid rgba(37,211,102,.25);padding:7px 16px;border-radius:100px;margin-bottom:26px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
+  h1{font-size:clamp(44px,6vw,76px);font-weight:900;line-height:1.02;letter-spacing:-2.5px;margin-bottom:22px}
+  h1 .hl{background:linear-gradient(120deg,#5fffa0,var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    position:relative}
+  .sub{font-size:19px;color:var(--t2);line-height:1.7;max-width:480px;margin-bottom:36px}
+  .btns{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:34px}
+  .btn-primary{background:var(--green);color:#04130a;padding:16px 32px;border-radius:14px;font-size:16px;font-weight:800;
+    box-shadow:0 10px 34px var(--green-glow);transition:.2s;display:inline-flex;align-items:center;gap:8px}
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 46px var(--green-glow)}
+  .btn-ghost{background:rgba(255,255,255,.05);border:1px solid var(--bdr);color:#fff;padding:16px 30px;border-radius:14px;font-size:16px;font-weight:600;transition:.2s}
+  .btn-ghost:hover{background:rgba(255,255,255,.1)}
+  .trust{display:flex;align-items:center;gap:12px;font-size:13.5px;color:var(--t3)}
+  .avs{display:flex}
+  .avs span{width:34px;height:34px;border-radius:50%;border:2px solid var(--bg);margin-inline-start:-10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+  .avs span:first-child{margin:0}
+  .a1{background:#fde68a;color:#92400e}.a2{background:#bfdbfe;color:#1e40af}.a3{background:#bbf7d0;color:#166534}.a4{background:#fecdd3;color:#9f1239}
+
+  /* glowing chat card */
+  .stage{position:relative;display:flex;justify-content:center}
+  .glowring{position:absolute;width:360px;height:360px;border-radius:50%;
+    background:radial-gradient(circle,var(--green-glow),transparent 65%);filter:blur(30px);z-index:0;animation:pulse 4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+  .chat{position:relative;z-index:2;width:330px;background:var(--card);border:1px solid var(--bdr);border-radius:26px;
+    box-shadow:0 30px 80px rgba(0,0,0,.6);overflow:hidden;animation:float 6s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  .chat-hdr{background:linear-gradient(135deg,#0d7a63,#10a37f);padding:14px 16px;display:flex;align-items:center;gap:11px}
+  .chat-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#25D366,#5fffa0);display:flex;align-items:center;justify-content:center;font-weight:900;color:#04130a;font-size:16px}
+  .chat-hdr .nm{font-size:14px;font-weight:700;color:#fff}
+  .chat-hdr .st{font-size:11px;color:rgba(255,255,255,.75);margin-top:2px}
+  .chat-body{padding:16px 13px;display:flex;flex-direction:column;gap:9px;background:#0a1019;min-height:300px}
+  .m{max-width:84%;padding:10px 13px;border-radius:13px;font-size:13px;line-height:1.5}
+  .mi{align-self:flex-start;background:#1a2333;color:#e6edf7;border-bottom-right-radius:3px}
+  .mo{align-self:flex-end;background:linear-gradient(135deg,#1f7a47,#25D366);color:#04130a;font-weight:500;border-bottom-left-radius:3px}
+  .mt{font-size:9px;opacity:.6;margin-top:3px;text-align:left}
+
+  .strip{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:0 44px 80px;
+    display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+  .stat{background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:18px;padding:24px 20px;text-align:center}
+  .stat .n{font-size:34px;font-weight:900;letter-spacing:-1px;background:linear-gradient(120deg,#5fffa0,var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .stat .l{font-size:13px;color:var(--t3);margin-top:6px}
+
+  @media(max-width:900px){
+    .hero{grid-template-columns:1fr;text-align:center;padding:40px 22px 60px;gap:40px}
+    .btns,.trust{justify-content:center}
+    .sub{margin-inline:auto}
+    .nav-links{display:none}
+    .strip{grid-template-columns:repeat(2,1fr);padding:0 22px 50px}
+    nav{padding:18px 22px}
+  }
+</style>
+</head>
+<body>
+  <nav>
+    <div class="logo">Robert<em>.</em></div>
+    <div class="nav-links">
+      <a href="#">איך זה עובד</a>
+      <a href="#">יתרונות</a>
+      <a href="#">מחירים</a>
+      <a href="#">כניסה</a>
+      <a href="#" class="nav-cta">הרשמה חינם</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div>
+      <div class="eyebrow"><span class="dot"></span>7 ימי ניסיון חינם — ללא כרטיס אשראי</div>
+      <h1>הבוט ש<span class="hl">סוגר עסקאות</span><br>בזמן שאתה ישן</h1>
+      <p class="sub">Robert עונה ללקוחות שלך בוואטסאפ, מסביר, קובע פגישות ומוכר — בשמך, 24/7. מגדירים פעם אחת, מרוויחים תמיד.</p>
+      <div class="btns">
+        <a href="#" class="btn-primary">צור את הבוט שלך — חינם →</a>
+        <a href="#" class="btn-ghost">צפה בהדגמה</a>
+      </div>
+      <div class="trust">
+        <div class="avs"><span class="a1">מ</span><span class="a2">ד</span><span class="a3">ר</span><span class="a4">ש</span></div>
+        כבר <strong style="color:#fff">+500 עסקים</strong> סומכים על Robert
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="glowring"></div>
+      <div class="chat">
+        <div class="chat-hdr">
+          <div class="chat-av">R</div>
+          <div><div class="nm">Robert — נציג העסק</div><div class="st">🟢 מחובר · עונה תוך שניות</div></div>
+        </div>
+        <div class="chat-body">
+          <div class="m mi">שלום! מה המחיר שלכם? 😊<div class="mt">09:14</div></div>
+          <div class="m mo">היי! תודה שפנית 🙌 המחיר מתחיל מ-₪99/חודש, עם 7 ימי ניסיון חינם.<div class="mt">09:14</div></div>
+          <div class="m mi">מעולה! ואיך קובעים פגישה?<div class="mt">09:15</div></div>
+          <div class="m mo">📅 קבעתי לך מחר ב-10:00 — שלחתי תזכורת. נתראה!<div class="mt">09:15</div></div>
+          <div class="m mi">וואו, תודה רבה! 🙏<div class="mt">09:15</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="strip">
+    <div class="stat"><div class="n">5 דק'</div><div class="l">הקמת בוט מלא</div></div>
+    <div class="stat"><div class="n">24/7</div><div class="l">זמינות מלאה</div></div>
+    <div class="stat"><div class="n">98%</div><div class="l">שביעות רצון</div></div>
+    <div class="stat"><div class="n">3 שנ'</div><div class="l">זמן תגובה</div></div>
+  </section>
+</body>
+</html>

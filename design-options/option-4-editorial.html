@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Robert — אפשרות 4: Editorial (מינימלי ויוקרתי)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Rubik:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--green:#1F9D55;--ink:#111210;--t2:#4a4d47;--t3:#86897f;--paper:#f6f5f0;--line:#e4e2d8;--white:#fff;}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Rubik',sans-serif;background:var(--paper);color:var(--ink);direction:rtl;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  .serif{font-family:'Frank Ruhl Libre',serif}
+
+  nav{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;padding:26px 40px;border-bottom:1px solid var(--line)}
+  .logo{font-size:22px;font-weight:900;letter-spacing:-.5px}
+  .logo em{font-style:normal;color:var(--green)}
+  .nav-links{display:flex;gap:30px;align-items:center}
+  .nav-links a{color:var(--t2);font-size:14px;font-weight:500}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-cta{border:1.5px solid var(--ink);padding:9px 22px;border-radius:2px;font-weight:600;font-size:14px;transition:.2s}
+  .nav-cta:hover{background:var(--ink);color:#fff !important}
+
+  .hero{max-width:1200px;margin:0 auto;padding:80px 40px 70px;display:grid;grid-template-columns:1.15fr .85fr;gap:64px;align-items:center}
+  .kicker{font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:26px;display:flex;align-items:center;gap:12px}
+  .kicker::before{content:"";width:38px;height:1.5px;background:var(--green)}
+  h1{font-size:clamp(44px,5.6vw,76px);line-height:1.04;letter-spacing:-1px;font-weight:900;margin-bottom:26px}
+  h1 em{font-style:italic;color:var(--green)}
+  .sub{font-size:18px;color:var(--t2);line-height:1.85;max-width:480px;margin-bottom:38px;font-weight:400}
+  .btns{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:40px}
+  .btn-primary{background:var(--ink);color:#fff;padding:16px 34px;border-radius:2px;font-size:15px;font-weight:600;transition:.2s}
+  .btn-primary:hover{background:var(--green)}
+  .btn-link{font-size:15px;font-weight:600;color:var(--ink);border-bottom:1.5px solid var(--ink);padding-bottom:3px}
+  .meta{display:flex;gap:34px;border-top:1px solid var(--line);padding-top:26px;max-width:480px}
+  .meta .n{font-size:30px;font-weight:800;letter-spacing:-1px}
+  .meta .n.serif{font-weight:900}
+  .meta .l{font-size:12.5px;color:var(--t3);margin-top:3px;line-height:1.4}
+
+  /* refined product card */
+  .visual{position:relative}
+  .frame{background:var(--white);border:1px solid var(--line);border-radius:4px;box-shadow:0 30px 70px rgba(17,18,16,.10);overflow:hidden}
+  .frame-top{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .frame-top .dot{width:10px;height:10px;border-radius:50%;background:var(--line)}
+  .frame-top .ttl{margin-inline-start:auto;font-size:12px;color:var(--t3);font-weight:600}
+  .frame-body{padding:24px 22px;background:#fbfbf8}
+  .chatline{display:flex;gap:10px;margin-bottom:16px;align-items:flex-start}
+  .chatline .who{font-size:11px;font-weight:700;color:var(--t3);width:54px;flex-shrink:0;padding-top:3px;letter-spacing:.5px}
+  .chatline .txt{font-size:14.5px;line-height:1.6;color:var(--ink)}
+  .chatline.bot .txt{color:var(--green);font-weight:500}
+  .sig{margin-top:8px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--t3);display:flex;justify-content:space-between}
+  .badge-float{position:absolute;bottom:-22px;inset-inline-start:-22px;background:var(--ink);color:#fff;padding:14px 20px;border-radius:3px;box-shadow:0 16px 40px rgba(17,18,16,.25)}
+  .badge-float .b1{font-size:22px;font-weight:800;letter-spacing:-.5px}
+  .badge-float .b2{font-size:11.5px;color:rgba(255,255,255,.6);margin-top:2px}
+
+  @media(max-width:920px){
+    .hero{grid-template-columns:1fr;gap:48px;padding:50px 24px}
+    .nav-links{display:none}.badge-float{inset-inline-start:auto;inset-inline-end:16px}
+  }
+</style>
+</head>
+<body>
+  <nav>
+    <div class="logo">Robert<em>.</em></div>
+    <div class="nav-links">
+      <a href="#">איך זה עובד</a><a href="#">יתרונות</a><a href="#">מחירים</a><a href="#">כניסה</a>
+      <a href="#" class="nav-cta">הרשמה חינם</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div>
+      <div class="kicker">נציג השירות שלא ישן לעולם</div>
+      <h1 class="serif">העסק שלך,<br>זמין <em>תמיד</em>.<br>בלי שתרים אצבע.</h1>
+      <p class="sub">Robert הוא נציג וואטסאפ מבוסס בינה מלאכותית שעונה ללקוחות, מסביר, וקובע פגישות — בשמך, מסביב לשעון. אתה מגדיר אותו פעם אחת. הוא עובד תמיד.</p>
+      <div class="btns">
+        <a href="#" class="btn-primary">התחל 7 ימים חינם</a>
+        <a href="#" class="btn-link">צפה איך זה עובד</a>
+      </div>
+      <div class="meta">
+        <div><div class="n serif">5 דק׳</div><div class="l">להקמה מלאה<br>של הבוט</div></div>
+        <div><div class="n serif">24/7</div><div class="l">מענה רציף<br>ללקוחות</div></div>
+        <div><div class="n serif">+500</div><div class="l">עסקים<br>פעילים</div></div>
+      </div>
+    </div>
+
+    <div class="visual">
+      <div class="frame">
+        <div class="frame-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="ttl">WhatsApp · מספרת מיטל</span></div>
+        <div class="frame-body">
+          <div class="chatline"><div class="who">לקוח</div><div class="txt">שלום, מה המחיר לתספורת + צבע?</div></div>
+          <div class="chatline bot"><div class="who">Robert</div><div class="txt">שלום! תספורת ₪120, צביעה שלמה ₪250. אפשר לקבוע לך תור — מתי נוח?</div></div>
+          <div class="chatline"><div class="who">לקוח</div><div class="txt">יום חמישי אחה״צ</div></div>
+          <div class="chatline bot"><div class="who">Robert</div><div class="txt">קבעתי חמישי 16:00 ✓ נשלחה אליך תזכורת. נתראה!</div></div>
+          <div class="sig"><span>נכתב על־ידי Robert</span><span>0.9 שניות</span></div>
+        </div>
+      </div>
+      <div class="badge-float"><div class="b1">מ-₪99<span style="font-size:13px;font-weight:500">/חודש</span></div><div class="b2">7 ימי ניסיון — ללא כרטיס</div></div>
+    </div>
+  </section>
+</body>
+</html>

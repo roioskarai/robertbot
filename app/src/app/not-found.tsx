@@ -16,7 +16,7 @@ export default function NotFound() {
         </Link>
         <div className={c("nav-links")}>
           <Link href="/" className={c("btn btn-outline")} style={{ padding: "7px 16px", fontSize: 13 }}>דף הבית</Link>
-          <Link href="/dashboard" className={c("btn btn-primary")} style={{ padding: "7px 16px", fontSize: 13 }}>כניסה</Link>
+          <Link href="/login" className={c("btn btn-primary")} style={{ padding: "7px 16px", fontSize: 13 }}>כניסה</Link>
         </div>
       </nav>
 

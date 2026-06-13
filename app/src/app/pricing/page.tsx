@@ -50,7 +50,7 @@ export default function PricingPage() {
             <div className={c("logo-name")}>Robert<em>.</em></div>
           </Link>
           <div className={c("nav-btns")}>
-            <Link href="/dashboard" className={c("btn-nav-login")}>כניסה</Link>
+            <Link href="/login" className={c("btn-nav-login")}>כניסה</Link>
             <Link href="/onboarding" className={c("btn-nav-signup")}>הרשמה חינם</Link>
           </div>
         </div>
