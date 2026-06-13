@@ -105,76 +105,64 @@ export default function LandingPage() {
       </nav>
 
       {/* HERO */}
-      <div style={{ background: "var(--white)", borderBottom: "1px solid var(--bdr)" }}>
-        <section className={c("hero")}>
-          <div className={c("hero-text rv")}>
-            <div className={c("hero-eyebrow")}>
-              <span></span>7 ימי ניסיון חינם — ללא כרטיס אשראי
+      <section className={c("hero")}>
+        <div className={c("hero-text rv")}>
+          <div className={c("hero-eyebrow")}>
+            <span></span>7 ימי ניסיון חינם — ללא כרטיס אשראי
+          </div>
+          <h1>
+            בוט מותאם אישית לעסק שלך,
+            <br />
+            בלחיצת כפתור.
+          </h1>
+          <p className={c("hero-sub")}>
+            Robert עונה ללקוחות שלך בוואטסאפ, מסביר, מייעץ וקובע תורים — בשמך, מסביב לשעון. מגדירים פעם אחת, הוא עובד תמיד.
+          </p>
+          <div className={c("hero-btns")}>
+            <Link href="/onboarding" className={c("btn-primary")}>
+              בנה את הבוט שלך ←
+            </Link>
+            <a href="#how" onClick={scrollTo("#how")} className={c("btn-ghost")}>
+              צפה בהדגמה
+            </a>
+          </div>
+          <div className={c("hero-trust")}>
+            <div className={c("trust-avatars")}>
+              <span className={c("av1")}>מ</span>
+              <span className={c("av2")}>ד</span>
+              <span className={c("av3")}>ר</span>
+              <span className={c("av4")}>ש</span>
             </div>
-            <h1>
-              הבוט שעונה
-              <br />
-              ללקוחות שלך
-              <br />
-              <strong>בוואטסאפ</strong>
-            </h1>
-            <p className={c("hero-sub")}>
-              Robert עונה, מסביר, קובע פגישות — בשמך, 24/7.
-              <br />
-              אתה מגדיר פעם אחת ומקבל לקוחות מרוצים.
-            </p>
-            <div className={c("hero-btns")}>
-              <Link href="/onboarding" className={c("btn-primary")}>
-                צור את הבוט שלך — חינם
-              </Link>
-              <a href="#how" onClick={scrollTo("#how")} className={c("btn-ghost")}>
-                איך זה עובד?
-              </a>
-            </div>
-            <div className={c("hero-trust")}>
-              <div className={c("trust-avatars")}>
-                <span className={c("av1")}>מ</span>
-                <span className={c("av2")}>ד</span>
-                <span className={c("av3")}>ר</span>
-                <span className={c("av4")}>ש</span>
+            <span>
+              כבר <strong>+500 עסקים</strong> סומכים על Robert
+            </span>
+          </div>
+        </div>
+        <div className={c("stage rv")}>
+          <div className={c("float-tag ft1")}>
+            <span className={c("ft-ic")}>✅</span>אף לקוח לא נשאר בלי מענה
+          </div>
+          <div className={c("float-tag ft2")}>
+            <span className={c("ft-ic")}>💬</span>מענה אישי — אוטומטי לגמרי
+          </div>
+          <div className={c("cw")}>
+            <div className={c("cw-hdr")}>
+              <div className={c("cw-av")}>R</div>
+              <div>
+                <div className={c("cw-name")}>Robert · מספרת מיטל</div>
+                <div className={c("cw-st")}><i className={c("cw-dot")}></i>מחובר · עונה עכשיו</div>
               </div>
-              <span>
-                כבר <strong>+500 עסקים</strong> השתמשו בתקופת הבטא
-              </span>
+            </div>
+            <div className={c("cw-body")}>
+              <div className={c("msg mi")}>היי, אפשר לקבוע תור לתספורת לשבוע הבא?<div className={c("mt")}>09:14</div></div>
+              <div className={c("msg mo")}>בשמחה! 😊 יש פנוי ביום שלישי ב-10:00 או ב-16:30. מה נוח לך?<div className={c("mt")}>09:14</div></div>
+              <div className={c("msg mi")}>שלישי ב-16:30 מושלם. כמה זה עולה?<div className={c("mt")}>09:15</div></div>
+              <div className={c("msg mo")}>קבעתי לך שלישי 16:30 ✅ תספורת ₪80, ואשלח תזכורת יום לפני 🙌<div className={c("mt")}>09:15</div></div>
+              <div className={c("msg mi")}>איזה שירות! תודה רבה 🙏<div className={c("mt")}>09:16</div></div>
             </div>
           </div>
-          <div className={c("phone-wrap rv")}>
-            <div className={c("phone")}>
-              <div className={c("ph-hdr")}>
-                <div className={c("ph-av")}>R</div>
-                <div>
-                  <div className={c("ph-name")}>Robert — נציג העסק</div>
-                  <div className={c("ph-st")}>🟢 מחובר · עונה תוך שניות</div>
-                </div>
-              </div>
-              <div className={c("ph-body")}>
-                <div className={c("msg mi")}>
-                  שלום! מה המחיר שלכם? 😊<div className={c("mt")}>09:14</div>
-                </div>
-                <div className={c("msg mo")}>
-                  היי! תודה שפנית 🙌 המחיר מתחיל מ-₪99/חודש, עם 7 ימי ניסיון חינם.
-                  <div className={c("mt")}>09:14</div>
-                </div>
-                <div className={c("msg mi")}>
-                  מעולה! ואיך קובעים פגישה?<div className={c("mt")}>09:15</div>
-                </div>
-                <div className={c("msg mo")}>
-                  📅 לחץ כאן לקביעת פגישה — יש זמינות כבר מחר!
-                  <div className={c("mt")}>09:15</div>
-                </div>
-                <div className={c("msg mi")}>
-                  תודה רבה! 🙏<div className={c("mt")}>09:15</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       {/* STATS STRIP */}
       <div className={c("stats-strip")}>
@@ -196,8 +184,8 @@ export default function LandingPage() {
             <span className={c("stat-l")}>שביעות רצון</span>
           </div>
           <div className={c("stat rv")}>
-            <span className={c("stat-n")}>3 שנ&apos;</span>
-            <span className={c("stat-l")}>זמן תגובה</span>
+            <span className={c("stat-n")}>~3 שנ&apos;</span>
+            <span className={c("stat-l")}>זמן מענה ממוצע</span>
           </div>
           <div className={c("stat rv")}>
             <span className={c("stat-n")}>∞</span>

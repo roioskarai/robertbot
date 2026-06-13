@@ -1,0 +1,81 @@
+- generic [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - text: Robert
+      - emphasis [ref=e4]: .
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - link "איך זה עובד" [ref=e7] [cursor=pointer]:
+          - /url: "#"
+        - link "יתרונות" [ref=e8] [cursor=pointer]:
+          - /url: "#"
+        - link "מחירים" [ref=e9] [cursor=pointer]:
+          - /url: "#"
+        - link "כניסה" [ref=e10] [cursor=pointer]:
+          - /url: "#"
+      - button "החלף מצב בהיר/כהה" [active] [ref=e11] [cursor=pointer]
+      - link "הרשמה חינם" [ref=e12] [cursor=pointer]:
+        - /url: "#"
+  - generic [ref=e13]:
+    - generic [ref=e14]:
+      - generic [ref=e15]: 7 ימי ניסיון חינם — ללא כרטיס אשראי
+      - heading "בוט מותאם אישית לעסק שלך, בלחיצת כפתור." [level=1] [ref=e17]:
+        - text: בוט מותאם אישית לעסק שלך,
+        - text: בלחיצת כפתור.
+      - paragraph [ref=e18]: לקוחות פונים בכל שעה — ו-Robert עונה לכולם. מסביר, מייעץ וקובע תורים בשמך, בלי שתצטרך להיות זמין. מגדירים פעם אחת — וזהו.
+      - generic [ref=e19]:
+        - link "בנה את הבוט שלך ←" [ref=e20] [cursor=pointer]:
+          - /url: "#"
+        - link "צפה בהדגמה" [ref=e21] [cursor=pointer]:
+          - /url: "#"
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]: מ
+          - generic [ref=e25]: ד
+          - generic [ref=e26]: ר
+          - generic [ref=e27]: ש
+        - text: כבר
+        - generic [ref=e28]: +500 עסקים
+        - text: סומכים על Robert
+    - generic [ref=e29]:
+      - generic [ref=e30]:
+        - generic [ref=e31]: 📅
+        - text: תור נקבע אוטומטית
+      - generic [ref=e32]:
+        - generic [ref=e33]: 💬
+        - text: מענה אישי — אוטומטי לגמרי
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - generic [ref=e36]: R
+          - generic [ref=e37]:
+            - generic [ref=e38]: Robert · מספרת מיטל
+            - generic [ref=e39]: מחובר · עונה עכשיו
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - text: היי, אפשר לקבוע תור לתספורת לשבוע הבא?
+            - generic [ref=e43]: 09:14
+          - generic [ref=e44]:
+            - text: בשמחה! 😊 יש פנוי ביום שלישי ב-10:00 או ב-16:30. מה נוח לך?
+            - generic [ref=e45]: 09:14
+          - generic [ref=e46]:
+            - text: שלישי ב-16:30 מושלם. כמה זה עולה?
+            - generic [ref=e47]: 09:15
+          - generic [ref=e48]:
+            - text: קבעתי לך שלישי 16:30 ✅ תספורת ₪80, ואשלח תזכורת יום לפני 🙌
+            - generic [ref=e49]: 09:15
+          - generic [ref=e50]:
+            - text: איזה שירות! תודה רבה 🙏
+            - generic [ref=e51]: 09:16
+  - generic [ref=e52]:
+    - generic [ref=e53]:
+      - generic [ref=e54]: 5 דק'
+      - generic [ref=e55]: הקמת בוט מלא
+    - generic [ref=e56]:
+      - generic [ref=e57]: 24/7
+      - generic [ref=e58]: זמינות מלאה
+    - generic [ref=e59]:
+      - generic [ref=e60]: 98%
+      - generic [ref=e61]: שביעות רצון
+    - generic [ref=e62]:
+      - generic [ref=e63]: ~3 שנ'
+      - generic [ref=e64]: זמן מענה ממוצע

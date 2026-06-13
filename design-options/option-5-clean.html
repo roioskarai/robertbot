@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="he" dir="rtl" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Robert — אפשרות 5: Clean (1+2, קו נקי, בהיר/כהה)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script>
+  /* no-flash: קובע מצב לפני ציור */
+  (function(){try{var t=localStorage.getItem('robert-demo-theme');document.documentElement.setAttribute('data-theme',(t==='dark'||t==='light')?t:'light');}catch(e){}})();
+</script>
+<style>
+  :root{
+    --green:#128C7E; --green-hover:#0e7268; --btn-text:#ffffff;
+    --hl:#128C7E; --dot:#25D366;
+    --bg:#f0f6f3;
+    --bg-grad:radial-gradient(900px 620px at 50% -8%, #e8faf0, transparent 62%);
+    --surface:#ffffff; --surface-2:#f7faf8; --chat-bg:#eef4f0;
+    --t1:#0c1b14; --t2:#3f5249; --t3:#6b7d74; --bdr:#dce8e2;
+    --shadow:0 24px 60px rgba(12,27,20,.10); --shadow-sm:0 8px 22px rgba(12,27,20,.07);
+    --bubble-in:#ffffff; --bubble-in-t:#142a20; --bubble-out:#d8f3e3; --bubble-out-t:#0d3325;
+  }
+  html[data-theme="dark"]{
+    --green:#1db974; --green-hover:#25c97f; --btn-text:#ffffff;
+    --hl:#1db974; --dot:#1db974;
+    --bg:#1e1e1e;
+    --bg-grad:none;
+    --surface:#282828; --surface-2:#222222; --chat-bg:#202020;
+    --t1:#e8e8e8; --t2:#9a9a9a; --t3:#666666; --bdr:#333333;
+    --shadow:0 28px 70px rgba(0,0,0,.45); --shadow-sm:0 10px 26px rgba(0,0,0,.33);
+    --bubble-in:#303030; --bubble-in-t:#e0e0e0; --bubble-out:#1a3226; --bubble-out-t:#c8ecd6;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Rubik',sans-serif;background:var(--bg-grad), var(--bg);color:var(--t1);
+    direction:rtl;-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100vh;
+    transition:background .35s ease,color .35s ease}
+  a{color:inherit;text-decoration:none}
+
+  nav{position:sticky;top:0;z-index:20;width:100%;
+    background:rgba(240,246,243,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--bdr);box-shadow:0 2px 14px rgba(12,27,20,.06)}
+  .nav-inner{max-width:1180px;margin:0 auto;padding:16px 40px;
+    display:flex;align-items:center;justify-content:space-between}
+  html[data-theme="dark"] nav{background:rgba(30,30,30,.88);box-shadow:0 2px 14px rgba(0,0,0,.25)}
+  .logo{font-size:22px;font-weight:900;letter-spacing:-.5px}
+  .logo em{font-style:normal;color:var(--green)}
+  .nav-right{display:flex;align-items:center;gap:24px}
+  .nav-links{display:flex;gap:24px;align-items:center}
+  .nav-links a{color:var(--t3);font-size:14px;font-weight:500;transition:.18s}
+  .nav-links a:hover{color:var(--t1)}
+  .nav-cta{background:var(--green);color:var(--btn-text) !important;padding:9px 20px;border-radius:100px;font-weight:700;font-size:14px;transition:.2s}
+  .nav-cta:hover{background:var(--green-hover)}
+  /* theme toggle — pill switch with icons */
+  .theme-btn{width:58px;height:28px;border-radius:14px;border:1px solid var(--bdr);
+    background:var(--surface-2);cursor:pointer;position:relative;flex-shrink:0;
+    display:flex;align-items:center;justify-content:space-between;padding:0 8px;
+    transition:background .25s,border-color .25s}
+  .theme-btn::after{content:'';position:absolute;width:20px;height:20px;border-radius:50%;
+    top:3px;right:3px;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.18);
+    transition:right .25s,left .25s,background .25s;z-index:2}
+  html[data-theme="dark"] .theme-btn::after{right:auto;left:3px;background:var(--green)}
+  html[data-theme="dark"] .theme-btn{background:#2a2a2a;border-color:#3a3a3a}
+  .ico-sun,.ico-moon{display:flex;align-items:center;justify-content:center;position:relative;z-index:1;flex-shrink:0}
+  .ico-sun{color:#f59e0b;opacity:.8}
+  .ico-moon{color:#94a3b8;opacity:.8}
+
+  .hero{max-width:1180px;margin:0 auto;padding:64px 40px 40px;
+    display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--green);
+    background:var(--surface);border:1px solid var(--bdr);padding:7px 16px;border-radius:100px;margin-bottom:24px;box-shadow:var(--shadow-sm)}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--dot);box-shadow:0 0 0 4px rgba(37,211,102,.18);animation:blink 1.9s infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+  h1{font-size:clamp(36px,4.7vw,58px);font-weight:800;line-height:1.14;letter-spacing:-1.2px;margin-bottom:20px;color:var(--t1)}
+  .sub{font-size:18.5px;color:var(--t2);line-height:1.7;max-width:480px;margin-bottom:34px}
+  .btns{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:30px}
+  .btn-primary{background:var(--green);color:var(--btn-text);padding:15px 30px;border-radius:12px;font-size:16px;font-weight:700;
+    box-shadow:0 10px 26px rgba(18,140,126,.25);transition:.2s;display:inline-flex;align-items:center;gap:8px}
+  .btn-primary:hover{background:var(--green-hover);transform:translateY(-2px)}
+  .btn-ghost{background:var(--surface);border:1px solid var(--bdr);color:var(--t1);padding:15px 28px;border-radius:12px;font-size:16px;font-weight:600;transition:.2s}
+  .btn-ghost:hover{border-color:var(--green);color:var(--green)}
+  .trust{display:flex;align-items:center;gap:12px;font-size:13.5px;color:var(--t3)}
+  .avs{display:flex}
+  .avs span{width:34px;height:34px;border-radius:50%;border:2px solid var(--bg);margin-inline-start:-10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+  .avs span:first-child{margin:0}
+  .a1{background:#fde68a;color:#92400e}.a2{background:#bfdbfe;color:#1e40af}.a3{background:#bbf7d0;color:#166534}.a4{background:#fecdd3;color:#9f1239}
+  .trust b{color:var(--t1)}
+
+  /* clean chat showcase */
+  .stage{position:relative;display:flex;justify-content:center}
+  .chat{position:relative;z-index:2;width:340px;background:var(--surface);border:1px solid var(--bdr);border-radius:24px;
+    box-shadow:var(--shadow);overflow:hidden}
+  .chat-hdr{background:var(--green);padding:14px 16px;display:flex;align-items:center;gap:11px}
+  html[data-theme="light"] .chat-hdr{background:linear-gradient(135deg,#0e7268,#128C7E)}
+  .chat-av{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:16px}
+  html[data-theme="dark"] .chat-av{background:rgba(255,255,255,.12);color:#fff}
+  .chat-hdr .nm{font-size:14px;font-weight:700;color:#fff}
+  .chat-hdr .st{font-size:11px;color:rgba(255,255,255,.8);margin-top:2px;display:flex;align-items:center;gap:5px}
+  .chat-hdr .st i{width:6px;height:6px;border-radius:50%;background:#9bffc7;display:inline-block}
+  .chat-body{padding:18px 14px;display:flex;flex-direction:column;gap:10px;background:var(--chat-bg);min-height:316px}
+  .m{max-width:84%;padding:10px 13px;border-radius:14px;font-size:13.5px;line-height:1.55}
+  .mi{align-self:flex-start;background:var(--bubble-in);color:var(--bubble-in-t);border-bottom-right-radius:4px;box-shadow:var(--shadow-sm)}
+  .mo{align-self:flex-end;background:var(--bubble-out);color:var(--bubble-out-t);border-bottom-left-radius:4px}
+  .mt{font-size:9.5px;opacity:.55;margin-top:3px;text-align:left}
+
+  /* subtle, clean floating tags (החלק ש"היה חסר") */
+  .tag{position:absolute;z-index:4;background:var(--surface);border:1px solid var(--bdr);border-radius:13px;
+    box-shadow:var(--shadow-sm);padding:10px 14px;display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:var(--t1)}
+  .tag .ic{width:28px;height:28px;border-radius:8px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:14px}
+  .tag-1{top:24px;inset-inline-start:-30px;animation:bob 6s ease-in-out infinite}
+  .tag-2{bottom:40px;inset-inline-end:-38px;animation:bob 6s ease-in-out infinite 1.4s}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+  /* clean stats strip */
+  .strip{max-width:1180px;margin:24px auto 70px;padding:0 40px;
+    display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .stat{background:var(--surface);border:1px solid var(--bdr);border-radius:16px;padding:22px 18px;text-align:center;box-shadow:var(--shadow-sm)}
+  .stat .n{font-size:30px;font-weight:900;letter-spacing:-1px;color:var(--green)}
+  .stat .l{font-size:13px;color:var(--t3);margin-top:5px}
+
+  @media(max-width:920px){
+    .hero{grid-template-columns:1fr;text-align:center;padding:40px 22px 30px;gap:44px}
+    .btns,.trust{justify-content:center}.sub{margin-inline:auto}
+    .nav-links{display:none}.tag{display:none}
+    .strip{grid-template-columns:repeat(2,1fr);padding:0 22px}
+    nav{padding:18px 22px}
+  }
+</style>
+</head>
+<body>
+  <nav>
+   <div class="nav-inner">
+    <div class="logo">Robert<em>.</em></div>
+    <div class="nav-right">
+      <div class="nav-links">
+        <a href="#">איך זה עובד</a>
+        <a href="#">יתרונות</a>
+        <a href="#">מחירים</a>
+        <a href="#">כניסה</a>
+      </div>
+      <button class="theme-btn" onclick="toggleTheme()" aria-label="החלף מצב בהיר/כהה" title="מצב בהיר / כהה">
+        <span class="ico-moon"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+        <span class="ico-sun"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span>
+      </button>
+      <a href="#" class="nav-cta">הרשמה חינם</a>
+    </div>
+   </div>
+  </nav>
+
+  <section class="hero">
+    <div>
+      <div class="eyebrow"><span class="dot"></span>7 ימי ניסיון חינם — ללא כרטיס אשראי</div>
+      <h1>בוט מותאם אישית לעסק שלך,<br>בלחיצת כפתור.</h1>
+      <p class="sub">לקוחות פונים בכל שעה — ו-Robert עונה לכולם. מסביר, מייעץ וקובע תורים בשמך, בלי שתצטרך להיות זמין. מגדירים פעם אחת — וזהו.</p>
+      <div class="btns">
+        <a href="#" class="btn-primary">בנה את הבוט שלך ←</a>
+        <a href="#" class="btn-ghost">צפה בהדגמה</a>
+      </div>
+      <div class="trust">
+        <div class="avs"><span class="a1">מ</span><span class="a2">ד</span><span class="a3">ר</span><span class="a4">ש</span></div>
+        כבר <b>+500 עסקים</b> סומכים על Robert
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="tag tag-1"><span class="ic">✅</span>אף לקוח לא נשאר בלי מענה</div>
+      <div class="tag tag-2"><span class="ic">💬</span>מענה אישי — אוטומטי לגמרי</div>
+      <div class="chat">
+        <div class="chat-hdr">
+          <div class="chat-av">R</div>
+          <div>
+            <div class="nm">Robert · מספרת מיטל</div>
+            <div class="st"><i></i>מחובר · עונה עכשיו</div>
+          </div>
+        </div>
+        <div class="chat-body">
+          <div class="m mi">היי, אפשר לקבוע תור לתספורת לשבוע הבא?<div class="mt">09:14</div></div>
+          <div class="m mo">בשמחה! 😊 יש פנוי ביום שלישי ב-10:00 או ב-16:30. מה נוח לך?<div class="mt">09:14</div></div>
+          <div class="m mi">שלישי ב-16:30 מושלם. כמה זה עולה?<div class="mt">09:15</div></div>
+          <div class="m mo">קבעתי לך שלישי 16:30 ✅ תספורת ₪80, ואשלח תזכורת יום לפני 🙌<div class="mt">09:15</div></div>
+          <div class="m mi">איזה שירות! תודה רבה 🙏<div class="mt">09:16</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="strip">
+    <div class="stat"><div class="n">5 דק'</div><div class="l">הקמת בוט מלא</div></div>
+    <div class="stat"><div class="n">24/7</div><div class="l">זמינות מלאה</div></div>
+    <div class="stat"><div class="n">98%</div><div class="l">שביעות רצון</div></div>
+    <div class="stat"><div class="n">~3 שנ'</div><div class="l">זמן מענה ממוצע</div></div>
+  </section>
+
+<script>
+  function toggleTheme(){
+    var r=document.documentElement;
+    var next=r.getAttribute('data-theme')==='dark'?'light':'dark';
+    r.setAttribute('data-theme',next);
+    try{localStorage.setItem('robert-demo-theme',next);}catch(e){}
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - text: Robert
+      - emphasis [ref=e4]: .
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - link "איך זה עובד" [ref=e7] [cursor=pointer]:
+          - /url: "#"
+        - link "יתרונות" [ref=e8] [cursor=pointer]:
+          - /url: "#"
+        - link "מחירים" [ref=e9] [cursor=pointer]:
+          - /url: "#"
+        - link "כניסה" [ref=e10] [cursor=pointer]:
+          - /url: "#"
+      - button "החלף מצב בהיר/כהה" [ref=e11] [cursor=pointer]:
+        - generic [ref=e12]: 🌙
+      - link "הרשמה חינם" [ref=e13] [cursor=pointer]:
+        - /url: "#"
+  - generic [ref=e14]:
+    - generic [ref=e15]:
+      - generic [ref=e16]: 7 ימי ניסיון חינם — ללא כרטיס אשראי
+      - heading "הבוט שסוגר עסקאות בזמן שאתה ישן" [level=1] [ref=e18]:
+        - text: הבוט שסוגר עסקאות
+        - text: בזמן שאתה ישן
+      - paragraph [ref=e19]: Robert עונה ללקוחות שלך בוואטסאפ, מסביר, קובע פגישות ומוכר — בשמך, מסביב לשעון. מגדירים פעם אחת, מרוויחים תמיד.
+      - generic [ref=e20]:
+        - link "צור את הבוט שלך — חינם ←" [ref=e21] [cursor=pointer]:
+          - /url: "#"
+        - link "צפה בהדגמה" [ref=e22] [cursor=pointer]:
+          - /url: "#"
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - generic [ref=e25]: מ
+          - generic [ref=e26]: ד
+          - generic [ref=e27]: ר
+          - generic [ref=e28]: ש
+        - text: כבר
+        - generic [ref=e29]: +500 עסקים
+        - text: סומכים על Robert
+    - generic [ref=e30]:
+      - generic [ref=e31]:
+        - generic [ref=e32]: 📅
+        - text: תור נקבע אוטומטית
+      - generic [ref=e33]:
+        - generic [ref=e34]: ⚡
+        - text: מענה תוך 3 שניות
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - generic [ref=e37]: R
+          - generic [ref=e38]:
+            - generic [ref=e39]: Robert — נציג העסק
+            - generic [ref=e40]: מחובר · עונה עכשיו
+        - generic [ref=e42]:
+          - generic [ref=e43]:
+            - text: שלום! מה המחיר שלכם? 😊
+            - generic [ref=e44]: 09:14
+          - generic [ref=e45]:
+            - text: היי! תודה שפנית 🙌 המחיר מתחיל מ-₪99/חודש, עם 7 ימי ניסיון חינם.
+            - generic [ref=e46]: 09:14
+          - generic [ref=e47]:
+            - text: מעולה! ואיך קובעים פגישה?
+            - generic [ref=e48]: 09:15
+          - generic [ref=e49]:
+            - text: קבעתי לך מחר ב-10:00 ✅ שלחתי תזכורת. נתראה!
+            - generic [ref=e50]: 09:15
+          - generic [ref=e51]:
+            - text: וואו, תודה רבה! 🙏
+            - generic [ref=e52]: 09:15
+  - generic [ref=e53]:
+    - generic [ref=e54]:
+      - generic [ref=e55]: 5 דק'
+      - generic [ref=e56]: הקמת בוט מלא
+    - generic [ref=e57]:
+      - generic [ref=e58]: 24/7
+      - generic [ref=e59]: זמינות מלאה
+    - generic [ref=e60]:
+      - generic [ref=e61]: 98%
+      - generic [ref=e62]: שביעות רצון
+    - generic [ref=e63]:
+      - generic [ref=e64]: 3 שנ'
+      - generic [ref=e65]: זמן תגובה
