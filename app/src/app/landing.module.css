@@ -7,20 +7,19 @@
   --bg:        #f0f6f3;
   --bg-grad:   radial-gradient(900px 600px at 50% -6%, #e8faf0, transparent 60%);
   --white:     #ffffff;
-  --green:     #128C7E;
-  --green-d:   #0e7268;
-  --green-bright: #25D366;
+  --green:     #25D366;
+  --green-d:   #18a84f;
   --green-pale:#e8faf0;
   --purple:    #6d28d9;
   --purple-pale:#ede9fe;
-  --t1:        #0c1b14;
-  --t2:        #3f5249;
-  --t3:        #6b7d74;
+  --t1:        #111827;
+  --t2:        #374151;
+  --t3:        #6b7280;
   --t4:        #9ca3af;
-  --bdr:       #dce8e2;
-  --bdr2:      #c8d9d2;
-  --shadow:    0 1px 4px rgba(12,27,20,.06), 0 4px 16px rgba(12,27,20,.05);
-  --shadow-md: 0 4px 12px rgba(12,27,20,.08), 0 12px 40px rgba(12,27,20,.08);
+  --bdr:       #e5e7eb;
+  --bdr2:      #d1d5db;
+  --shadow:    0 1px 4px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 12px 40px rgba(0,0,0,.08);
   --r:         14px;
   --r-lg:      20px;
   --r-xl:      28px;
@@ -36,11 +35,10 @@
   height:60px;
   display:flex; align-items:center; justify-content:space-between;
   padding:0 48px;
-  background:rgba(240,246,243,.92);
+  background:rgba(247,248,252,.92);
   backdrop-filter:blur(16px);
   -webkit-backdrop-filter:blur(16px);
   border-bottom:1px solid var(--bdr);
-  box-shadow:0 2px 12px rgba(12,27,20,.05);
 }
 
 .logo {
@@ -646,29 +644,25 @@
 :global(html[data-theme="dark"]) .landing {
   --bg:        #1e1e1e;
   --bg-grad:   none;
-  --white:     #282828;
-  --green:     #1db974;
-  --green-d:   #18a35e;
-  --green-bright: #25D366;
-  --green-pale:#1a3226;
+  --white:     #141c2e;
+  --green:     #25D366;
+  --green-d:   #2ee27a;
+  --green-pale:#10261a;
   --purple:    #a78bfa;
   --purple-pale:#241b3a;
-  --t1:        #e8e8e8;
-  --t2:        #9a9a9a;
-  --t3:        #666666;
-  --t4:        #555555;
-  --bdr:       #333333;
-  --bdr2:      #3c3c3c;
+  --t1:        #f1f5f9;
+  --t2:        #cbd5e1;
+  --t3:        #94a3b8;
+  --t4:        #6b7a93;
+  --bdr:       #25304a;
+  --bdr2:      #36436a;
   --shadow:    0 1px 4px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.35);
   --shadow-md: 0 4px 12px rgba(0,0,0,.5), 0 12px 40px rgba(0,0,0,.45);
 }
 
 /* nav + cta */
-:global(html[data-theme="dark"]) .landing .nav {
-  background:rgba(30,30,30,.88);
-  box-shadow:0 2px 14px rgba(0,0,0,.28);
-}
-:global(html[data-theme="dark"]) .landing .cta-band { background:#111111; }
+:global(html[data-theme="dark"]) .landing .nav { background:rgba(11,18,32,.85); }
+:global(html[data-theme="dark"]) .landing .cta-band { background:#05080f; }
 
 /* chat window in dark */
 :global(html[data-theme="dark"]) .landing .cw { background:#282828; border-color:#333; }
