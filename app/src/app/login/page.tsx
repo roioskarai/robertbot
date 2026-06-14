@@ -64,6 +64,24 @@ function LoginInner() {
     }
   }
 
+  async function forgotPassword() {
+    const email = form.email.trim();
+    if (!email || !email.includes("@")) {
+      toast("הכנס קודם את האימייל שלך בשדה למעלה");
+      return;
+    }
+    try {
+      await fetch("/api/auth/forgot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+    } catch {
+      /* ignore — generic message either way (no enumeration) */
+    }
+    toast("אם האימייל רשום אצלנו — שלחנו אליו קישור לאיפוס הסיסמה");
+  }
+
   async function googleLogin() {
     try {
       const supabase = createClient();
@@ -121,7 +139,7 @@ function LoginInner() {
           <div className={c("fg")}>
             <div className={c("fl-row")}>
               <label className={c("fl")}>סיסמה</label>
-              <button type="button" className={c("lg-link-sm")} onClick={() => toast("לאיפוס סיסמה כתוב לנו ל-support@robertbot.co.il ונסייע מיד")}>
+              <button type="button" className={c("lg-link-sm")} onClick={forgotPassword}>
                 שכחת סיסמה?
               </button>
             </div>
