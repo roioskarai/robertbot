@@ -590,7 +590,7 @@ function OnboardingInner() {
                           setFaqs(next);
                         }}
                       />
-                      <span className={c("faq-del")} onClick={() => setFaqs(faqs.filter((_, j) => j !== i))}>×</span>
+                      <button type="button" className={c("faq-del")} title="מחק שאלה" aria-label="מחק שאלה" onClick={() => { if (window.confirm("למחוק את השאלה הזו?")) setFaqs(faqs.filter((_, j) => j !== i)); }}>🗑</button>
                     </div>
                     <textarea
                       className={c("faq-a-row")}

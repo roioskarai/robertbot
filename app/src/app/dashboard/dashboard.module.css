@@ -315,10 +315,13 @@
 .etab-pane.act { display:block; }
 .form-row2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 
-.faq-row { display:flex; gap:8px; align-items:center; padding:8px 10px; background:var(--bg); border:1px solid var(--bdr); border-radius:8px; margin-bottom:7px; }
-.faq-row input { flex:1; border:none; background:transparent; font-size:13px; color:var(--t1); outline:none; font-family:'Rubik',sans-serif; }
-.faq-del { color:var(--t4); cursor:pointer; font-size:16px; padding:0 3px; transition:color .15s; }
-.faq-del:hover { color:var(--red); }
+.faq-row { display:flex; gap:10px; align-items:flex-start; padding:12px; background:var(--bg); border:1px solid var(--bdr); border-radius:10px; margin-bottom:10px; }
+.faq-fields { flex:1; display:flex; flex-direction:column; gap:8px; }
+.faq-row input { width:100%; border:1px solid var(--bdr2); background:var(--white); font-size:13px; color:var(--t1); outline:none; font-family:'Rubik',sans-serif; padding:8px 10px; border-radius:7px; transition:border-color .15s; }
+.faq-row input:focus { border-color:var(--green); }
+.faq-q { font-weight:600; }
+.faq-del { flex-shrink:0; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--t4); cursor:pointer; font-size:15px; border:1px solid var(--bdr2); border-radius:7px; background:var(--white); transition:all .15s; }
+.faq-del:hover { color:#fff; background:var(--red); border-color:var(--red); }
 
 .conn-box { background:var(--bg); border:1px solid var(--bdr); border-radius:var(--r); padding:16px 18px; }
 .conn-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }

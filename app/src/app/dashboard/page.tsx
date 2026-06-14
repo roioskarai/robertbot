@@ -13,6 +13,13 @@ import { isPlanId, type PlanId } from "@/lib/plans";
 
 const c = scoped(styles);
 
+// True when no real Supabase backend is configured (placeholder/demo).
+// Mirrors the server-side check in lib/agents/runner.ts so client actions
+// know whether a real API exists — avoids fragile per-id "startsWith" guards.
+const DEMO_MODE =
+  !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder");
+
 const LogoMark = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10" />
@@ -214,6 +221,12 @@ export default function DashboardPage() {
       toast("נא להכניס שם");
       return;
     }
+    // Demo mode has no real backend — keep the optimistic success.
+    if (DEMO_MODE) {
+      toast(`הבוט "${editBot.name}" נשמר בהצלחה`);
+      setEditBot(null);
+      return;
+    }
     const isNew = !editBot.id || String(editBot.id).startsWith("demo");
     try {
       const res = await fetch(isNew ? "/api/bots" : `/api/bots/${editBot.id}`, {
@@ -227,22 +240,36 @@ export default function DashboardPage() {
         loadData();
         return;
       }
+      // Real server error — do NOT claim success; keep the editor open.
+      const err = (await res.json().catch(() => ({}))) as { error?: string };
+      toast(err.error || "השמירה נכשלה — נסה שוב");
     } catch {
-      /* ignore */
+      toast("השמירה נכשלה — בדוק את החיבור לאינטרנט");
     }
-    // demo fallback
-    toast(`הבוט "${editBot.name}" נשמר בהצלחה`);
-    setEditBot(null);
   }
 
   async function deleteBot() {
     if (!editBot?.id) return;
-    if (!String(editBot.id).startsWith("demo")) {
-      await fetch(`/api/bots/${editBot.id}`, { method: "DELETE" }).catch(() => {});
+    if (!window.confirm(`למחוק לצמיתות את הבוט "${editBot.name || ""}"?\n\nפעולה זו אינה ניתנת לביטול.`)) {
+      return;
     }
-    toast("הבוט נמחק");
-    setEditBot(null);
-    loadData();
+    if (DEMO_MODE || String(editBot.id).startsWith("demo")) {
+      toast("הבוט נמחק");
+      setEditBot(null);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/bots/${editBot.id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast("הבוט נמחק");
+        setEditBot(null);
+        loadData();
+        return;
+      }
+      toast("מחיקת הבוט נכשלה — נסה שוב");
+    } catch {
+      toast("מחיקת הבוט נכשלה — בדוק את החיבור");
+    }
   }
 
   function copyRef() {
@@ -539,9 +566,11 @@ export default function DashboardPage() {
                   <div>
                     {(editBot.faq ?? []).map((f, i) => (
                       <div className={c("faq-row")} key={i}>
-                        <input value={f.question} placeholder="שאלה" onChange={(e) => { const faq = [...(editBot.faq ?? [])]; faq[i] = { ...faq[i], question: e.target.value }; setEditBot({ ...editBot, faq }); }} />
-                        <input value={f.answer} placeholder="תשובה" onChange={(e) => { const faq = [...(editBot.faq ?? [])]; faq[i] = { ...faq[i], answer: e.target.value }; setEditBot({ ...editBot, faq }); }} />
-                        <span className={c("faq-del")} onClick={() => setEditBot({ ...editBot, faq: (editBot.faq ?? []).filter((_, j) => j !== i) })}>×</span>
+                        <div className={c("faq-fields")}>
+                          <input className={c("faq-q")} value={f.question} placeholder="שאלה (למשל: מה שעות הפעילות?)" onChange={(e) => { const faq = [...(editBot.faq ?? [])]; faq[i] = { ...faq[i], question: e.target.value }; setEditBot({ ...editBot, faq }); }} />
+                          <input className={c("faq-a")} value={f.answer} placeholder="תשובה (מה שהבוט יענה ללקוח)" onChange={(e) => { const faq = [...(editBot.faq ?? [])]; faq[i] = { ...faq[i], answer: e.target.value }; setEditBot({ ...editBot, faq }); }} />
+                        </div>
+                        <button type="button" className={c("faq-del")} title="מחק שאלה" aria-label="מחק שאלה" onClick={() => { if (window.confirm("למחוק את השאלה הזו?")) setEditBot({ ...editBot, faq: (editBot.faq ?? []).filter((_, j) => j !== i) }); }}>🗑</button>
                       </div>
                     ))}
                   </div>
@@ -935,7 +964,7 @@ export default function DashboardPage() {
     const text = input?.value.trim();
     if (!text || !activeConvId) return;
     if (input) input.value = "";
-    if (!String(activeConvId).startsWith("d")) {
+    if (!DEMO_MODE) {
       await fetch(`/api/conversations/${activeConvId}/reply`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -947,7 +976,7 @@ export default function DashboardPage() {
 
   async function returnToBot() {
     if (!activeConvId) return;
-    if (!String(activeConvId).startsWith("d")) {
+    if (!DEMO_MODE) {
       await fetch(`/api/conversations/${activeConvId}/return`, { method: "POST" }).catch(() => {});
     }
     setConvs((cs) => cs.filter((cv) => cv.id !== activeConvId));

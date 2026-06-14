@@ -121,7 +121,7 @@ function LoginInner() {
           <div className={c("fg")}>
             <div className={c("fl-row")}>
               <label className={c("fl")}>סיסמה</label>
-              <button type="button" className={c("lg-link-sm")} onClick={() => toast("קישור לאיפוס סיסמה נשלח לאימייל שלך")}>
+              <button type="button" className={c("lg-link-sm")} onClick={() => toast("לאיפוס סיסמה כתוב לנו ל-support@robertbot.co.il ונסייע מיד")}>
                 שכחת סיסמה?
               </button>
             </div>

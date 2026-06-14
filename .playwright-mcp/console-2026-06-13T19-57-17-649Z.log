@@ -1,0 +1,13 @@
+[     647ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:38559
+[  132303ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:186
+[  135845ms] [LOG] [Fast Refresh] done in 3542ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:43
+[  146035ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://irdpucdlxdtrvuuessvt.supabase.co/auth/v1/authorize?provider=google&redirect_to=http%3A%2F%2Flocalhost%3A3002%2Fdashboard&code_challenge=vKneZFbuWLOEfnyjh_7D0UniQwarsAUoCcpny7HOMUQ&code_challenge_method=s256:0
+[  146311ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://irdpucdlxdtrvuuessvt.supabase.co/favicon.ico:0
+[  148761ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:38559
+[  153112ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:186
+[  154257ms] [LOG] [Fast Refresh] done in 1146ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:43
+[  154671ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3002/onboarding:0
+[  170875ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3002/onboarding:0
+[  174217ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:3002/api/auth/signup:0
+[  195654ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:3002/api/bots:0
+[  195655ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:3002/api/bots:0

@@ -1,0 +1,39 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - link "לדף הבית" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img [ref=e5]
+        - text: לדף הבית
+      - button "החלף מצב בהיר/כהה" [ref=e7] [cursor=pointer]:
+        - generic:
+          - img
+        - generic:
+          - img
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - img [ref=e12]
+        - generic [ref=e15]: Robert.
+      - generic [ref=e16]: ברוך שובך 👋
+      - generic [ref=e17]: התחבר לאזור האישי שלך
+      - generic [ref=e18]:
+        - generic [ref=e19]: אימייל
+        - textbox "israel@gmail.com" [ref=e20]
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - generic [ref=e23]: סיסמה
+          - button "שכחת סיסמה?" [ref=e24] [cursor=pointer]
+        - generic [ref=e25]:
+          - textbox "הסיסמה שלך" [ref=e26]
+          - button "הצג סיסמה" [ref=e27] [cursor=pointer]:
+            - img [ref=e28]
+      - button "התחבר" [ref=e31] [cursor=pointer]
+      - generic [ref=e33]: או
+      - button "המשך עם Google" [ref=e34] [cursor=pointer]:
+        - img [ref=e35]
+        - text: המשך עם Google
+      - generic [ref=e40]:
+        - text: אין לך חשבון עדיין?
+        - link "הרשמה חינם" [ref=e41] [cursor=pointer]:
+          - /url: /onboarding
+  - alert [ref=e42]
