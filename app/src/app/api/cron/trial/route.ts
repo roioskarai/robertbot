@@ -10,7 +10,10 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const secret = url.searchParams.get("secret") || req.headers.get("x-cron-secret");
-  if (process.env.CRON_SECRET && secret !== process.env.CRON_SECRET) {
+  // Fail-closed: require CRON_SECRET in non-demo deployments.
+  const cronSecret = process.env.CRON_SECRET;
+  const isDemoMode = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").includes("placeholder");
+  if (!isDemoMode && (!cronSecret || secret !== cronSecret)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

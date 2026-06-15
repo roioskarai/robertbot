@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, unauthorized } from "@/lib/errors";
 import { hasTwilioCreds, startVerification, checkVerification } from "@/lib/twilio";
@@ -47,6 +48,16 @@ export async function POST(req: Request, { params }: Ctx) {
     }
   }
   // (demo mode: accept any code)
+
+  // Guard against the same WhatsApp number being claimed by two different tenants.
+  const admin = createAdminClient();
+  const { data: taken } = await admin
+    .from("bots")
+    .select("id")
+    .eq("whatsapp_number", number)
+    .neq("id", params.id)
+    .maybeSingle();
+  if (taken) return jsonError("מספר זה כבר מחובר לבוט אחר במערכת");
 
   const { data, error } = await supabase
     .from("bots")

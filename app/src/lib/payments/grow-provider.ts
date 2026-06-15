@@ -138,20 +138,21 @@ export const growProvider: PaymentProvider = {
     // key — never sent to the browser or embedded in the checkout payload.
     // Grow signs the raw callback body; if they don't, we fall back to rejecting
     // unsigned requests when the secret is configured.
+    // Fail-closed: GROW_WEBHOOK_SECRET must be configured and the callback must be signed.
+    // Without this, any attacker can POST a fake payment and get a free plan upgrade.
     const secret = process.env.GROW_WEBHOOK_SECRET;
-    if (secret) {
-      const sig = (p["signature"] ?? p["hmac"] ?? "") as string;
-      if (sig) {
-        const expected = createHmac("sha256", secret).update(raw).digest("hex");
-        const a = Buffer.from(expected, "hex");
-        const b = Buffer.from(sig.replace(/^sha256=/, ""), "hex");
-        if (a.length !== b.length || !timingSafeEqual(a, b)) {
-          throw new Error("Grow webhook signature mismatch");
-        }
-      } else {
-        // No signature header — reject when secret is configured (prevents replay).
-        throw new Error("Grow webhook: missing signature");
-      }
+    if (!secret) {
+      throw new Error("Grow webhook: GROW_WEBHOOK_SECRET not configured — rejecting callback");
+    }
+    const sig = (p["signature"] ?? p["hmac"] ?? "") as string;
+    if (!sig) {
+      throw new Error("Grow webhook: missing signature");
+    }
+    const expected = createHmac("sha256", secret).update(raw).digest("hex");
+    const a = Buffer.from(expected, "hex");
+    const b = Buffer.from(sig.replace(/^sha256=/, ""), "hex");
+    if (a.length !== b.length || !timingSafeEqual(a, b)) {
+      throw new Error("Grow webhook signature mismatch");
     }
 
     const userId = f("cField1");

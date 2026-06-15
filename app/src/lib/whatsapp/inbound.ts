@@ -86,6 +86,14 @@ export async function processInboundMessage(msg: InboundMessage): Promise<void> 
   if ((existing?.status ?? "bot") === "human") return;
   if (!hasAnthropicKey()) return; // engine off — message stored, no reply
 
+  // Don't serve AI to cancelled or paused accounts — message is stored but no reply sent.
+  const { data: userRow } = await supabase
+    .from("users")
+    .select("subscription_status")
+    .eq("id", bot.user_id)
+    .maybeSingle();
+  if (userRow?.subscription_status === "cancelled" || userRow?.subscription_status === "paused") return;
+
   // Quota: monthly plan quota first, then never-expiring pack balance.
   const period = new Date().toISOString().slice(0, 7); // "YYYY-MM"
   const plan = (await getUserPlan(supabase, bot.user_id)) ?? "basic";

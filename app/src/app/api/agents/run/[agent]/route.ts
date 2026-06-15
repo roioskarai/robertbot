@@ -19,7 +19,11 @@ export async function GET(req: Request, { params }: Ctx) {
   const bearer = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   const secret =
     url.searchParams.get("secret") || req.headers.get("x-cron-secret") || bearer;
-  if (process.env.CRON_SECRET && secret !== process.env.CRON_SECRET) {
+  // Fail-closed: if CRON_SECRET is set, it must match; if it's not set outside of
+  // demo mode, also reject — prevents open access on misconfigured deployments.
+  const cronSecret = process.env.CRON_SECRET;
+  const isDemoMode = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").includes("placeholder");
+  if (!isDemoMode && (!cronSecret || secret !== cronSecret)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

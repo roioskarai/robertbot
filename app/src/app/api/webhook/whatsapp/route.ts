@@ -30,13 +30,16 @@ export async function POST(req: Request) {
   const raw = await req.text();
   const params = new URLSearchParams(raw);
 
-  // Optional Twilio signature validation (when a signature header is present).
-  const sig = req.headers.get("x-twilio-signature");
-  if (sig && process.env.TWILIO_AUTH_TOKEN) {
+  // Twilio signature validation — required when TWILIO_AUTH_TOKEN is configured.
+  // If the token is set, ANY request without a valid signature is rejected (fail-closed).
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  if (token) {
+    const sig = req.headers.get("x-twilio-signature") || "";
     const obj: Record<string, string> = {};
     params.forEach((v, k) => (obj[k] = v));
-    const valid = twilio.validateRequest(process.env.TWILIO_AUTH_TOKEN, sig, req.url, obj);
-    if (!valid) return new NextResponse("invalid signature", { status: 403 });
+    if (!twilio.validateRequest(token, sig, req.url, obj)) {
+      return new NextResponse("invalid signature", { status: 403 });
+    }
   }
 
   const from = params.get("From") || ""; // customer
