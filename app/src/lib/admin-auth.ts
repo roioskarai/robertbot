@@ -12,6 +12,7 @@
 import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual, createHash } from "crypto";
 import { getSessionUser } from "./auth";
+import { requiredSecret } from "./env";
 import type { DBUser } from "./types";
 
 export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "roioskarai@gmail.com";
@@ -19,10 +20,10 @@ export const ADMIN_COOKIE = "robert_admin_2fa";
 const TTL_SECONDS = 8 * 60 * 60; // 8 hours
 
 function secret(): Buffer {
-  const s =
-    process.env.ADMIN_SESSION_SECRET ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    "dev-admin-secret";
+  // Dedicated signing key. In a real deployment ADMIN_SESSION_SECRET is required;
+  // we deliberately do NOT fall back to the service-role key (that would reuse a
+  // super-secret as a session signer). Demo mode uses a dev placeholder.
+  const s = requiredSecret("ADMIN_SESSION_SECRET", process.env.ADMIN_SESSION_SECRET, "dev-admin-secret");
   return createHash("sha256").update(s).digest();
 }
 

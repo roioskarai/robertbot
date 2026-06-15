@@ -2,11 +2,13 @@
 // AES-256-GCM, key derived from WA_TOKEN_ENC_KEY. Stored format:
 //   v1:<iv-b64>:<authTag-b64>:<ciphertext-b64>
 //
-// If WA_TOKEN_ENC_KEY is unset (e.g. demo mode) encrypt() returns the value
-// unchanged and decrypt() passes it through — so the app still runs, but
-// production MUST set the key. cyber-guardian enforces this before launch.
+// If WA_TOKEN_ENC_KEY is unset in DEMO mode, encrypt() returns the value
+// unchanged and decrypt() passes it through — so local dev still runs. In a
+// real (non-demo) deployment the key is REQUIRED: encryptSecret() throws rather
+// than persisting a tenant token in plaintext (fail-closed).
 
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto";
+import { isDemoMode } from "./env";
 
 const PREFIX = "v1:";
 
@@ -21,10 +23,17 @@ export function hasEncryptionKey(): boolean {
   return Boolean(process.env.WA_TOKEN_ENC_KEY);
 }
 
-/** Encrypts plaintext. Returns the value unchanged when no key is configured. */
+/**
+ * Encrypts plaintext. In demo mode (no key) returns the value unchanged so
+ * local dev runs; in a real deployment a missing key throws (never store a
+ * tenant token in plaintext).
+ */
 export function encryptSecret(plaintext: string): string {
   const k = key();
-  if (!k) return plaintext;
+  if (!k) {
+    if (isDemoMode()) return plaintext;
+    throw new Error("WA_TOKEN_ENC_KEY missing — refusing to store tenant token in plaintext");
+  }
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", k, iv);
   const enc = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);

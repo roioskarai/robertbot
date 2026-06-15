@@ -96,6 +96,9 @@ export const stripeProvider: PaymentProvider = {
       process.env.STRIPE_WEBHOOK_SECRET,
     );
 
+    // Stripe's unique event id — used for webhook idempotency (apply.ts).
+    const eventId = event.id;
+
     switch (event.type) {
       case "checkout.session.completed": {
         const s = event.data.object as Stripe.Checkout.Session;
@@ -109,10 +112,11 @@ export const stripeProvider: PaymentProvider = {
             cycle: s.metadata?.cycle as BillingCycle | undefined,
             subscriptionId: typeof s.subscription === "string" ? s.subscription : null,
             customerId: typeof s.customer === "string" ? s.customer : null,
+            eventId,
           };
         }
         if (s.mode === "payment" && s.metadata?.pack) {
-          return { type: "pack_purchased", userId, pack: s.metadata.pack as PackId };
+          return { type: "pack_purchased", userId, pack: s.metadata.pack as PackId, eventId };
         }
         return { type: "ignore" };
       }
@@ -120,17 +124,17 @@ export const stripeProvider: PaymentProvider = {
       case "customer.subscription.updated": {
         const sub = event.data.object as Stripe.Subscription;
         if (sub.cancel_at_period_end || sub.status === "canceled") {
-          return { type: "subscription_cancelled", subscriptionId: sub.id };
+          return { type: "subscription_cancelled", subscriptionId: sub.id, eventId };
         }
         if (sub.status === "paused") {
-          return { type: "subscription_paused", subscriptionId: sub.id };
+          return { type: "subscription_paused", subscriptionId: sub.id, eventId };
         }
         return { type: "ignore" };
       }
 
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
-        return { type: "subscription_cancelled", subscriptionId: sub.id };
+        return { type: "subscription_cancelled", subscriptionId: sub.id, eventId };
       }
 
       default:

@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS users (
   totp_enabled BOOLEAN DEFAULT false,     -- ADDED: 2FA active flag
   is_suspended BOOLEAN DEFAULT false,     -- ADDED: admin can suspend a tenant
   last_login_at TIMESTAMPTZ,              -- ADDED: last successful login
+  cancel_at_period_end BOOLEAN DEFAULT false, -- ADDED: cancel scheduled for period end (service stays on until subscription_ends_at)
+  subscription_ends_at TIMESTAMPTZ,       -- ADDED: end of the paid period (refreshed on each charge)
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -65,8 +67,12 @@ CREATE TABLE IF NOT EXISTS bots (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS bots_whatsapp_idx ON bots(whatsapp_number);
 CREATE INDEX IF NOT EXISTS bots_meta_phone_idx ON bots(meta_phone_number_id);
+-- One WhatsApp number per tenant (race-proof). Partial so unconnected bots
+-- (whatsapp_number IS NULL) are unrestricted. Replaces the old non-unique index.
+CREATE UNIQUE INDEX IF NOT EXISTS bots_whatsapp_unique
+  ON bots (whatsapp_number)
+  WHERE whatsapp_number IS NOT NULL;
 
 -- ── Conversations ────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS conversations (
@@ -97,6 +103,15 @@ CREATE TABLE IF NOT EXISTS usage_logs (
   period TEXT,    -- "2026-06"
   message_count INT DEFAULT 0,
   UNIQUE (user_id, bot_id, period)  -- ADDED: upsert target
+);
+
+-- ── Payment events (webhook idempotency) ─────────────────────
+-- The provider's unique event/transaction id; a redelivered webhook is a no-op.
+CREATE TABLE IF NOT EXISTS payment_events (
+  event_id   TEXT PRIMARY KEY,
+  event_type TEXT,
+  user_id    UUID,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ════════════════════════════════════════════════════════════
@@ -144,6 +159,10 @@ ALTER TABLE usage_logs ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "tenant_own_usage" ON usage_logs;
 CREATE POLICY "tenant_own_usage" ON usage_logs
   FOR ALL USING (user_id = auth.uid() OR is_admin());
+
+-- payment_events: service-role only. RLS on with NO policies → tenants/anon get
+-- zero rows; the webhook (service role) bypasses RLS to write the ledger.
+ALTER TABLE payment_events ENABLE ROW LEVEL SECURITY;
 
 -- ════════════════════════════════════════════════════════════
 -- Auto-provision a users row when an auth user is created.

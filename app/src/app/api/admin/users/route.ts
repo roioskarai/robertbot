@@ -21,7 +21,10 @@ export async function GET(req: Request) {
   if (status) query = query.eq("subscription_status", status);
 
   const { data: users, error } = await query;
-  if (error) return jsonError(error.message, 500);
+  if (error) {
+    console.error("[admin/users] db error:", error.message);
+    return jsonError("טעינת המשתמשים נכשלה.", 500);
+  }
 
   // Bot counts per user.
   const { data: bots } = await db.from("bots").select("user_id, active");

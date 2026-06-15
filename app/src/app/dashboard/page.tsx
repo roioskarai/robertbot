@@ -101,6 +101,15 @@ const DEMO_ANALYTICS: Analytics = {
   metrics: { botAnsweredPct: 94, handoffPct: 6 },
 };
 
+// Real users start from a clean zeroed state (never the demo numbers above)
+// until the API responds. Prevents fake data flashing in production.
+const ZERO_ANALYTICS: Analytics = {
+  messagesToday: 0, openConversations: 0, closedThisMonth: 0, activeBots: 0,
+  totalBots: 0, plan: "basic", quota: 0, botLimit: 0, messagesThisMonth: 0,
+  packBalance: 0, weekly: [0, 0, 0, 0, 0, 0, 0], monthly: [],
+  metrics: { botAnsweredPct: 0, handoffPct: 0 },
+};
+
 interface ConvRow {
   id: string;
   customer_name: string | null;
@@ -129,10 +138,10 @@ export default function DashboardPage() {
   const [sbOpen, setSbOpen] = useState(false);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(true);
 
-  const [bots, setBots] = useState<Partial<Bot>[]>(DEMO_BOTS);
-  const [analytics, setAnalytics] = useState<Analytics>(DEMO_ANALYTICS);
-  const [convs, setConvs] = useState<ConvRow[]>(DEMO_CONVS);
-  const [user, setUser] = useState({ name: "דני כהן", email: "dani@gmail.com" });
+  const [bots, setBots] = useState<Partial<Bot>[]>(DEMO_MODE ? DEMO_BOTS : []);
+  const [analytics, setAnalytics] = useState<Analytics>(DEMO_MODE ? DEMO_ANALYTICS : ZERO_ANALYTICS);
+  const [convs, setConvs] = useState<ConvRow[]>(DEMO_MODE ? DEMO_CONVS : []);
+  const [user, setUser] = useState(DEMO_MODE ? { name: "דני כהן", email: "dani@gmail.com" } : { name: "", email: "" });
 
   // editor
   const [editBot, setEditBot] = useState<Partial<Bot> | null>(null);
@@ -141,7 +150,7 @@ export default function DashboardPage() {
   // store / inbox / history
   const [storeTab, setStoreTab] = useState<"plans" | "packs">("plans");
   const [planAnnual, setPlanAnnual] = useState(false);
-  const [activeConvId, setActiveConvId] = useState<string | null>(DEMO_CONVS[0].id);
+  const [activeConvId, setActiveConvId] = useState<string | null>(DEMO_MODE ? DEMO_CONVS[0].id : null);
   const [histFilter, setHistFilter] = useState("הכל");
 
   const loadData = useCallback(async () => {
@@ -162,6 +171,14 @@ export default function DashboardPage() {
           setConvs(cc.conversations ?? []);
           setActiveConvId(cc.conversations?.[0]?.id ?? null);
         }
+      } else if (!DEMO_MODE) {
+        // Real deployment but the API failed — show a clean empty state, never
+        // the demo numbers, so the user is not misled by fake data.
+        setBots([]);
+        setAnalytics(ZERO_ANALYTICS);
+        setConvs([]);
+        setActiveConvId(null);
+        toast("טעינת הנתונים נכשלה. רענן את הדף ונסה שוב.");
       }
       // Load real user identity (name + email).
       const supabase = createClient();
@@ -173,9 +190,17 @@ export default function DashboardPage() {
         });
       }
     } catch {
+      if (!DEMO_MODE) {
+        // Network/parse failure in production — clear to empty, don't show demo.
+        setBots([]);
+        setAnalytics(ZERO_ANALYTICS);
+        setConvs([]);
+        setActiveConvId(null);
+        toast("טעינת הנתונים נכשלה. בדוק את החיבור ונסה שוב.");
+      }
       // Demo mode — keep the fallback data already in state.
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     loadData();

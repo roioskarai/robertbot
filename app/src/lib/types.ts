@@ -25,6 +25,9 @@ export interface DBUser {
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
   pack_balance: number;
+  // Cancel-at-period-end: service stays on until subscription_ends_at.
+  cancel_at_period_end?: boolean;
+  subscription_ends_at?: string | null;
   // Admin / security
   totp_enabled?: boolean;
   totp_secret?: string | null; // encrypted; server-only, never sent to client

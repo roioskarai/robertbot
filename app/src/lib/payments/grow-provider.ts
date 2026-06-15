@@ -167,9 +167,11 @@ export const growProvider: PaymentProvider = {
     if (!ok) return { type: "ignore" };
 
     const subscriptionId = f("recurringId") || f("transactionId") || null;
+    // Unique charge id for webhook idempotency (prevents double-credit on retry).
+    const eventId = f("transactionId") || f("asmachta") || f("recurringId") || null;
 
     if (product.startsWith("pack_")) {
-      return { type: "pack_purchased", userId, pack: product.slice("pack_".length) as PackId };
+      return { type: "pack_purchased", userId, pack: product.slice("pack_".length) as PackId, eventId };
     }
     const [plan, cycle] = product.split("_");
     return {
@@ -178,6 +180,15 @@ export const growProvider: PaymentProvider = {
       plan: plan as PlanId,
       cycle: cycle as BillingCycle,
       subscriptionId,
+      eventId,
     };
   },
 };
+
+// One-time startup warning if Grow is live but pointed at the sandbox — a common
+// "configured but no real money collected" footgun.
+if (growProvider.isConfigured() && GROW_ENV !== "production") {
+  console.warn(
+    "[grow] GROW_ENV is not 'production' — checkouts use the SANDBOX and will NOT collect real payments.",
+  );
+}

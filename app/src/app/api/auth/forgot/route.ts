@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { jsonError } from "@/lib/errors";
+import { isValidEmail } from "@/lib/validation";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 // POST /api/auth/forgot  body: { email }
 // Sends a Supabase password-recovery email. Always returns a generic success
 // so the response never reveals whether an account exists (no enumeration).
 export async function POST(req: Request) {
+  if (!rateLimit(`forgot:${clientKey(req)}`, 5, 60_000).allowed) {
+    return jsonError("יותר מדי בקשות. נסה שוב בעוד דקה.", 429);
+  }
+
   let body: { email?: string };
   try {
     body = await req.json();
@@ -14,7 +20,7 @@ export async function POST(req: Request) {
   }
 
   const email = (body.email || "").trim().toLowerCase();
-  if (!email || !email.includes("@")) {
+  if (!isValidEmail(email)) {
     return jsonError("נא להזין כתובת אימייל תקינה");
   }
 

@@ -32,6 +32,10 @@ export interface CheckoutOutput {
 /**
  * Normalized webhook event. Each provider's parseWebhook() verifies the
  * request signature and maps the raw payload into one of these.
+ *
+ * `eventId` is the provider's unique event/transaction id. When present,
+ * applyPaymentEvent() records it and ignores a redelivered duplicate so a
+ * retried webhook can't double-credit a plan or message pack.
  */
 export type PaymentEvent =
   | {
@@ -41,10 +45,11 @@ export type PaymentEvent =
       cycle?: BillingCycle;
       subscriptionId?: string | null;
       customerId?: string | null;
+      eventId?: string | null;
     }
-  | { type: "pack_purchased"; userId: string; pack: PackId }
-  | { type: "subscription_cancelled"; userId?: string; subscriptionId?: string | null }
-  | { type: "subscription_paused"; userId?: string; subscriptionId?: string | null }
+  | { type: "pack_purchased"; userId: string; pack: PackId; eventId?: string | null }
+  | { type: "subscription_cancelled"; userId?: string; subscriptionId?: string | null; eventId?: string | null }
+  | { type: "subscription_paused"; userId?: string; subscriptionId?: string | null; eventId?: string | null }
   | { type: "ignore" };
 
 export interface PaymentProvider {

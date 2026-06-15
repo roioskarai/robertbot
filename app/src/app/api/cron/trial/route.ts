@@ -66,5 +66,27 @@ export async function GET(req: Request) {
     deactivated += count ?? 0;
   }
 
+  // Cancel-at-period-end: subscriptions whose paid period has now passed →
+  // revoke service (status cancelled + deactivate bots).
+  const { data: endedSubs } = await supabase
+    .from("users")
+    .select("id")
+    .eq("cancel_at_period_end", true)
+    .not("subscription_ends_at", "is", null)
+    .lt("subscription_ends_at", nowIso);
+
+  for (const u of endedSubs ?? []) {
+    await supabase
+      .from("users")
+      .update({ subscription_status: "cancelled", cancel_at_period_end: false })
+      .eq("id", u.id);
+    const { count } = await supabase
+      .from("bots")
+      .update({ active: false }, { count: "exact" })
+      .eq("user_id", u.id)
+      .eq("active", true);
+    deactivated += count ?? 0;
+  }
+
   return NextResponse.json({ ok: true, reminders, deactivated });
 }

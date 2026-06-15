@@ -22,13 +22,23 @@ export async function POST() {
     }
   }
 
+  // Keep service until the paid period actually ends (the daily cron revokes
+  // once subscription_ends_at passes). If we don't know the period end (legacy /
+  // trial), cancel immediately — the safe fallback.
+  if (session.profile?.subscription_ends_at) {
+    await supabase
+      .from("users")
+      .update({ cancel_at_period_end: true })
+      .eq("id", session.authId);
+    return NextResponse.json({
+      ok: true,
+      message: "המנוי יבוטל בתום תקופת החיוב הנוכחית. הבוט יישאר פעיל עד אז.",
+    });
+  }
+
   await supabase
     .from("users")
     .update({ subscription_status: "cancelled" })
     .eq("id", session.authId);
-
-  return NextResponse.json({
-    ok: true,
-    message: "המנוי יבוטל בתום תקופת החיוב הנוכחית. הבוט יישאר פעיל עד אז.",
-  });
+  return NextResponse.json({ ok: true, message: "המנוי בוטל." });
 }

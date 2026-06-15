@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/auth";
 import { buildSystemPrompt } from "@/lib/claude";
 import { PLAN_LIMITS } from "@/lib/plans";
 import { jsonError, unauthorized } from "@/lib/errors";
+import { LIMITS } from "@/lib/validation";
 import type { Bot } from "@/lib/types";
 
 // GET /api/bots — list the current user's bots
@@ -17,7 +18,10 @@ export async function GET() {
     .select("*")
     .order("created_at", { ascending: true });
 
-  if (error) return jsonError(error.message, 500);
+  if (error) {
+    console.error("[bots GET] db error:", error.message);
+    return jsonError("טעינת הבוטים נכשלה. נסה שוב.", 500);
+  }
   return NextResponse.json({ bots: data ?? [] });
 }
 
@@ -33,7 +37,10 @@ export async function POST(req: Request) {
     return jsonError("בקשה לא תקינה");
   }
 
-  if (!body.name) return jsonError("חסר שם עסק");
+  if (!body.name?.trim()) return jsonError("חסר שם עסק");
+  if (body.name.length > LIMITS.name) return jsonError("שם העסק ארוך מדי");
+  if (body.description && body.description.length > LIMITS.description)
+    return jsonError("התיאור ארוך מדי");
 
   const supabase = createClient();
 
@@ -75,6 +82,9 @@ export async function POST(req: Request) {
     .select("*")
     .single();
 
-  if (error) return jsonError(error.message, 500);
+  if (error) {
+    console.error("[bots POST] db error:", error.message);
+    return jsonError("יצירת הבוט נכשלה. נסה שוב.", 500);
+  }
   return NextResponse.json({ bot: data });
 }

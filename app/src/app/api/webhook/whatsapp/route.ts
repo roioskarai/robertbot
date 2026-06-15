@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import twilio from "twilio";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { processInboundMessage } from "@/lib/whatsapp/inbound";
+import { isDemoMode } from "@/lib/env";
 import type { Bot } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -30,10 +31,16 @@ export async function POST(req: Request) {
   const raw = await req.text();
   const params = new URLSearchParams(raw);
 
-  // Twilio signature validation — required when TWILIO_AUTH_TOKEN is configured.
-  // If the token is set, ANY request without a valid signature is rejected (fail-closed).
+  // Twilio signature validation. Fail-closed in any real deployment: without a
+  // configured TWILIO_AUTH_TOKEN we refuse to process inbound messages (an empty
+  // token must never silently disable signature verification in production).
+  // Demo mode (no real Supabase project) skips this so local testing works.
   const token = process.env.TWILIO_AUTH_TOKEN;
-  if (token) {
+  if (!token) {
+    if (!isDemoMode()) {
+      return new NextResponse("webhook not configured", { status: 503 });
+    }
+  } else {
     const sig = req.headers.get("x-twilio-signature") || "";
     const obj: Record<string, string> = {};
     params.forEach((v, k) => (obj[k] = v));

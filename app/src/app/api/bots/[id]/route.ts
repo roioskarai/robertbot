@@ -19,7 +19,10 @@ export async function GET(_req: Request, { params }: Ctx) {
     .eq("id", params.id)
     .maybeSingle();
 
-  if (error) return jsonError(error.message, 500);
+  if (error) {
+    console.error("[bot GET] db error:", error.message);
+    return jsonError("טעינת הבוט נכשלה. נסה שוב.", 500);
+  }
   if (!data) return jsonError("הבוט לא נמצא", 404);
   return NextResponse.json({ bot: data });
 }
@@ -42,7 +45,10 @@ export async function PUT(req: Request, { params }: Ctx) {
     .select("*")
     .eq("id", params.id)
     .maybeSingle();
-  if (fetchErr) return jsonError(fetchErr.message, 500);
+  if (fetchErr) {
+    console.error("[bot PUT] fetch error:", fetchErr.message);
+    return jsonError("טעינת הבוט נכשלה. נסה שוב.", 500);
+  }
   if (!existing) return jsonError("הבוט לא נמצא", 404);
 
   const merged = { ...(existing as Bot), ...body } as Bot;
@@ -70,7 +76,10 @@ export async function PUT(req: Request, { params }: Ctx) {
     .select("*")
     .single();
 
-  if (error) return jsonError(error.message, 500);
+  if (error) {
+    console.error("[bot PUT] update error:", error.message);
+    return jsonError("שמירת הבוט נכשלה. נסה שוב.", 500);
+  }
   return NextResponse.json({ bot: data });
 }
 
@@ -81,6 +90,9 @@ export async function DELETE(_req: Request, { params }: Ctx) {
 
   const supabase = createClient();
   const { error } = await supabase.from("bots").delete().eq("id", params.id);
-  if (error) return jsonError(error.message, 500);
+  if (error) {
+    console.error("[bot DELETE] db error:", error.message);
+    return jsonError("מחיקת הבוט נכשלה. נסה שוב.", 500);
+  }
   return NextResponse.json({ ok: true });
 }

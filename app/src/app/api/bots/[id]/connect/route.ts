@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, unauthorized } from "@/lib/errors";
 import { hasTwilioCreds, startVerification, checkVerification } from "@/lib/twilio";
+import { isValidPhoneIL } from "@/lib/validation";
 
 type Ctx = { params: { id: string } };
 
@@ -21,6 +22,7 @@ export async function POST(req: Request, { params }: Ctx) {
   }
   const { number, code } = body;
   if (!number) return jsonError("חסר מספר טלפון");
+  if (!isValidPhoneIL(number)) return jsonError("מספר הטלפון אינו תקין");
 
   const supabase = createClient();
 
@@ -65,7 +67,14 @@ export async function POST(req: Request, { params }: Ctx) {
     .eq("id", params.id)
     .select("*")
     .single();
-  if (error) return jsonError(error.message, 500);
+  if (error) {
+    // 23505 = the DB unique index rejected a number already taken (race-proof).
+    if (error.code === "23505") {
+      return jsonError("מספר זה כבר מחובר לבוט אחר במערכת", 409);
+    }
+    console.error("[connect] update failed:", error.message);
+    return jsonError("חיבור המספר נכשל. נסה שוב.", 500);
+  }
 
   return NextResponse.json({ ok: true, bot: data });
 }

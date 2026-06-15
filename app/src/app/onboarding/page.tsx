@@ -103,7 +103,6 @@ function OnboardingInner() {
 
   // step 5 — whatsapp
   const [waNumber, setWaNumber] = useState("");
-  const [codeSent, setCodeSent] = useState(false);
 
   // success
   const [successInfo, setSuccessInfo] = useState({ botName: "", wa: "" });
@@ -179,15 +178,6 @@ function OnboardingInner() {
     setCurStep((s) => (n <= s ? n : s));
   }
 
-  function sendCode() {
-    if (!waNumber) {
-      toast("נא להכניס מספר");
-      return;
-    }
-    setCodeSent(true);
-    toast("קוד אימות נשלח ל-" + waNumber);
-  }
-
   function buildWorkingHours(): WorkingHours {
     const wh = {} as WorkingHours;
     DAY_KEYS.forEach((k, i) => {
@@ -214,25 +204,17 @@ function OnboardingInner() {
       style: STYLE_OPTIONS[styleIdx].value,
     };
 
+    // Create the bot as a draft. WhatsApp connection (with real SMS/Meta
+    // verification) is completed afterwards from the Dashboard — we never
+    // attach a number here without verifying ownership.
     try {
-      const res = await fetch("/api/bots", {
+      await fetch("/api/bots", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (res.ok) {
-        const { bot } = await res.json();
-        if (waNumber && bot?.id) {
-          await fetch(`/api/bots/${bot.id}/connect`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ number: waNumber, code: "000000" }),
-          }).catch(() => {});
-          await fetch(`/api/bots/${bot.id}/activate`, { method: "POST" }).catch(() => {});
-        }
-      }
     } catch {
-      /* demo mode — still show success */
+      /* demo mode / offline — still show success so the wizard completes */
     }
     setScreen("success");
   }
@@ -667,23 +649,13 @@ function OnboardingInner() {
               <div className={c("section-card-title")}>המספר העסקי שלך</div>
               <div className={c("fg")}>
                 <label className={c("fl")}>מספר וואטסאפ</label>
-                <input className={c("fi")} placeholder="050-0000000" value={waNumber} onChange={(e) => setWaNumber(e.target.value)} />
+                <input className={c("fi")} placeholder="050-0000000" maxLength={20} value={waNumber} onChange={(e) => setWaNumber(e.target.value)} />
                 <span className={c("fhint")}>המספר שעליו הלקוחות שלך כותבים לך</span>
               </div>
-              <button className={c("btn btn-primary")} style={{ maxWidth: 200, width: "auto" }} onClick={sendCode}>
-                שלח קוד אימות
-              </button>
-              {codeSent && (
-                <div style={{ marginTop: 14 }}>
-                  <div className={c("fg")}>
-                    <label className={c("fl")}>קוד שהתקבל ב-SMS</label>
-                    <input className={c("fi")} placeholder="000000" maxLength={6} style={{ letterSpacing: 6, textAlign: "center", fontSize: 18, fontWeight: 700 }} />
-                  </div>
-                  <button className={c("btn btn-outline btn-sm")} style={{ width: "auto" }} onClick={() => toast("המספר אומת בהצלחה")}>
-                    אמת קוד
-                  </button>
-                </div>
-              )}
+              <div style={{ fontSize: 12.5, color: "var(--t3)", lineHeight: 1.6, marginTop: 4 }}>
+                בסיום ההקמה נחבר ונאמת את המספר מתוך ה-Dashboard — באמצעות קוד אימות ב-SMS
+                או חיבור מאובטח דרך Meta. כך אנחנו מוודאים שהמספר באמת שלך.
+              </div>
             </div>
 
             <div className={c("connect-steps-list")}>
@@ -740,7 +712,7 @@ function OnboardingInner() {
             </div>
             <div className={c("success-title")}>הבוט שלך מוכן!</div>
             <div className={c("success-sub")}>
-              Robert כבר עונה ללקוחות שלך. עכשיו תוכל לנהל, לערוך ולהוסיף עוד בוטים מה-Dashboard.
+              הגדרת הבוט הושלמה. נותר רק לחבר את הוואטסאפ מה-Dashboard — וזהו, Robert יתחיל לענות ללקוחות.
             </div>
             <div className={c("success-details")}>
               <div className={c("sd-row")}>
@@ -753,11 +725,11 @@ function OnboardingInner() {
               </div>
               <div className={c("sd-row")}>
                 <span className={c("sd-label")}>סטטוס</span>
-                <span className={c("sd-val")} style={{ color: "var(--green-d)" }}>פעיל</span>
+                <span className={c("sd-val")} style={{ color: "var(--amber, #d97706)" }}>ממתין לחיבור וואטסאפ</span>
               </div>
             </div>
             <button className={c("btn btn-primary")} onClick={() => router.push("/dashboard")}>
-              כניסה ל-Dashboard
+              חבר וואטסאפ ב-Dashboard
             </button>
           </div>
         </div>

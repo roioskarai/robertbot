@@ -4,12 +4,18 @@ import { jsonError } from "@/lib/errors";
 import { requireAdminPreTotp, signAdminToken, ADMIN_COOKIE } from "@/lib/admin-auth";
 import { verifyTotp } from "@/lib/totp";
 import { decryptSecret } from "@/lib/crypto";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 // POST /api/admin/2fa/verify  { code }
 // Second-factor check at login. Issues the signed 2FA session cookie on success.
 export async function POST(req: Request) {
   const session = await requireAdminPreTotp();
   if (!session) return jsonError("אין הרשאת אדמין", 403);
+
+  // Throttle TOTP guessing — per admin + per IP.
+  if (!rateLimit(`2fa:${session.authId}:${clientKey(req)}`, 6, 60_000).allowed) {
+    return jsonError("יותר מדי נסיונות. נסה שוב בעוד דקה.", 429);
+  }
 
   let body: { code?: string };
   try {

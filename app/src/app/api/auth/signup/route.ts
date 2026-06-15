@@ -3,8 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { hasResendKey, sendEmail, welcomeEmail } from "@/lib/resend";
 import { planLabelHe } from "@/lib/plans";
 import { hebAuthError, jsonError } from "@/lib/errors";
+import { isValidEmail, LIMITS } from "@/lib/validation";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
+  if (!rateLimit(`signup:${clientKey(req)}`, 8, 60_000).allowed) {
+    return jsonError("יותר מדי נסיונות. נסה שוב בעוד דקה.", 429);
+  }
+
   let body: { email?: string; password?: string; full_name?: string };
   try {
     body = await req.json();
@@ -14,7 +20,9 @@ export async function POST(req: Request) {
 
   const { email, password, full_name } = body;
   if (!email || !password) return jsonError("חסר אימייל או סיסמה");
+  if (!isValidEmail(email)) return jsonError("כתובת מייל לא תקינה");
   if (password.length < 8) return jsonError("הסיסמה חייבת להכיל לפחות 8 תווים");
+  if (password.length > LIMITS.password) return jsonError("הסיסמה ארוכה מדי");
 
   const supabase = createClient();
   const { data, error } = await supabase.auth.signUp({
