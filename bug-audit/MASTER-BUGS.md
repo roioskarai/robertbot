@@ -5,11 +5,44 @@
 > פירוט מלא לכל תחום: `qa-functional.md`, `admin-ui-logic.md`,
 > `security-multitenant.md`, `security-secrets-deps.md`.
 >
-> **סטטוס: איתור ותיעוד בלבד — שום באג עדיין לא תוקן.**
+> **סטטוס מעודכן 2026-06-15:** סבב הקשחה לקראת השקה בוצע (commit `1eae0b0`).
+> חלק גדול מ-TIER 0/1 תוקן או אומת כתקין. ראה החלק "מה תוקן" למטה לפני שניגשים לתיקון.
 
 ## סיכום מספרי
 ~55 באגים מובחנים. חומרה: **8 🔴 קריטיים · ~17 🟠 גבוהים · ~15 🟡 בינוניים · ~15 ⚪ נמוכים.**
 הליבה (RLS, אימות, פאנל אדמין, חתימות Stripe/Meta, תלויות npm) — תקינה.
+
+---
+
+## ✅ מה כבר תוקן / אומת (2026-06-15, commit `1eae0b0`) — לא לחזור על זה
+
+**תוקן בסבב הזה (קוד):**
+- **T0-2** Twilio fail-closed — דוחה ללא token בפרודקשן (`webhook/whatsapp/route.ts`).
+- **T0-8** מספר וואטסאפ — אינדקס `UNIQUE` חלקי (migration `0005`, `connect` מטפל ב-23505). ⚠️ דורש הרצת המיגרציה.
+- **T2-7** idempotency לתשלומים — טבלת `payment_events` + `claimEvent` ב-`payments/apply.ts` (Stripe event.id / Grow txn). ⚠️ דורש מיגרציה.
+- **T2-4** ביטול בתום תקופה — `cancel_at_period_end` + `subscription_ends_at`, ה-cron מבטל אחרי (`billing/cancel`, `cron/trial`, `apply.ts`).
+- **T1-3** אימות SMS מזויף באונבורדינג — הוסר ה-theater + עקיפת "000000"; סטטוס כן ("ממתין לחיבור"); החיבור מה-Dashboard.
+- **T2-2 (חלקי)** "דני כהן"/דאטת דמו ללקוח אמיתי — דשבורד מציג מצב ריק/מאופס כש-API נכשל בפרודקשן.
+- הקשחת env fail-closed: `admin-auth` (בלי fallback ל-service-role), `crypto` (בלי plaintext), `lib/env.ts`.
+- ולידציה (`lib/validation.ts`: email/טלפון/אורך) ב-signup/login/forgot/connect; עטיפת שגיאות DB; rate-limit על auth + admin-2FA (T3).
+- webhook של Stripe 503 כש-Grow פעיל (T3) + אזהרת Grow sandbox.
+- (commit `9002b24`) security headers ל-next.config + `.vercelignore`.
+
+**אומת ככבר-תקין בקוד (ה-audit היה מיושן — לא באג):**
+- **T0-1** Grow חתום (fail-closed), **T0-3** downgrade עם בדיקת דרגה, **T0-5** cron fail-closed,
+  **T0-6** מגבלת בוטים בהפעלה, **T0-7** מנוי מבוטל לא מקבל AI, **T1-1** מחיקת FAQ עם confirm,
+  **T1-5** saveBot בודק `res.ok`, RPC אטומיים קיימים (T2-6 שגוי).
+- **T1-2** צ'אט Preview — **לא 404**: ה-route משתמש בקונפיג inline מגוף הבקשה. ה-URL מכוער אך עובד.
+
+## ⏳ נשאר — פעולות ידניות של הבעלים (מתוכנן ל-2026-06-16)
+1. **T0-4** לבטל/להחליף את ה-PAT של GitHub ב-`.git/config` + `.claude/settings.local.json`.
+2. **להריץ migration `0005_launch_hardening.sql`** ב-Supabase (אחרת UNIQUE + payment_events + עמודות הביטול לא קיימים).
+3. **להגדיר env ב-Vercel:** `ADMIN_SESSION_SECRET`, `WA_TOKEN_ENC_KEY`, `TWILIO_AUTH_TOKEN`, `GROW_ENV=production`, `NEXT_PUBLIC_APP_URL`, וסודות נפרדים ל-`CRON_SECRET`/`META_VERIFY_TOKEN`/`GROW_WEBHOOK_SECRET`.
+
+## ⏳ נשאר — פריטי קוד שלא טופלו עדיין (עדיפות נמוכה, אחרי השקה)
+- **T1-4** מחיקת בוט בקליק אחד ללא אישור בדשבורד · **T2-5** `dangerouslySetInnerHTML` ב-`preview` (XSS) ·
+  **T2-8** תשובת נציג אנושי ללא rate-limit · **T1-6** זיהוי demo לא-עקבי · **T1-7** "שכחת סיסמה" בדף login ·
+  ביצועים (analytics/admin טוענים הכל) · נקודות שבירה למובייל · Toast לא תלוי-תמה.
 
 ---
 
