@@ -14,7 +14,7 @@ import { createHmac, timingSafeEqual, createHash } from "crypto";
 import { getSessionUser } from "./auth";
 import type { DBUser } from "./types";
 
-export const ADMIN_EMAIL = "roioskarai@gmail.com";
+export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "roioskarai@gmail.com";
 export const ADMIN_COOKIE = "robert_admin_2fa";
 const TTL_SECONDS = 8 * 60 * 60; // 8 hours
 

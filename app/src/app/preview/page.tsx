@@ -338,7 +338,7 @@ export default function PreviewPage() {
                 ) : (
                   <div key={i} className={c("msg-wrap " + m.dir)}>
                     <div className={c("bubble " + m.dir)}>
-                      <div dangerouslySetInnerHTML={{ __html: m.text.replace(/\n/g, "<br>") }} />
+                      <div style={{ whiteSpace: "pre-wrap" }}>{m.text}</div>
                       <div className={c("btime")}>{m.time}</div>
                     </div>
                     {m.btns && m.btns.length > 0 && (

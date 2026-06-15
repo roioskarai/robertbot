@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
   const { email, password, full_name } = body;
   if (!email || !password) return jsonError("חסר אימייל או סיסמה");
-  if (password.length < 6) return jsonError("הסיסמה חייבת להכיל לפחות 6 תווים");
+  if (password.length < 8) return jsonError("הסיסמה חייבת להכיל לפחות 8 תווים");
 
   const supabase = createClient();
   const { data, error } = await supabase.auth.signUp({

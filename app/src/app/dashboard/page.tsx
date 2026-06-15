@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import PricingPlans from "@/components/PricingPlans";
 import ConnectWhatsApp from "@/components/ConnectWhatsApp";
 import type { Bot } from "@/lib/types";
-import { isPlanId, type PlanId } from "@/lib/plans";
+import { isPlanId, planLabelHe, type PlanId } from "@/lib/plans";
 
 const c = scoped(styles);
 
@@ -132,6 +132,7 @@ export default function DashboardPage() {
   const [bots, setBots] = useState<Partial<Bot>[]>(DEMO_BOTS);
   const [analytics, setAnalytics] = useState<Analytics>(DEMO_ANALYTICS);
   const [convs, setConvs] = useState<ConvRow[]>(DEMO_CONVS);
+  const [user, setUser] = useState({ name: "דני כהן", email: "dani@gmail.com" });
 
   // editor
   const [editBot, setEditBot] = useState<Partial<Bot> | null>(null);
@@ -161,6 +162,15 @@ export default function DashboardPage() {
           setConvs(cc.conversations ?? []);
           setActiveConvId(cc.conversations?.[0]?.id ?? null);
         }
+      }
+      // Load real user identity (name + email).
+      const supabase = createClient();
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (authUser) {
+        setUser({
+          name: (authUser.user_metadata?.full_name as string) || authUser.email?.split("@")[0] || "",
+          email: authUser.email || "",
+        });
       }
     } catch {
       // Demo mode — keep the fallback data already in state.
@@ -364,10 +374,10 @@ export default function DashboardPage() {
         </div>
         <div className={c("sb-footer")}>
           <div className={c("sb-user")} onClick={logout} title="התנתק">
-            <div className={c("sb-av")}>ד</div>
+            <div className={c("sb-av")}>{(user.name || user.email || "?")[0].toUpperCase()}</div>
             <div>
-              <div className={c("sb-uname")}>דני כהן</div>
-              <div className={c("sb-uplan")}>מסלול מקצועי · התנתק</div>
+              <div className={c("sb-uname")}>{user.name || user.email || "המשתמש"}</div>
+              <div className={c("sb-uplan")}>{isPlanId(analytics.plan) ? planLabelHe(analytics.plan) : "בסיסי"} · התנתק</div>
             </div>
           </div>
         </div>
@@ -910,9 +920,9 @@ export default function DashboardPage() {
         <div className={c("grid-2")}>
           <div className={c("card card-pad")}>
             <div className={c("card-title")}>פרטים אישיים</div>
-            <div className={c("fg")}><label className={c("fl")}>שם מלא</label><input className={c("fi")} defaultValue="דני כהן" /></div>
-            <div className={c("fg")}><label className={c("fl")}>אימייל</label><input className={c("fi")} defaultValue="dani@gmail.com" /></div>
-            <div className={c("fg")}><label className={c("fl")}>טלפון</label><input className={c("fi")} defaultValue="052-1234567" /></div>
+            <div className={c("fg")}><label className={c("fl")}>שם מלא</label><input className={c("fi")} defaultValue={user.name} /></div>
+            <div className={c("fg")}><label className={c("fl")}>אימייל</label><input className={c("fi")} defaultValue={user.email} readOnly /></div>
+            <div className={c("fg")}><label className={c("fl")}>טלפון</label><input className={c("fi")} defaultValue="" placeholder="הכנס מספר טלפון" /></div>
             <button className={c("btn btn-primary btn-sm")} onClick={() => toast("הפרטים נשמרו")}>שמור שינויים</button>
           </div>
           <div className={c("card card-pad")}>
