@@ -1,0 +1,13 @@
+# קבצים שנמצאים ב-app/ אך אינם נחוצים ל-runtime של האתר ב-Vercel.
+# הם נשארים בריפו לגיבוי — פשוט לא נכללים ב-build/בפריסה.
+# אין להוסיף כאן קוד מקור / tsconfig / .eslintrc / next.config / public / package*.
+
+# מסמכים
+CLAUDE.md
+README.md
+
+# תבנית משתני סביבה (הערכים האמיתיים מוזנים ב-Vercel, לא כאן)
+.env.example
+
+# סכמת מסד הנתונים — מריצים ידנית ב-Supabase, לא נחוץ בזמן ריצה
+supabase/
