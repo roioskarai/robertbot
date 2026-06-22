@@ -3,11 +3,17 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hebAuthError, jsonError } from "@/lib/errors";
 import { ADMIN_EMAIL } from "@/lib/admin-auth";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 // POST /api/admin/login  { email, password }
 // First factor only. On success returns whether 2FA setup or verification is
 // needed; the admin 2FA cookie is issued only after the TOTP step.
 export async function POST(req: Request) {
+  // Throttle admin-password guessing — the most sensitive credential in the app.
+  if (!rateLimit(`admin-login:${clientKey(req)}`, 6, 60_000).allowed) {
+    return jsonError("יותר מדי נסיונות התחברות. נסה שוב בעוד דקה.", 429);
+  }
+
   let body: { email?: string; password?: string };
   try {
     body = await req.json();

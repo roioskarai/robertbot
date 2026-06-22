@@ -16,7 +16,10 @@ export async function GET(_req: Request, { params }: Ctx) {
     .select("*, bots(name, bot_name, whatsapp_number)")
     .eq("id", params.id)
     .maybeSingle();
-  if (error) return jsonError(error.message, 500);
+  if (error) {
+    console.error("[conversation GET] db error:", error.message);
+    return jsonError("טעינת השיחה נכשלה. נסה שוב.", 500);
+  }
   if (!conversation) return jsonError("השיחה לא נמצאה", 404);
 
   const { data: messages, error: mErr } = await supabase
@@ -24,7 +27,10 @@ export async function GET(_req: Request, { params }: Ctx) {
     .select("*")
     .eq("conversation_id", params.id)
     .order("created_at", { ascending: true });
-  if (mErr) return jsonError(mErr.message, 500);
+  if (mErr) {
+    console.error("[conversation GET] messages error:", mErr.message);
+    return jsonError("טעינת ההודעות נכשלה. נסה שוב.", 500);
+  }
 
   return NextResponse.json({ conversation, messages: messages ?? [] });
 }

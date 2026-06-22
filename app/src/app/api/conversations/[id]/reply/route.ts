@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, unauthorized } from "@/lib/errors";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { getWhatsAppProvider, hasWhatsApp } from "@/lib/whatsapp";
 import type { Bot } from "@/lib/types";
 
@@ -12,6 +13,11 @@ export async function POST(req: Request, { params }: Ctx) {
   const session = await getSessionUser();
   if (!session) return unauthorized();
 
+  // Throttle human-agent sends — each one delivers a paid WhatsApp message.
+  if (!rateLimit(`reply:${session.authId}:${clientKey(req)}`, 30, 60_000).allowed) {
+    return jsonError("יותר מדי הודעות בזמן קצר. נסה שוב בעוד דקה.", 429);
+  }
+
   let payload: { body?: string };
   try {
     payload = await req.json();
@@ -20,6 +26,7 @@ export async function POST(req: Request, { params }: Ctx) {
   }
   const text = (payload.body || "").trim();
   if (!text) return jsonError("הודעה ריקה");
+  if (text.length > 4000) return jsonError("ההודעה ארוכה מדי");
 
   const supabase = createClient();
   const { data: conv, error: convErr } = await supabase
@@ -27,7 +34,10 @@ export async function POST(req: Request, { params }: Ctx) {
     .select("*")
     .eq("id", params.id)
     .maybeSingle();
-  if (convErr) return jsonError(convErr.message, 500);
+  if (convErr) {
+    console.error("[reply] conversation fetch error:", convErr.message);
+    return jsonError("טעינת השיחה נכשלה. נסה שוב.", 500);
+  }
   if (!conv) return jsonError("השיחה לא נמצאה", 404);
 
   // Persist the human message and mark conversation as human-handled.
@@ -36,7 +46,10 @@ export async function POST(req: Request, { params }: Ctx) {
     .insert({ conversation_id: params.id, from_type: "human", body: text })
     .select("*")
     .single();
-  if (msgErr) return jsonError(msgErr.message, 500);
+  if (msgErr) {
+    console.error("[reply] message insert error:", msgErr.message);
+    return jsonError("שליחת ההודעה נכשלה. נסה שוב.", 500);
+  }
 
   await supabase
     .from("conversations")

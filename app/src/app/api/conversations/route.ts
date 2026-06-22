@@ -22,6 +22,9 @@ export async function GET(req: Request) {
   if (botId) query = query.eq("bot_id", botId);
 
   const { data, error } = await query;
-  if (error) return jsonError(error.message, 500);
+  if (error) {
+    console.error("[conversations GET] db error:", error.message);
+    return jsonError("טעינת השיחות נכשלה. נסה שוב.", 500);
+  }
   return NextResponse.json({ conversations: data ?? [] });
 }
