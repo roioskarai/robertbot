@@ -5,8 +5,12 @@ import Link from "next/link";
 import {
   LayoutDashboard, Users, Bot, CreditCard,
   Cpu, ShieldCheck, LogOut, ChevronRight, Activity,
+  Palette, LayoutTemplate, Image as ImageIcon, FileText, Megaphone,
+  Brush, BarChart3, History, Code2, UserCog,
 } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
+import { hasPermission } from "@/lib/site/roles";
+import type { Permission } from "@/lib/site/types";
 
 const NAV = [
   { href: "/admin",          label: "סקירה כללית",  icon: LayoutDashboard, exact: true },
@@ -17,6 +21,21 @@ const NAV = [
   { href: "/admin/security", label: "אבטחה",         icon: ShieldCheck },
 ];
 
+// Website Builder nav — each item gated by a permission.
+const BUILDER_NAV: { href: string; label: string; icon: typeof Palette; perm: Permission }[] = [
+  { href: "/admin/site",           label: "עמודים",        icon: LayoutTemplate, perm: "content.read" },
+  { href: "/admin/site/design",    label: "עיצוב",         icon: Palette,        perm: "design.write" },
+  { href: "/admin/site/themes",    label: "ערכות נושא",    icon: Brush,          perm: "design.write" },
+  { href: "/admin/site/media",     label: "מדיה",          icon: ImageIcon,      perm: "content.write" },
+  { href: "/admin/site/blog",      label: "בלוג",          icon: FileText,       perm: "content.write" },
+  { href: "/admin/site/banners",   label: "באנרים ופופאפים", icon: Megaphone,    perm: "content.write" },
+  { href: "/admin/site/marketing", label: "הגדרות ושיווק",  icon: Megaphone,      perm: "settings.write" },
+  { href: "/admin/site/analytics", label: "אנליטיקס",      icon: BarChart3,      perm: "content.read" },
+  { href: "/admin/site/history",   label: "יומן וגיבוי",   icon: History,        perm: "backup.manage" },
+  { href: "/admin/site/code",      label: "קוד מותאם",     icon: Code2,          perm: "code.write" },
+  { href: "/admin/site/team",      label: "צוות והרשאות",  icon: UserCog,        perm: "team.manage" },
+];
+
 const PAGE_NAMES: Record<string, string> = {
   "/admin":           "סקירה כללית",
   "/admin/users":     "משתמשים",
@@ -24,6 +43,17 @@ const PAGE_NAMES: Record<string, string> = {
   "/admin/billing":   "כספים",
   "/admin/agents":    "סוכני AI",
   "/admin/security":  "אבטחה",
+  "/admin/site":           "בנאי האתר",
+  "/admin/site/design":    "עיצוב",
+  "/admin/site/themes":    "ערכות נושא",
+  "/admin/site/media":     "מדיה",
+  "/admin/site/blog":      "בלוג",
+  "/admin/site/banners":   "באנרים ופופאפים",
+  "/admin/site/marketing": "הגדרות ושיווק",
+  "/admin/site/analytics": "אנליטיקס",
+  "/admin/site/history":   "יומן וגיבוי",
+  "/admin/site/code":      "קוד מותאם",
+  "/admin/site/team":      "צוות והרשאות",
 };
 
 function getInitials(email: string) {
@@ -32,13 +62,16 @@ function getInitials(email: string) {
 
 export default function AdminShell({
   email,
+  adminRole = null,
   children,
 }: {
   email: string;
+  adminRole?: string | null;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const builderItems = BUILDER_NAV.filter((i) => hasPermission(adminRole, i.perm));
 
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -85,6 +118,29 @@ export default function AdminShell({
               );
             })}
           </div>
+
+          {builderItems.length > 0 && (
+            <div className={styles.navGroup}>
+              <span className={styles.navGroupLabel}>בנאי האתר</span>
+              {builderItems.map(({ href, label, icon: Icon }) => {
+                // /admin/site is exact; the rest match by prefix.
+                const active =
+                  href === "/admin/site"
+                    ? pathname === href
+                    : pathname.startsWith(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={`${styles.navItem} ${active ? styles.navItemActive : ""}`}
+                  >
+                    <Icon size={17} strokeWidth={active ? 2.2 : 1.8} className={styles.navIcon} />
+                    {label}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </nav>
 
         <div className={styles.sideBottom}>

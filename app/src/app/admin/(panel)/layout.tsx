@@ -9,5 +9,9 @@ export const dynamic = "force-dynamic";
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
   if (!admin) redirect("/admin/login");
-  return <AdminShell email={admin.email}>{children}</AdminShell>;
+  return (
+    <AdminShell email={admin.email} adminRole={admin.profile.admin_role ?? null}>
+      {children}
+    </AdminShell>
+  );
 }

@@ -33,6 +33,8 @@ export interface DBUser {
   totp_secret?: string | null; // encrypted; server-only, never sent to client
   is_suspended?: boolean;
   last_login_at?: string | null;
+  // Granular admin role (applies when role==='admin'); see lib/site/permissions.ts
+  admin_role?: "super_admin" | "admin" | "editor" | "support" | null;
   created_at: string;
 }
 
