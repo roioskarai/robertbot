@@ -10,4 +10,5 @@ README.md
 .env.example
 
 # סכמת מסד הנתונים — מריצים ידנית ב-Supabase, לא נחוץ בזמן ריצה
-supabase/
+# /supabase/ (עם נטוי קדמי) = רק התיקייה הראשית app/supabase/, לא src/lib/supabase/
+/supabase/
