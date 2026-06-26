@@ -1,6 +1,6 @@
 ---
 name: video-image-prompt
-description: Build ready-to-paste prompts for AI video tools (Sora, Veo, Runway, Kling) and image tools (Midjourney, DALL·E, Ideogram, Leonardo) for Robert marketing. Use for "פרומפט לסרטון", "פרומפט לתמונה", "ויזואל למודעה", "סטוריבורד". Pairs with creative-studio + brand-kit.
+description: Build ready-to-paste prompts for AI video tools (Sora, Veo, Runway, Kling) and image tools (Midjourney, DALL·E, Ideogram, Leonardo) for Robert marketing. Use for "פרומפט לסרטון", "פרומפט לתמונה", "ויזואל למודעה", "סטוריבורד". Pairs with brand-design + brand-kit.
 ---
 
 # מתכון פרומפט לכלי וידאו/תמונה

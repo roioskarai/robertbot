@@ -25,10 +25,14 @@ export async function POST(req: Request) {
   if (password.length > LIMITS.password) return jsonError("הסיסמה ארוכה מדי");
 
   const supabase = createClient();
+  // After the user confirms their email, land them back in the app (logged in)
+  // to finish onboarding (#3). Uses the app URL in prod, request origin otherwise.
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
+  const emailRedirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent("/onboarding?new=1")}`;
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: full_name ?? "" } },
+    options: { data: { full_name: full_name ?? "" }, emailRedirectTo },
   });
 
   if (error) return jsonError(hebAuthError(error.message));

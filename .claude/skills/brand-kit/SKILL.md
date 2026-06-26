@@ -1,6 +1,6 @@
 ---
 name: brand-kit
-description: The single source of truth for the Robert brand — voice, tone, colors, typography — and a checker for brand consistency. Use for "מה הטון של המותג", "צבעי המותג", "תבדוק שזה תואם מותג", "ערכת מותג". Pairs with brand-guardian and all marketing/creative skills.
+description: The single source of truth for the Robert brand — voice, tone, colors, typography — and a checker for brand consistency. Use for "מה הטון של המותג", "צבעי המותג", "תבדוק שזה תואם מותג", "ערכת מותג". Pairs with brand-design and all growth/creative skills.
 ---
 
 # ערכת מותג — Robert

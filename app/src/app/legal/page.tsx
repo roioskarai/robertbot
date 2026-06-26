@@ -124,7 +124,7 @@ export default function LegalPage() {
           <ul>
             <li>שם, כתובת מייל, מספר טלפון בעת ההרשמה</li>
             <li>פרטי העסק — שם, תיאור, שירותים, שעות</li>
-            <li>פרטי תשלום (מאוחסנים בצורה מוצפנת דרך Stripe — אנחנו לא רואים מספר כרטיס)</li>
+            <li>פרטי תשלום (מאוחסנים בצורה מוצפנת דרך Grow — אנחנו לא רואים מספר כרטיס)</li>
           </ul>
           <p><strong>מידע שנאסף אוטומטית:</strong></p>
           <ul>
@@ -149,7 +149,7 @@ export default function LegalPage() {
           <p>אנחנו משתמשים בשירותי צד שלישי חיוניים:</p>
           <ul>
             <li><strong>Twilio</strong> — שליחת הודעות וואטסאפ</li>
-            <li><strong>Stripe</strong> — עיבוד תשלומים</li>
+            <li><strong>Grow</strong> — עיבוד תשלומים (סליקה)</li>
             <li><strong>Supabase</strong> — אחסון נתונים מאובטח</li>
             <li><strong>OpenAI / Anthropic</strong> — עיבוד שפה טבעית לבוטים</li>
           </ul>

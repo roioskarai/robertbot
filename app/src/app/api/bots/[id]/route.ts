@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { buildSystemPrompt } from "@/lib/claude";
 import { jsonError, unauthorized } from "@/lib/errors";
+import { enforceActiveBotLimit } from "@/lib/bot-limit";
 import type { Bot } from "@/lib/types";
 
 type Ctx = { params: { id: string } };
@@ -52,6 +53,14 @@ export async function PUT(req: Request, { params }: Ctx) {
   if (!existing) return jsonError("הבוט לא נמצא", 404);
 
   const merged = { ...(existing as Bot), ...body } as Bot;
+
+  // A PUT can flip the bot to active too — enforce the same plan limit the
+  // dedicated activate route uses, but only on a genuine off→on transition so
+  // saving an already-active bot isn't blocked.
+  if (merged.active === true && (existing as Bot).active !== true) {
+    const limitErr = await enforceActiveBotLimit(supabase, session.authId, params.id);
+    if (limitErr) return limitErr;
+  }
 
   const update: Partial<Bot> = {
     name: merged.name,

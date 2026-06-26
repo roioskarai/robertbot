@@ -1,0 +1,181 @@
+/* ============================================================
+   RobertBot V2 — DESIGN TOKENS
+   The single source of truth for the V2 visual language.
+   Philosophy: refined premium green + rich neutral ink.
+   Disciplined, monochrome-leaning, "money & trust" — not toy.
+   RTL / Hebrew-first. Font: Rubik.
+   ============================================================ */
+
+:root {
+  /* ---------- BRAND GREEN (refined, premium) ----------
+     Deeper & more controlled than WhatsApp #25D366.
+     Reads as trust/money, not a bright startup accent. */
+  --green-25:  #f6fef9;
+  --green-50:  #ecfdf3;
+  --green-100: #d1fadf;
+  --green-200: #a6f4c5;
+  --green-300: #6ce9a6;
+  --green-400: #32d583;
+  --green-500: #12b76a;   /* PRIMARY */
+  --green-600: #039855;   /* primary hover / strong */
+  --green-700: #027a48;
+  --green-800: #05603a;
+  --green-900: #054f31;
+
+  /* WhatsApp brand green — reserved ONLY for "connect WhatsApp" moments */
+  --wa:        #25d366;
+  --wa-d:      #1da851;
+
+  /* ---------- NEUTRALS (ink / gray — premium cool scale) ---------- */
+  --gray-25:  #fcfcfd;
+  --gray-50:  #f9fafb;
+  --gray-100: #f2f4f7;
+  --gray-200: #eaecf0;
+  --gray-300: #d0d5dd;
+  --gray-400: #98a2b3;
+  --gray-500: #667085;
+  --gray-600: #475467;
+  --gray-700: #344054;
+  --gray-800: #1d2939;
+  --gray-900: #101828;
+
+  /* ---------- SEMANTIC (used sparingly) ---------- */
+  --success-50:  #ecfdf3;  --success-500: #12b76a;  --success-700: #027a48;
+  --warning-50:  #fffaeb;  --warning-500: #f79009;  --warning-700: #b54708;
+  --error-50:    #fef3f2;  --error-500:   #f04438;  --error-700:   #b42318;
+  --info-50:     #eff8ff;  --info-500:    #2e90fa;  --info-700:    #175cd3;
+
+  /* ---------- SURFACES & TEXT ---------- */
+  --bg:            #f7f9f8;   /* page background — barely-there cool */
+  --surface:       #ffffff;   /* cards, panels */
+  --surface-2:     #f9fafb;   /* subtle inset surface */
+  --sidebar:       #0c1a14;   /* deep ink-green sidebar */
+  --sidebar-2:     #12241b;
+  --sidebar-act:   #18352770;
+
+  --text:          var(--gray-900);   /* primary text */
+  --text-2:        var(--gray-700);   /* secondary */
+  --text-3:        var(--gray-500);   /* tertiary / captions */
+  --text-4:        var(--gray-400);   /* placeholder / disabled */
+  --border:        var(--gray-200);
+  --border-2:      var(--gray-300);
+
+  /* ---------- TYPOGRAPHY ---------- */
+  --font: 'Rubik', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Display scale (tight tracking on large sizes) */
+  --display-2xl: 4.5rem;   /* 72 */
+  --display-xl:  3.75rem;  /* 60 */
+  --display-lg:  3rem;     /* 48 */
+  --display-md:  2.25rem;  /* 36 */
+  --display-sm:  1.875rem; /* 30 */
+  --display-xs:  1.5rem;   /* 24 */
+  /* Text scale */
+  --text-xl: 1.25rem;   /* 20 */
+  --text-lg: 1.125rem;  /* 18 */
+  --text-md: 1rem;      /* 16 */
+  --text-sm: 0.875rem;  /* 14 */
+  --text-xs: 0.75rem;   /* 12 */
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-black: 800;
+
+  /* ---------- SPACING (4px base) ---------- */
+  --space-0-5: 0.125rem; /* 2 */
+  --space-1:   0.25rem;  /* 4 */
+  --space-1-5: 0.375rem; /* 6 */
+  --space-2:   0.5rem;   /* 8 */
+  --space-3:   0.75rem;  /* 12 */
+  --space-4:   1rem;     /* 16 */
+  --space-5:   1.25rem;  /* 20 */
+  --space-6:   1.5rem;   /* 24 */
+  --space-8:   2rem;     /* 32 */
+  --space-10:  2.5rem;   /* 40 */
+  --space-12:  3rem;     /* 48 */
+  --space-16:  4rem;     /* 64 */
+  --space-20:  5rem;     /* 80 */
+  --space-24:  6rem;     /* 96 */
+
+  /* ---------- RADIUS ---------- */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-full: 9999px;
+
+  /* ---------- SHADOWS / ELEVATION ---------- */
+  --shadow-xs: 0 1px 2px rgba(16,24,40,.05);
+  --shadow-sm: 0 1px 3px rgba(16,24,40,.10), 0 1px 2px rgba(16,24,40,.06);
+  --shadow-md: 0 4px 8px -2px rgba(16,24,40,.10), 0 2px 4px -2px rgba(16,24,40,.06);
+  --shadow-lg: 0 12px 16px -4px rgba(16,24,40,.08), 0 4px 6px -2px rgba(16,24,40,.03);
+  --shadow-xl: 0 20px 24px -4px rgba(16,24,40,.08), 0 8px 8px -4px rgba(16,24,40,.03);
+  --shadow-2xl: 0 24px 48px -12px rgba(16,24,40,.18);
+  --shadow-green: 0 6px 16px -4px rgba(3,152,85,.35);
+
+  /* ---------- LAYOUT ---------- */
+  --container: 1160px;
+  --container-narrow: 760px;
+  --nav-h: 68px;
+  --sidebar-w: 264px;
+  --ease: cubic-bezier(.4, 0, .2, 1);
+}
+
+/* ============================================================
+   RESET + BASE
+   ============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+html, body { min-height: 100%; }
+
+body {
+  font-family: var(--font);
+  font-size: var(--text-md);
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  direction: rtl;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; }
+img, svg { display: block; max-width: 100%; }
+:focus-visible { outline: 2px solid var(--green-500); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ---------- TYPOGRAPHY HELPERS ---------- */
+.display-2xl { font-size: var(--display-2xl); font-weight: var(--fw-black); line-height: 1.05; letter-spacing: -2px; }
+.display-xl  { font-size: var(--display-xl);  font-weight: var(--fw-black); line-height: 1.07; letter-spacing: -1.6px; }
+.display-lg  { font-size: var(--display-lg);  font-weight: var(--fw-black); line-height: 1.1;  letter-spacing: -1.4px; }
+.display-md  { font-size: var(--display-md);  font-weight: var(--fw-bold);  line-height: 1.15; letter-spacing: -1px; }
+.display-sm  { font-size: var(--display-sm);  font-weight: var(--fw-bold);  line-height: 1.2;  letter-spacing: -.6px; }
+.display-xs  { font-size: var(--display-xs);  font-weight: var(--fw-bold);  line-height: 1.3;  letter-spacing: -.4px; }
+
+.text-xl { font-size: var(--text-xl); }
+.text-lg { font-size: var(--text-lg); }
+.text-sm { font-size: var(--text-sm); }
+.text-xs { font-size: var(--text-xs); }
+
+.text-2  { color: var(--text-2); }
+.text-3  { color: var(--text-3); }
+.text-green { color: var(--green-600); }
+
+/* Responsive display scale */
+@media (max-width: 768px) {
+  :root {
+    --display-2xl: 3rem;
+    --display-xl:  2.5rem;
+    --display-lg:  2.125rem;
+    --display-md:  1.75rem;
+    --display-sm:  1.5rem;
+  }
+}

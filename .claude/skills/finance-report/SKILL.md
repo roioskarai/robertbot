@@ -1,6 +1,6 @@
 ---
 name: finance-report
-description: Build Robert's monthly finance report — revenue/MRR, churn, plan mix, and unit economics — from Stripe/Supabase data or pasted numbers. Use for "דוח כספי", "כמה כסף נכנס", "MRR", "כלכלת יחידה", "דוח חודשי". Pairs with finance-billing + data-analyst.
+description: Build Robert's monthly finance report — revenue/MRR, churn, plan mix, and unit economics — from Stripe/Supabase data or pasted numbers. Use for "דוח כספי", "כמה כסף נכנס", "MRR", "כלכלת יחידה", "דוח חודשי". Pairs with growth (revenue analysis) + admin-platform-manager (subscription administration).
 ---
 
 # דוח כספי חודשי — Robert
@@ -20,7 +20,7 @@ Supabase (`mcp__supabase__*`) אם מחוברים, או נתונים שמדבי�
 5. **כלכלת יחידה** — הכנסה ממוצעת ללקוח (ARPU), עלות משוערת ללקוח (Claude+Twilio),
    רווח גולמי משוער ליחידה, וערך חיים משוער (LTV).
 6. **דגלים** — חיובים שנכשלו, ירידות חריגות, מסלולים לא-רווחיים.
-7. **המלצות** — תמחור/שימור (הפנה ל-`retention`/`strategy-advisor`).
+7. **המלצות** — תמחור/שימור (הפנה ל-`growth`).
 
 ## כללים
 - כל מספר עם מקור (Stripe/Supabase/קלט ידני). הפרד נתון מאומת מהערכה.

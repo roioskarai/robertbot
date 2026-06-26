@@ -206,6 +206,30 @@ export default function DashboardPage() {
     loadData();
   }, [loadData]);
 
+  // #14 — when arriving from onboarding after creating a bot, open that bot's
+  // WhatsApp connect step automatically (the hand-off is set in sessionStorage).
+  useEffect(() => {
+    if (!bots.length) return;
+    let intent: { id?: string; tab?: string } | null = null;
+    try {
+      const raw = sessionStorage.getItem("rb_open_bot");
+      if (raw) intent = JSON.parse(raw) as { id?: string; tab?: string };
+    } catch {
+      /* ignore */
+    }
+    if (!intent?.id) return;
+    const bot = bots.find((b) => b.id === intent!.id);
+    if (!bot) return;
+    try {
+      sessionStorage.removeItem("rb_open_bot");
+    } catch {
+      /* ignore */
+    }
+    setPage("bots");
+    setEditBot({ ...bot });
+    setEditorTab(intent.tab === "connect" ? "connect" : "info");
+  }, [bots]);
+
   function goPage(id: PageId) {
     setPage(id);
     setSbOpen(false);
@@ -464,7 +488,7 @@ export default function DashboardPage() {
   function renderOverview() {
     return (
       <div className={pageCls("overview")}>
-        <div className={c("ph")}><div><div className={c("ph-title")}>בוקר טוב, דני</div><div className={c("ph-sub")}>הנה מה שקורה אצלך היום</div></div></div>
+        <div className={c("ph")}><div><div className={c("ph-title")}>שלום, {user.name || "אורח"}</div><div className={c("ph-sub")}>הנה מה שקורה אצלך היום</div></div></div>
         <div className={c("grid-4")} style={{ marginBottom: 16 }}>
           <div className={c("card sc")}>
             <div className={c("sc-label")}>הודעות היום</div>
@@ -931,7 +955,7 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
-            <p style={{ fontSize: 12, color: "var(--t4)", textAlign: "center", marginTop: 12 }}>כל הרכישות מאובטחות · Stripe · חשבונית תישלח למייל</p>
+            <p style={{ fontSize: 12, color: "var(--t4)", textAlign: "center", marginTop: 12 }}>כל הרכישות מאובטחות · Grow · חשבונית תישלח למייל</p>
           </div>
         )}
       </div>

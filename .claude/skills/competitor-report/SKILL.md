@@ -1,6 +1,6 @@
 ---
 name: competitor-report
-description: Produce a structured competitor-research report for Robert (WhatsApp-bot / chatbot market in Israel and abroad). Use for "מחקר מתחרים", "השוואת מתחרים", "ניתוח שוק", "מי מתחרה בנו". Pairs with the competitor-scout agent and the Playwright/web tools.
+description: Produce a structured competitor-research report for Robert (WhatsApp-bot / chatbot market in Israel and abroad). Use for "מחקר מתחרים", "השוואת מתחרים", "ניתוח שוק", "מי מתחרה בנו". Pairs with the growth agent and the Playwright/web tools.
 ---
 
 # דוח מחקר מתחרים — פורמט אחיד
@@ -23,7 +23,7 @@ description: Produce a structured competitor-research report for Robert (WhatsAp
 3. **מה Robert עושה טוב יותר** (3 נקודות).
 4. **פערים שכדאי לסגור** (3 נקודות, מתועדף).
 5. **הזדמנויות ואיומים** (3 + 3).
-6. **המלצות פעולה** → הפנה ל-`marketing-strategist` (מסר) / `finance-billing` (תמחור).
+6. **המלצות פעולה** → הפנה ל-`growth` (מסר ותמחור).
 7. **מקורות** — רשימת קישורים.
 
 ## עיקרון אמינות

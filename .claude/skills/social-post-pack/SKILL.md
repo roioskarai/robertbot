@@ -1,6 +1,6 @@
 ---
 name: social-post-pack
-description: Generate a week's pack of ready-to-publish social posts for Robert (Instagram/Facebook/LinkedIn/TikTok) in a consistent Hebrew format. Use for "חבילת פוסטים", "פוסטים לשבוע", "תוכן לרשתות", "לוח תוכן". Pairs with marketing-strategist + brand-kit.
+description: Generate a week's pack of ready-to-publish social posts for Robert (Instagram/Facebook/LinkedIn/TikTok) in a consistent Hebrew format. Use for "חבילת פוסטים", "פוסטים לשבוע", "תוכן לרשתות", "לוח תוכן". Pairs with growth + brand-kit.
 ---
 
 # חבילת פוסטים שבועית — פורמט אחיד

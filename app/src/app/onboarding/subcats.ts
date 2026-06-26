@@ -1,6 +1,8 @@
 // Business categories + subcategories — from robert-onboarding.html.
 // `__ADD__` marks the "add custom" tile.
 
+import type { Service } from "@/lib/types";
+
 export interface SubItem {
   icon: string;
   name: string;
@@ -241,3 +243,31 @@ export const SUB_CATS: Record<string, Category> = {
 
 export const DAYS_HE = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 export const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+
+// Suggested services per main business category (#4). Loaded into the
+// onboarding services step when a category is chosen, so the list matches the
+// business type instead of always showing the hairdresser defaults. Prices are
+// left blank for the owner to fill in.
+const s = (name: string): Service => ({ name, price: "" });
+
+export const GENERIC_SERVICES: Service[] = [
+  s("בירור כללי"),
+  s("תיאום פגישה"),
+  s("הצעת מחיר"),
+];
+
+export const SERVICES_BY_CATEGORY: Record<string, Service[]> = {
+  beauty: [s("תספורת גברים"), s("תספורת נשים"), s("צבע"), s("פן"), s("החלקה"), s("מניקור / פדיקור")],
+  food: [s("הזמנת שולחן"), s("הזמנת משלוח"), s("איסוף עצמי"), s("תפריט אירועים"), s("קייטרינג")],
+  fitness: [s("אימון אישי"), s("מנוי חודשי"), s("שיעור ניסיון"), s("אימון קבוצתי")],
+  professional: [s("פגישת ייעוץ"), s("בדיקת חוזה / מסמכים"), s("ליווי מקצועי"), s("הצעת מחיר")],
+  medical: [s("תור ראשון"), s("בדיקה"), s("ייעוץ"), s("מעקב"), s("טיפול")],
+  retail: [s("בירור מלאי"), s("ביצוע הזמנה"), s("משלוח"), s("החזרה / החלפה")],
+  realestate: [s("תיאום צפייה בנכס"), s("הערכת שווי"), s("ייעוץ"), s("רישום נכס")],
+  education: [s("שיעור ניסיון"), s("הרשמה לקורס"), s("שיעור פרטי"), s("ייעוץ לימודי")],
+  events: [s("בדיקת זמינות תאריך"), s("הצעת מחיר"), s("סיור / פגישת תיאום"), s("הזמנת אירוע")],
+  automotive: [s("תיאום טיפול"), s("בדיקת רכב"), s("הצעת מחיר"), s("שירות דרך / גרירה")],
+  home: [s("הזמנת בעל מקצוע"), s("הצעת מחיר"), s("ביקור בבית"), s("שירות דחוף")],
+  travel: [s("תיאום נסיעה"), s("הצעת חבילה"), s("ייעוץ יעד"), s("הזמנת מקום")],
+  other: GENERIC_SERVICES,
+};

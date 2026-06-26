@@ -18,3 +18,7 @@ git-push.bat
 .claude/*.lock
 .claude/settings.local.json
 .claude/plans/
+
+# QA / test artifacts (Playwright MCP snapshots, console logs, screenshots)
+.playwright-mcp/
+dash-mobile-overview.png

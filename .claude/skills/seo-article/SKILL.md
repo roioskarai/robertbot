@@ -1,6 +1,6 @@
 ---
 name: seo-article
-description: Write an SEO-optimized Hebrew article for Robert's blog (Google Israel), in a consistent structure with meta and FAQ schema. Use for "מאמר SEO", "כתוב מאמר לבלוג", "תוכן לקידום בגוגל". Pairs with content-seo + brand-kit.
+description: Write an SEO-optimized Hebrew article for Robert's blog (Google Israel), in a consistent structure with meta and FAQ schema. Use for "מאמר SEO", "כתוב מאמר לבלוג", "תוכן לקידום בגוגל". Pairs with growth + brand-kit.
 ---
 
 # מאמר SEO — מבנה אחיד

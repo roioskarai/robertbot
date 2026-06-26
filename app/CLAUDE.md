@@ -77,9 +77,11 @@ approval. Every run is logged to `agent_runs` and is idempotent per day via `ded
   in `live` mode when `OWNER_EMAIL` + Resend are set.
 
 Schema: `supabase/agents.sql` (`agent_runs` table + RLS) — run after `schema.sql`.
-Engineering sub-agents that help build/maintain this repo live in `.claude/agents/`
-(supabase-architect, api-route-builder, integrations-engineer, bot-prompt-engineer,
-multitenant-security-reviewer, qa-verifier).
+Agents that help build/maintain this repo live in `.claude/agents/`: all engineering
+(APIs, DB/schema/RLS, integrations, bot prompts, runtime agents) is owned by
+`product-engineering`; security/RLS review by `security`; build/lint verification and the
+release gate by `qa-operations` (report-only — fixes go to product-engineering; the owner
+executes the approved deploy).
 
 Env vars: `CRON_SECRET` (run auth), `OWNER_EMAIL` (report recipient),
 `ANTHROPIC_AGENT_MODEL` (optional model override for agents).

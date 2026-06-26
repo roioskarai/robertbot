@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, unauthorized } from "@/lib/errors";
+import { enforceActiveBotLimit } from "@/lib/bot-limit";
 import { encryptSecret } from "@/lib/crypto";
 import { hasMetaCreds } from "@/lib/whatsapp/meta";
 import {
@@ -50,6 +52,15 @@ export async function POST(req: Request, { params }: Ctx) {
     return jsonError("הבוט כבר מחובר לוואטסאפ. נתק קודם או שלח force:true לחיבור מחדש.", 409);
   }
 
+  // This route auto-activates the bot — enforce the same plan limit the
+  // dedicated activate route uses, before doing any Meta work.
+  const limitErr = await enforceActiveBotLimit(supabase, session.authId, params.id);
+  if (limitErr) return limitErr;
+
+  // Admin client to check cross-tenant ownership (RLS would hide other
+  // tenants' rows). Only used for read-only "is this taken?" lookups.
+  const admin = createAdminClient();
+
   try {
     const token = await exchangeCodeForToken(body.code);
     await subscribeAppToWaba(body.wabaId, token);
@@ -62,6 +73,26 @@ export async function POST(req: Request, { params }: Ctx) {
       displayNumber = displayNumber ?? info?.displayNumber ?? null;
     }
     if (!phoneNumberId) return jsonError("לא נמצא מספר טלפון ב-WABA", 502);
+
+    // Reject a phone-number id already owned by another tenant's bot.
+    const { data: pidTaken } = await admin
+      .from("bots")
+      .select("id")
+      .eq("meta_phone_number_id", phoneNumberId)
+      .neq("id", params.id)
+      .maybeSingle();
+    if (pidTaken) return jsonError("מספר זה כבר מחובר לבוט אחר במערכת", 409);
+
+    // Reject a display number already owned by another tenant's bot.
+    if (displayNumber) {
+      const { data: numTaken } = await admin
+        .from("bots")
+        .select("id")
+        .eq("whatsapp_number", displayNumber)
+        .neq("id", params.id)
+        .maybeSingle();
+      if (numTaken) return jsonError("מספר זה כבר מחובר לבוט אחר במערכת", 409);
+    }
 
     const { data, error } = await supabase
       .from("bots")
@@ -77,7 +108,14 @@ export async function POST(req: Request, { params }: Ctx) {
       .eq("id", params.id)
       .select("id, whatsapp_number, active, wa_provider")
       .single();
-    if (error) return jsonError(error.message, 500);
+    if (error) {
+      // 23505 = a unique index rejected a number/phone-id already taken
+      // (race-proof backstop for the cross-tenant checks above).
+      if (error.code === "23505") {
+        return jsonError("מספר זה כבר מחובר לבוט אחר במערכת", 409);
+      }
+      return jsonError(error.message, 500);
+    }
 
     return NextResponse.json({ ok: true, bot: data });
   } catch (e) {

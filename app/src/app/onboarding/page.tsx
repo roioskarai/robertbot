@@ -11,10 +11,20 @@ import {
   SUB_CATS,
   DAYS_HE,
   DAY_KEYS,
+  SERVICES_BY_CATEGORY,
+  GENERIC_SERVICES,
 } from "./subcats";
 import type { BotStyle, Service, FaqItem, WorkingHours } from "@/lib/types";
+import { isValidEmail } from "@/lib/validation";
 
 const c = scoped(styles);
+
+// True when no real Supabase backend is configured (placeholder/demo).
+// Mirrors the dashboard's check so the wizard still completes offline,
+// while a real backend gates progression on a successful signup.
+const DEMO_MODE =
+  !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder");
 
 const LogoMark = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -55,13 +65,13 @@ function OnboardingInner() {
   // and land straight on the bot-creation wizard.
   const startOnWizard = searchParams.get("new") === "1";
 
-  const [screen, setScreen] = useState<"signup" | "ob" | "success">(
+  const [screen, setScreen] = useState<"signup" | "verify" | "ob" | "success">(
     startOnWizard ? "ob" : "signup",
   );
   const [curStep, setCurStep] = useState(1);
 
   // signup
-  const [su, setSu] = useState({ full_name: "", email: "", password: "" });
+  const [su, setSu] = useState({ full_name: "", email: "", password: "", confirm: "" });
 
   // step 1 — category
   const [catView, setCatView] = useState<"main" | "sub">("main");
@@ -106,26 +116,75 @@ function OnboardingInner() {
 
   // success
   const [successInfo, setSuccessInfo] = useState({ botName: "", wa: "" });
+  const [newBotId, setNewBotId] = useState<string | null>(null);
 
   const totalSteps = 5;
 
   // ── signup
+  const [signingUp, setSigningUp] = useState(false);
   async function doSignup() {
+    if (signingUp) return; // guard against double-submit
+
+    // ── client-side validation (runs in demo + real so the UX is consistent
+    //    and the user can't advance with empty/invalid/mismatched data) ──
+    const name = su.full_name.trim();
+    const email = su.email.trim();
+    if (!name) { toast("נא להזין שם מלא"); return; }
+    if (!isValidEmail(email)) { toast("נא להזין כתובת מייל תקינה"); return; }
+    if (su.password.length < 8) { toast("הסיסמה חייבת להכיל לפחות 8 תווים"); return; }
+    if (su.password !== su.confirm) { toast("הסיסמאות אינן תואמות"); return; }
+
+    // In demo mode there's no real backend — keep the original "always
+    // advance" UX so the wizard is fully explorable offline.
+    if (DEMO_MODE) {
+      setScreen("ob");
+      return;
+    }
+
+    setSigningUp(true);
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(su),
+        body: JSON.stringify({ full_name: name, email, password: su.password }),
       });
       if (!res.ok) {
+        // Real failure (weak password / duplicate email / rate-limit):
+        // stay on the signup step and surface the Hebrew error.
         const d = await res.json().catch(() => ({}));
-        toast(d.error || "ההרשמה נכשלה — ממשיכים במצב הדגמה");
+        toast(d.error || "ההרשמה נכשלה. בדוק את הפרטים ונסה שוב.");
+        return;
       }
+      // With Supabase "Confirm email" ON, signUp returns no session until the
+      // user verifies their email. Gate the wizard behind email verification
+      // (#3); if a session already exists (confirmation disabled), go straight in.
+      const d = await res.json().catch(() => ({}));
+      setScreen(d?.hasSession ? "ob" : "verify");
     } catch {
-      toast("אין חיבור לשרת — ממשיכים במצב הדגמה");
+      toast("אין חיבור לשרת — נסה שוב.");
+    } finally {
+      setSigningUp(false);
     }
-    // Advance to the wizard regardless (matches the original UX).
-    setScreen("ob");
+  }
+
+  // #3 — resend the email-verification message.
+  const [resending, setResending] = useState(false);
+  async function resendVerification() {
+    if (resending) return;
+    setResending(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: su.email.trim(),
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/onboarding?new=1")}` },
+      });
+      toast(error ? "שליחה נכשלה — נסה שוב בעוד רגע." : "שלחנו שוב מייל אימות.");
+    } catch {
+      toast("שליחה נכשלה — נסה שוב.");
+    } finally {
+      setResending(false);
+    }
   }
 
   async function googleSignup() {
@@ -147,6 +206,8 @@ function OnboardingInner() {
     setCatView("sub");
     setCustomOpen(false);
     setCustomVal("");
+    // #4 — load services that fit the chosen business type (step 3 defaults).
+    setServices((SERVICES_BY_CATEGORY[catKey] ?? GENERIC_SERVICES).map((x) => ({ ...x })));
   }
   function selSub(name: string) {
     setBizSubtype(name);
@@ -163,13 +224,13 @@ function OnboardingInner() {
 
   // ── navigation
   function nextStep() {
-    setCurStep((s) => {
-      if (s === totalSteps) {
-        finish();
-        return s;
-      }
-      return Math.min(totalSteps, s + 1);
-    });
+    // On the last step, submit instead of advancing. finish() is called
+    // directly (never inside a state updater) so it runs exactly once.
+    if (curStep === totalSteps) {
+      void finish();
+      return;
+    }
+    setCurStep((s) => Math.min(totalSteps, s + 1));
   }
   function prevStep() {
     setCurStep((s) => Math.max(1, s - 1));
@@ -186,7 +247,11 @@ function OnboardingInner() {
     return wh;
   }
 
+  const [finishing, setFinishing] = useState(false);
   async function finish() {
+    if (finishing) return; // guard against a double POST → duplicate bot
+    setFinishing(true);
+
     const botName = details.name || "הבוט שלי";
     setSuccessInfo({ botName, wa: waNumber || "---" });
 
@@ -208,11 +273,15 @@ function OnboardingInner() {
     // verification) is completed afterwards from the Dashboard — we never
     // attach a number here without verifying ownership.
     try {
-      await fetch("/api/bots", {
+      const res = await fetch("/api/bots", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+      const json = await res.json().catch(() => ({}));
+      // Capture the new bot id so the success CTA can open its WhatsApp
+      // connect step directly (#14).
+      if (json?.bot?.id) setNewBotId(json.bot.id as string);
     } catch {
       /* demo mode / offline — still show success so the wizard completes */
     }
@@ -267,9 +336,19 @@ function OnboardingInner() {
                 onChange={(e) => setSu({ ...su, password: e.target.value })}
               />
             </div>
+            <div className={c("fg")}>
+              <label className={c("fl")}>אימות סיסמה</label>
+              <input
+                className={c("fi")}
+                type="password"
+                placeholder="הקלד שוב את הסיסמה"
+                value={su.confirm}
+                onChange={(e) => setSu({ ...su, confirm: e.target.value })}
+              />
+            </div>
             <div style={{ marginBottom: 16 }}></div>
-            <button className={c("btn btn-primary")} onClick={doSignup}>
-              יצירת חשבון בחינם
+            <button className={c("btn btn-primary")} onClick={doSignup} disabled={signingUp}>
+              {signingUp ? "יוצר חשבון..." : "יצירת חשבון בחינם"}
             </button>
             <div className={c("divd")}>
               <span>או</span>
@@ -288,6 +367,45 @@ function OnboardingInner() {
             </div>
             <div className={c("signup-login")}>
               כבר יש לך חשבון? <a onClick={() => router.push("/login")}>התחבר</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* SCREEN: VERIFY EMAIL (#3) */}
+      <div className={c("screen") + (screen === "verify" ? " " + styles.act : "")}>
+        <div className={c("signup-wrap")}>
+          <div className={c("signup-card")}>
+            <div className={c("signup-logo")}>
+              <div className={c("signup-logo-mark")}>
+                <LogoMark />
+              </div>
+              <div className={c("signup-logo-name")}>
+                Robert<span>.</span>
+              </div>
+            </div>
+            <div className={c("signup-title")}>אמת את כתובת המייל</div>
+            <div className={c("signup-sub")}>
+              שלחנו מייל אימות אל <strong>{su.email || "המייל שלך"}</strong>. פתח אותו ולחץ על
+              הקישור — תועבר אוטומטית להמשך ההגדרה.
+            </div>
+            <button className={c("btn btn-primary")} onClick={() => router.push("/dashboard")}>
+              כבר אימתתי — המשך
+            </button>
+            <div style={{ marginBottom: 12 }}></div>
+            <button
+              className={c("btn btn-outline")}
+              style={{ width: "100%", padding: 11 }}
+              onClick={resendVerification}
+              disabled={resending}
+            >
+              {resending ? "שולח..." : "שלח שוב את מייל האימות"}
+            </button>
+            <div className={c("signup-terms")}>
+              לא קיבלת? בדוק בתיקיית הספאם, או שלח שוב. הקישור תקף לזמן מוגבל.
+            </div>
+            <div className={c("signup-login")}>
+              רוצה להתחיל מחדש? <a onClick={() => setScreen("signup")}>חזרה להרשמה</a>
             </div>
           </div>
         </div>
@@ -695,8 +813,8 @@ function OnboardingInner() {
             חזור
           </button>
           <div style={{ flex: 1 }}></div>
-          <button className={c("btn btn-primary")} style={{ maxWidth: 160, width: "auto" }} onClick={nextStep}>
-            {curStep === totalSteps ? "סיום וכניסה" : "המשך"}
+          <button className={c("btn btn-primary")} style={{ maxWidth: 160, width: "auto" }} onClick={nextStep} disabled={finishing}>
+            {curStep === totalSteps ? (finishing ? "יוצר בוט..." : "סיום וכניסה") : "המשך"}
           </button>
         </div>
       </div>
@@ -728,7 +846,21 @@ function OnboardingInner() {
                 <span className={c("sd-val")} style={{ color: "var(--amber, #d97706)" }}>ממתין לחיבור וואטסאפ</span>
               </div>
             </div>
-            <button className={c("btn btn-primary")} onClick={() => router.push("/dashboard")}>
+            <button
+              className={c("btn btn-primary")}
+              onClick={() => {
+                // #14 — hand off the new bot so the Dashboard opens straight on
+                // its WhatsApp connect step (verify + activate from there).
+                if (newBotId) {
+                  try {
+                    sessionStorage.setItem("rb_open_bot", JSON.stringify({ id: newBotId, tab: "connect" }));
+                  } catch {
+                    /* ignore storage errors */
+                  }
+                }
+                router.push("/dashboard");
+              }}
+            >
               חבר וואטסאפ ב-Dashboard
             </button>
           </div>

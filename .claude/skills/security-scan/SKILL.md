@@ -1,6 +1,6 @@
 ---
 name: security-scan
-description: Run a full security sweep of the Robert repo — exposed secrets, vulnerable dependencies, and multi-tenant isolation checks. Use for "סריקת אבטחה", "בדוק סודות חשופים", "npm audit", "האם המידע מאובטח", or before any release/deploy. Pairs with the cyber-guardian agent.
+description: Run a full security sweep of the Robert repo — exposed secrets, vulnerable dependencies, and multi-tenant isolation checks. Use for "סריקת אבטחה", "בדוק סודות חשופים", "npm audit", "האם המידע מאובטח", or before any release/deploy. Pairs with the security agent.
 ---
 
 # סריקת אבטחה לפרויקט Robert
@@ -31,7 +31,7 @@ npm audit
   לפי `user_id`/`bot_id` (admin client עוקף RLS).
 - כל טבלה חדשה ב-`app/supabase/*.sql` — `ENABLE ROW LEVEL SECURITY` + policy תקין.
 - routes משתמשים ב-server client (RLS) ולא ב-admin client לבקשות משתמש.
-- לעומק → הפעל את הסוכן `multitenant-security-reviewer`.
+- לעומק → הפעל את הסוכן `security`.
 
 ## 4. אימות webhooks
 - Twilio (חתימה) ו-Stripe (`STRIPE_WEBHOOK_SECRET`) מאומתים לפני עיבוד.
