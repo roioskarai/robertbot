@@ -65,6 +65,7 @@ export default function SitePages() {
         </div>
         <div className={styles.row}>
           <Btn onClick={() => seed(false)}><RefreshCw size={14} /> אתחול ראשוני</Btn>
+          <Btn onClick={() => seed(true)}><RefreshCw size={14} /> שחזר ברירת מחדל</Btn>
           <Btn variant="primary" onClick={() => setCreating((v) => !v)}><Plus size={14} /> עמוד חדש</Btn>
         </div>
       </div>
