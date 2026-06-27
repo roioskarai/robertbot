@@ -159,6 +159,9 @@ function OnboardingInner() {
       // user verifies their email. Gate the wizard behind email verification
       // (#3); if a session already exists (confirmation disabled), go straight in.
       const d = await res.json().catch(() => ({}));
+      if (d?.resent) {
+        toast("מייל אימות נשלח שוב — בדוק את תיבת הדואר (כולל ספאם).");
+      }
       setScreen(d?.hasSession ? "ob" : "verify");
     } catch {
       toast("אין חיבור לשרת — נסה שוב.");

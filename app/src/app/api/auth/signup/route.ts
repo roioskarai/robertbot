@@ -35,7 +35,21 @@ export async function POST(req: Request) {
     options: { data: { full_name: full_name ?? "" }, emailRedirectTo },
   });
 
-  if (error) return jsonError(hebAuthError(error.message));
+  // Rate-limit or "already sent" → the email already exists but isn't confirmed.
+  // Treat it as "check your inbox" rather than surfacing a confusing error.
+  if (error) {
+    const m = error.message.toLowerCase();
+    const isRateLimit = m.includes("rate limit") || m.includes("email sending");
+    const isAlreadySent = m.includes("already registered") || m.includes("already exists") || m.includes("user already");
+    if (isRateLimit || isAlreadySent) {
+      // Resend the confirmation if possible (best-effort, ignore errors)
+      try {
+        await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo } });
+      } catch { /* ignore */ }
+      return NextResponse.json({ ok: true, userId: null, hasSession: false, resent: true });
+    }
+    return jsonError(hebAuthError(error.message));
+  }
 
   // Welcome email (best-effort — never blocks signup)
   if (hasResendKey()) {
