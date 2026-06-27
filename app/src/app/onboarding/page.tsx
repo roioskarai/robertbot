@@ -389,7 +389,15 @@ function OnboardingInner() {
               שלחנו מייל אימות אל <strong>{su.email || "המייל שלך"}</strong>. פתח אותו ולחץ על
               הקישור — תועבר אוטומטית להמשך ההגדרה.
             </div>
-            <button className={c("btn btn-primary")} onClick={() => router.push("/dashboard")}>
+            <button className={c("btn btn-primary")} onClick={async () => {
+              const supabase = createClient();
+              const { data: { session } } = await supabase.auth.getSession();
+              if (!session || !session.user.email_confirmed_at) {
+                toast("המייל טרם אומת. לחץ על הקישור שנשלח אליך, או שלח שוב.");
+                return;
+              }
+              router.push("/dashboard");
+            }}>
               כבר אימתתי — המשך
             </button>
             <div style={{ marginBottom: 12 }}></div>

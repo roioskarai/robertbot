@@ -969,9 +969,9 @@ export default function DashboardPage() {
         <div className={c("grid-2")}>
           <div className={c("card card-pad")}>
             <div className={c("card-title")}>פרטים אישיים</div>
-            <div className={c("fg")}><label className={c("fl")}>שם מלא</label><input className={c("fi")} defaultValue={user.name} /></div>
-            <div className={c("fg")}><label className={c("fl")}>אימייל</label><input className={c("fi")} defaultValue={user.email} readOnly /></div>
-            <div className={c("fg")}><label className={c("fl")}>טלפון</label><input className={c("fi")} defaultValue="" placeholder="הכנס מספר טלפון" /></div>
+            <div className={c("fg")}><label className={c("fl")}>שם מלא</label><input className={c("fi")} defaultValue={user.name} autoComplete="name" /></div>
+            <div className={c("fg")}><label className={c("fl")}>אימייל</label><input className={c("fi")} defaultValue={user.email} readOnly autoComplete="email" /></div>
+            <div className={c("fg")}><label className={c("fl")}>טלפון</label><input className={c("fi")} defaultValue="" placeholder="הכנס מספר טלפון" autoComplete="tel" /></div>
             <button className={c("btn btn-primary btn-sm")} onClick={() => toast("הפרטים נשמרו")}>שמור שינויים</button>
           </div>
           <div className={c("card card-pad")}>
