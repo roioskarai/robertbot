@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Rubik } from "next/font/google";
 import "./globals.css";
 
@@ -13,7 +13,17 @@ export const metadata: Metadata = {
   title: "Robert — הבוט שעובד בשבילך",
   description:
     "Robert עונה, מסביר וקובע פגישות ללקוחות שלך בוואטסאפ — בשמך, 24/7. הקמה תוך 5 דקות, ללא קוד.",
-  icons: { icon: "/favicon.svg" },
+  // ?v=2 busts cached copies of the old "R" favicon across browsers/CDN.
+  icons: {
+    icon: [{ url: "/favicon.svg?v=2", type: "image/svg+xml" }],
+    shortcut: "/favicon.svg?v=2",
+    apple: "/favicon.svg?v=2",
+  },
+  manifest: "/site.webmanifest",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0f172a",
 };
 
 export default function RootLayout({

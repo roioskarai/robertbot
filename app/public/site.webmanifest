@@ -1,0 +1,12 @@
+{
+  "name": "Robert — הבוט שעובד בשבילך",
+  "short_name": "Robert",
+  "description": "בוט וואטסאפ חכם שעונה, מסביר וקובע פגישות ללקוחות שלך 24/7.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f172a",
+  "icons": [
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any" }
+  ]
+}
