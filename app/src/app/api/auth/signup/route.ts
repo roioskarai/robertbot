@@ -64,6 +64,8 @@ export async function POST(req: Request) {
 
     userId = row.id;
     isResend = true;
+    // Update password in case it changed between attempts
+    await admin.auth.admin.updateUserById(row.id, { password });
   } else {
     userId = data.user?.id ?? null;
   }
