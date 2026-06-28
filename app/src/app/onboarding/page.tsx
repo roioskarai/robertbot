@@ -120,8 +120,11 @@ function OnboardingInner() {
 
   const totalSteps = 5;
 
-  // ── signup
+  // ── signup ui
+  const [showPw, setShowPw] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [signingUp, setSigningUp] = useState(false);
+  const [checkingVerify, setCheckingVerify] = useState(false);
   async function doSignup() {
     if (signingUp) return; // guard against double-submit
 
@@ -193,12 +196,13 @@ function OnboardingInner() {
   async function googleSignup() {
     try {
       const supabase = createClient();
-      await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: `${window.location.origin}/dashboard` },
       });
+      if (error) toast("התחברות עם Google נכשלה — נסה שוב.");
     } catch {
-      setScreen("ob");
+      toast("התחברות עם Google אינה זמינה כרגע.");
     }
   }
 
@@ -315,6 +319,7 @@ function OnboardingInner() {
               <input
                 className={c("fi")}
                 placeholder="ישראל ישראלי"
+                autoComplete="name"
                 value={su.full_name}
                 onChange={(e) => setSu({ ...su, full_name: e.target.value })}
               />
@@ -325,29 +330,44 @@ function OnboardingInner() {
                 className={c("fi")}
                 type="email"
                 placeholder="israel@gmail.com"
+                autoComplete="email"
                 value={su.email}
                 onChange={(e) => setSu({ ...su, email: e.target.value })}
               />
             </div>
-            <div className={c("fg")}>
+            <div className={c("fg")} style={{ position: "relative" }}>
               <label className={c("fl")}>סיסמה</label>
               <input
                 className={c("fi")}
-                type="password"
+                type={showPw ? "text" : "password"}
                 placeholder="לפחות 8 תווים"
+                autoComplete="new-password"
                 value={su.password}
                 onChange={(e) => setSu({ ...su, password: e.target.value })}
+                style={{ paddingLeft: 40 }}
               />
+              <button type="button" onClick={() => setShowPw(s => !s)} style={{ position: "absolute", left: 10, top: 34, background: "none", border: "none", cursor: "pointer", color: "var(--t3)", padding: 4 }}>
+                {showPw
+                  ? <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
+              </button>
             </div>
-            <div className={c("fg")}>
+            <div className={c("fg")} style={{ position: "relative" }}>
               <label className={c("fl")}>אימות סיסמה</label>
               <input
                 className={c("fi")}
-                type="password"
+                type={showConfirm ? "text" : "password"}
                 placeholder="הקלד שוב את הסיסמה"
+                autoComplete="new-password"
                 value={su.confirm}
                 onChange={(e) => setSu({ ...su, confirm: e.target.value })}
+                style={{ paddingLeft: 40 }}
               />
+              <button type="button" onClick={() => setShowConfirm(s => !s)} style={{ position: "absolute", left: 10, top: 34, background: "none", border: "none", cursor: "pointer", color: "var(--t3)", padding: 4 }}>
+                {showConfirm
+                  ? <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
+              </button>
             </div>
             <div style={{ marginBottom: 16 }}></div>
             <button className={c("btn btn-primary")} onClick={doSignup} disabled={signingUp}>
@@ -392,16 +412,18 @@ function OnboardingInner() {
               שלחנו מייל אימות אל <strong>{su.email || "המייל שלך"}</strong>. פתח אותו ולחץ על
               הקישור — תועבר אוטומטית להמשך ההגדרה.
             </div>
-            <button className={c("btn btn-primary")} onClick={async () => {
+            <button className={c("btn btn-primary")} disabled={checkingVerify} onClick={async () => {
+              setCheckingVerify(true);
               const supabase = createClient();
               const { data: { session } } = await supabase.auth.getSession();
+              setCheckingVerify(false);
               if (!session || !session.user.email_confirmed_at) {
                 toast("המייל טרם אומת. לחץ על הקישור שנשלח אליך, או שלח שוב.");
                 return;
               }
               router.push("/dashboard");
             }}>
-              כבר אימתתי — המשך
+              {checkingVerify ? "בודק..." : "כבר אימתתי — המשך"}
             </button>
             <div style={{ marginBottom: 12 }}></div>
             <button

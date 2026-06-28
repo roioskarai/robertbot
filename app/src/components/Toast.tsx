@@ -5,12 +5,12 @@ import { useCallback, useState } from "react";
 export function useToast() {
   const [msg, setMsg] = useState<string | null>(null);
 
-  const toast = useCallback((m: string) => {
+  const toast = useCallback((m: string, durationMs = 4000) => {
     setMsg(m);
     window.clearTimeout((toast as unknown as { _t?: number })._t);
     (toast as unknown as { _t?: number })._t = window.setTimeout(
       () => setMsg(null),
-      2400,
+      durationMs,
     );
   }, []);
 
@@ -30,7 +30,10 @@ export function useToast() {
           fontWeight: 600,
           zIndex: 9999,
           boxShadow: "0 4px 16px rgba(0,0,0,.25)",
-          whiteSpace: "nowrap",
+          maxWidth: "calc(100vw - 32px)",
+          whiteSpace: "normal",
+          wordBreak: "break-word",
+          textAlign: "center",
         }}
       >
         {msg}

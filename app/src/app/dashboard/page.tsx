@@ -141,7 +141,13 @@ export default function DashboardPage() {
   const [bots, setBots] = useState<Partial<Bot>[]>(DEMO_MODE ? DEMO_BOTS : []);
   const [analytics, setAnalytics] = useState<Analytics>(DEMO_MODE ? DEMO_ANALYTICS : ZERO_ANALYTICS);
   const [convs, setConvs] = useState<ConvRow[]>(DEMO_MODE ? DEMO_CONVS : []);
-  const [user, setUser] = useState(DEMO_MODE ? { name: "דני כהן", email: "dani@gmail.com" } : { name: "", email: "" });
+  const [user, setUser] = useState(DEMO_MODE ? { name: "דני כהן", email: "dani@gmail.com", phone: "" } : { name: "", email: "", phone: "" });
+  const [accountForm, setAccountForm] = useState({ name: "", phone: "" });
+  const [pwForm, setPwForm] = useState({ current: "", next: "" });
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingPw, setSavingPw] = useState(false);
+  const [showCurPw, setShowCurPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
 
   // editor
   const [editBot, setEditBot] = useState<Partial<Bot> | null>(null);
@@ -184,10 +190,10 @@ export default function DashboardPage() {
       const supabase = createClient();
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (authUser) {
-        setUser({
-          name: (authUser.user_metadata?.full_name as string) || authUser.email?.split("@")[0] || "",
-          email: authUser.email || "",
-        });
+        const name = (authUser.user_metadata?.full_name as string) || authUser.email?.split("@")[0] || "";
+        const phone = (authUser.user_metadata?.phone as string) || "";
+        setUser({ name, email: authUser.email || "", phone });
+        setAccountForm({ name, phone });
       }
     } catch {
       if (!DEMO_MODE) {
@@ -488,12 +494,12 @@ export default function DashboardPage() {
   function renderOverview() {
     return (
       <div className={pageCls("overview")}>
-        <div className={c("ph")}><div><div className={c("ph-title")}>שלום, {user.name || "אורח"}</div><div className={c("ph-sub")}>הנה מה שקורה אצלך היום</div></div></div>
+        <div className={c("ph")}><div><div className={c("ph-title")}>{user.name ? `שלום, ${user.name}` : "שלום"}</div><div className={c("ph-sub")}>הנה מה שקורה אצלך היום</div></div></div>
         <div className={c("grid-4")} style={{ marginBottom: 16 }}>
           <div className={c("card sc")}>
             <div className={c("sc-label")}>הודעות היום</div>
             <div className={c("sc-val")}>{analytics.messagesToday}</div>
-            <div className={c("sc-sub up")}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="18 15 12 9 6 15" /></svg> 12% מאתמול</div>
+            <div className={c("sc-sub nt")}>{analytics.messagesToday === 0 ? "אין הודעות היום עדיין" : "הודעות נכנסו היום"}</div>
           </div>
           <div className={c("card sc")}>
             <div className={c("sc-label")}>שיחות פתוחות</div>
@@ -537,7 +543,7 @@ export default function DashboardPage() {
             </div>
             <div className={c("divd")}></div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 13, color: "var(--t3)" }}>מסלול מקצועי · חידוש 1.7.26</span>
+              <span style={{ fontSize: 13, color: "var(--t3)" }}>{isPlanId(analytics.plan) ? planLabelHe(analytics.plan) : analytics.plan || "בסיסי"}</span>
               <button className={c("btn btn-outline btn-xs")} onClick={() => goPage("billing")}>שדרג</button>
             </div>
           </div>
@@ -962,6 +968,35 @@ export default function DashboardPage() {
     );
   }
 
+  async function saveProfile() {
+    if (!accountForm.name.trim()) { toast("נא להזין שם מלא"); return; }
+    if (DEMO_MODE) { toast("הפרטים נשמרו ✓"); return; }
+    setSavingProfile(true);
+    const supabase = createClient();
+    const { error } = await supabase.auth.updateUser({
+      data: { full_name: accountForm.name.trim(), phone: accountForm.phone.trim() },
+    });
+    setSavingProfile(false);
+    if (error) { toast("שמירה נכשלה — נסה שוב."); return; }
+    setUser(u => ({ ...u, name: accountForm.name.trim(), phone: accountForm.phone.trim() }));
+    toast("הפרטים נשמרו ✓");
+  }
+
+  async function updatePassword() {
+    if (!pwForm.current) { toast("נא להזין את הסיסמה הנוכחית"); return; }
+    if (pwForm.next.length < 8) { toast("הסיסמה החדשה חייבת להכיל לפחות 8 תווים"); return; }
+    if (DEMO_MODE) { toast("הסיסמה עודכנה ✓"); setPwForm({ current: "", next: "" }); return; }
+    setSavingPw(true);
+    const supabase = createClient();
+    const { error: signInErr } = await supabase.auth.signInWithPassword({ email: user.email, password: pwForm.current });
+    if (signInErr) { toast("הסיסמה הנוכחית שגויה"); setSavingPw(false); return; }
+    const { error } = await supabase.auth.updateUser({ password: pwForm.next });
+    setSavingPw(false);
+    if (error) { toast("עדכון הסיסמה נכשל — נסה שוב."); return; }
+    setPwForm({ current: "", next: "" });
+    toast("הסיסמה עודכנה בהצלחה ✓");
+  }
+
   function renderAccount() {
     return (
       <div className={pageCls("account")}>
@@ -969,10 +1004,10 @@ export default function DashboardPage() {
         <div className={c("grid-2")}>
           <div className={c("card card-pad")}>
             <div className={c("card-title")}>פרטים אישיים</div>
-            <div className={c("fg")}><label className={c("fl")}>שם מלא</label><input className={c("fi")} defaultValue={user.name} autoComplete="name" /></div>
-            <div className={c("fg")}><label className={c("fl")}>אימייל</label><input className={c("fi")} defaultValue={user.email} readOnly autoComplete="email" /></div>
-            <div className={c("fg")}><label className={c("fl")}>טלפון</label><input className={c("fi")} defaultValue="" placeholder="הכנס מספר טלפון" autoComplete="tel" /></div>
-            <button className={c("btn btn-primary btn-sm")} onClick={() => toast("הפרטים נשמרו")}>שמור שינויים</button>
+            <div className={c("fg")}><label className={c("fl")}>שם מלא</label><input className={c("fi")} value={accountForm.name} autoComplete="name" onChange={e => setAccountForm(f => ({ ...f, name: e.target.value }))} /></div>
+            <div className={c("fg")}><label className={c("fl")}>אימייל</label><input className={c("fi")} value={user.email} readOnly autoComplete="email" style={{ opacity: 0.7 }} /></div>
+            <div className={c("fg")}><label className={c("fl")}>טלפון</label><input className={c("fi")} value={accountForm.phone} placeholder="הכנס מספר טלפון" autoComplete="tel" onChange={e => setAccountForm(f => ({ ...f, phone: e.target.value }))} /></div>
+            <button className={c("btn btn-primary btn-sm")} onClick={saveProfile} disabled={savingProfile}>{savingProfile ? "שומר..." : "שמור שינויים"}</button>
           </div>
           <div className={c("card card-pad")}>
             <div className={c("card-title")}>התראות</div>
@@ -982,9 +1017,21 @@ export default function DashboardPage() {
           </div>
           <div className={c("card card-pad")}>
             <div className={c("card-title")}>אבטחה</div>
-            <div className={c("fg")}><label className={c("fl")}>סיסמה נוכחית</label><input className={c("fi")} type="password" defaultValue="" placeholder="••••••••" /></div>
-            <div className={c("fg")}><label className={c("fl")}>סיסמה חדשה</label><input className={c("fi")} type="password" placeholder="לפחות 8 תווים" /></div>
-            <button className={c("btn btn-outline btn-sm")} onClick={() => toast("הסיסמה עודכנה")}>עדכן סיסמה</button>
+            <div className={c("fg")} style={{ position: "relative" }}>
+              <label className={c("fl")}>סיסמה נוכחית</label>
+              <input className={c("fi")} type={showCurPw ? "text" : "password"} value={pwForm.current} placeholder="••••••••" autoComplete="current-password" onChange={e => setPwForm(f => ({ ...f, current: e.target.value }))} style={{ paddingLeft: 36 }} />
+              <button type="button" onClick={() => setShowCurPw(s => !s)} style={{ position: "absolute", left: 8, top: 34, background: "none", border: "none", cursor: "pointer", color: "var(--t3)", padding: 4 }}>
+                {showCurPw ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
+              </button>
+            </div>
+            <div className={c("fg")} style={{ position: "relative" }}>
+              <label className={c("fl")}>סיסמה חדשה</label>
+              <input className={c("fi")} type={showNewPw ? "text" : "password"} value={pwForm.next} placeholder="לפחות 8 תווים" autoComplete="new-password" onChange={e => setPwForm(f => ({ ...f, next: e.target.value }))} style={{ paddingLeft: 36 }} />
+              <button type="button" onClick={() => setShowNewPw(s => !s)} style={{ position: "absolute", left: 8, top: 34, background: "none", border: "none", cursor: "pointer", color: "var(--t3)", padding: 4 }}>
+                {showNewPw ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
+              </button>
+            </div>
+            <button className={c("btn btn-outline btn-sm")} onClick={updatePassword} disabled={savingPw}>{savingPw ? "מעדכן..." : "עדכן סיסמה"}</button>
           </div>
         </div>
       </div>
