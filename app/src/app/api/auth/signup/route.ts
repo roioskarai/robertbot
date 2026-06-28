@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { hasResendKey, sendEmail, welcomeEmail } from "@/lib/resend";
-import { planLabelHe } from "@/lib/plans";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { hasResendKey, sendEmail, otpEmail } from "@/lib/resend";
 import { hebAuthError, jsonError } from "@/lib/errors";
 import { isValidEmail, LIMITS } from "@/lib/validation";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
+
+function generateOtp(): string {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
 
 export async function POST(req: Request) {
   if (!rateLimit(`signup:${clientKey(req)}`, 8, 60_000).allowed) {
@@ -24,52 +27,64 @@ export async function POST(req: Request) {
   if (password.length < 8) return jsonError("הסיסמה חייבת להכיל לפחות 8 תווים");
   if (password.length > LIMITS.password) return jsonError("הסיסמה ארוכה מדי");
 
-  const supabase = createClient();
-  // After the user confirms their email, land them back in the app (logged in)
-  // to finish onboarding (#3). Uses the app URL in prod, request origin otherwise.
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
-  const emailRedirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent("/onboarding?new=1")}`;
-  const { data, error } = await supabase.auth.signUp({
+  const admin = createAdminClient();
+  let userId: string | null = null;
+  let isResend = false;
+
+  // createUser skips Supabase's own email — we send our branded OTP via Resend.
+  const { data, error } = await admin.auth.admin.createUser({
     email,
     password,
-    options: { data: { full_name: full_name ?? "" }, emailRedirectTo },
+    email_confirm: false,
+    user_metadata: { full_name: full_name ?? "" },
   });
 
-  // Rate-limit or "already sent" → the email already exists but isn't confirmed.
-  // Treat it as "check your inbox" rather than surfacing a confusing error.
   if (error) {
     const m = error.message.toLowerCase();
-    const isRateLimit = m.includes("rate limit") || m.includes("email sending");
-    const isAlreadySent = m.includes("already registered") || m.includes("already exists") || m.includes("user already");
-    if (isRateLimit || isAlreadySent) {
-      // Resend the confirmation if possible (best-effort, ignore errors)
-      try {
-        await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo } });
-      } catch { /* ignore */ }
-      return NextResponse.json({ ok: true, userId: null, hasSession: false, resent: true });
+    const isExisting = m.includes("already") || m.includes("exists") || m.includes("registered");
+    if (!isExisting) return jsonError(hebAuthError(error.message));
+
+    // User exists — look up in our users table (trigger syncs auth.users → users).
+    const { data: row } = await admin
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .single();
+
+    if (!row?.id) {
+      // In auth.users but not in users table → already confirmed or edge case
+      return jsonError("כתובת המייל כבר רשומה. נסה להתחבר.");
     }
-    return jsonError(hebAuthError(error.message));
+
+    // If they're already confirmed, don't resend OTP — just ask to log in.
+    const { data: authUser } = await admin.auth.admin.getUserById(row.id);
+    if (authUser.user?.email_confirmed_at) {
+      return jsonError("כתובת המייל כבר רשומה. נסה להתחבר.");
+    }
+
+    userId = row.id;
+    isResend = true;
+  } else {
+    userId = data.user?.id ?? null;
   }
 
-  // Welcome email (best-effort — never blocks signup)
+  if (!userId) return jsonError("ההרשמה נכשלה. נסה שוב.");
+
+  // Generate OTP, store in app_metadata (server-only — never exposed to client session).
+  const code = generateOtp();
+  const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+  await admin.auth.admin.updateUserById(userId, {
+    app_metadata: { otp_code: code, otp_expires: expires, otp_attempts: 0 },
+  });
+
+  // Send branded OTP email via Resend (best-effort).
   if (hasResendKey()) {
     try {
-      const trialEndsAt = new Date(Date.now() + 7 * 86_400_000).toLocaleDateString("he-IL");
-      const { subject, html } = welcomeEmail({
-        name: full_name || "",
-        plan: planLabelHe("basic"),
-        trialEndsAt,
-        email,
-      });
+      const { subject, html } = otpEmail({ code });
       await sendEmail(email, subject, html);
-    } catch {
-      /* ignore email failures */
-    }
+    } catch { /* email failure never blocks signup */ }
   }
 
-  return NextResponse.json({
-    ok: true,
-    userId: data.user?.id ?? null,
-    hasSession: Boolean(data.session),
-  });
+  return NextResponse.json({ ok: true, userId, hasSession: false, resent: isResend });
 }

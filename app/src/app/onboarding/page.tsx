@@ -133,7 +133,8 @@ function OnboardingInner() {
   const [showPw, setShowPw] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [signingUp, setSigningUp] = useState(false);
-  const [checkingVerify, setCheckingVerify] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
   async function doSignup() {
     if (signingUp) return; // guard against double-submit
 
@@ -172,7 +173,7 @@ function OnboardingInner() {
       // (#3); if a session already exists (confirmation disabled), go straight in.
       const d = await res.json().catch(() => ({}));
       if (d?.resent) {
-        toast("מייל אימות נשלח שוב — בדוק את תיבת הדואר (כולל ספאם).");
+        toast("קוד אימות חדש נשלח לתיבת הדואר שלך.");
       }
       setScreen(d?.hasSession ? "ob" : "verify");
     } catch {
@@ -182,23 +183,55 @@ function OnboardingInner() {
     }
   }
 
-  // #3 — resend the email-verification message.
+  // #3 — resend OTP: re-call the signup endpoint which regenerates + resends.
   const [resending, setResending] = useState(false);
   async function resendVerification() {
     if (resending) return;
     setResending(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.resend({
-        type: "signup",
-        email: su.email.trim(),
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/onboarding?new=1")}` },
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: su.email.trim(), password: su.password, full_name: su.full_name.trim() }),
       });
-      toast(error ? "שליחה נכשלה — נסה שוב בעוד רגע." : "שלחנו שוב מייל אימות.");
+      const d = await res.json().catch(() => ({}));
+      toast(res.ok ? "קוד אימות חדש נשלח לתיבת הדואר שלך." : (d.error || "שליחה נכשלה — נסה שוב."));
     } catch {
       toast("שליחה נכשלה — נסה שוב.");
     } finally {
       setResending(false);
+    }
+  }
+
+  // #3b — verify the 6-digit OTP code the user entered.
+  async function verifyOtp() {
+    const code = otpCode.trim();
+    if (code.length !== 6) { toast("הזן קוד בן 6 ספרות"); return; }
+    setVerifyingOtp(true);
+    try {
+      const res = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: su.email.trim(), code }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { toast(d.error || "הקוד שגוי. נסה שוב."); return; }
+      // OTP verified — sign in (server confirmed email_confirm: true).
+      const supabase = createClient();
+      const { error: loginErr } = await supabase.auth.signInWithPassword({
+        email: su.email.trim(),
+        password: su.password,
+      });
+      if (loginErr) {
+        toast("אימות הצליח אך ההתחברות נכשלה. נסה להתחבר מדף ההתחברות.");
+        return;
+      }
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      toast("אין חיבור לשרת — נסה שוב.");
+    } finally {
+      setVerifyingOtp(false);
     }
   }
 
@@ -404,7 +437,7 @@ function OnboardingInner() {
         </div>
       </div>
 
-      {/* SCREEN: VERIFY EMAIL (#3) */}
+      {/* SCREEN: VERIFY EMAIL — OTP code entry (#3) */}
       <div className={c("screen") + (screen === "verify" ? " " + styles.act : "")}>
         <div className={c("signup-wrap")}>
           <div className={c("signup-card")}>
@@ -418,21 +451,46 @@ function OnboardingInner() {
             </div>
             <div className={c("signup-title")}>אמת את כתובת המייל</div>
             <div className={c("signup-sub")}>
-              שלחנו מייל אימות אל <strong>{su.email || "המייל שלך"}</strong>. פתח אותו ולחץ על
-              הקישור — תועבר אוטומטית להמשך ההגדרה.
+              שלחנו קוד אימות בן 6 ספרות אל <strong>{su.email || "המייל שלך"}</strong>.<br />
+              הזן אותו כאן כדי להמשיך.
             </div>
-            <button className={c("btn btn-primary")} disabled={checkingVerify} onClick={async () => {
-              setCheckingVerify(true);
-              const supabase = createClient();
-              const { data: { session } } = await supabase.auth.getSession();
-              setCheckingVerify(false);
-              if (!session || !session.user.email_confirmed_at) {
-                toast("המייל טרם אומת. לחץ על הקישור שנשלח אליך, או שלח שוב.");
-                return;
-              }
-              router.push("/dashboard");
-            }}>
-              {checkingVerify ? "בודק..." : "כבר אימתתי — המשך"}
+
+            {/* OTP code input — styled as big digit display */}
+            <div style={{ margin: "20px 0" }}>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                placeholder="_ _ _ _ _ _"
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                onKeyDown={(e) => { if (e.key === "Enter") void verifyOtp(); }}
+                autoFocus
+                style={{
+                  width: "100%",
+                  fontSize: 36,
+                  fontWeight: 900,
+                  letterSpacing: 14,
+                  textAlign: "center",
+                  fontFamily: "'Courier New', monospace",
+                  border: "2px solid #e2e8f0",
+                  borderRadius: 14,
+                  padding: "18px 12px",
+                  background: "#f8fafc",
+                  color: "#0f172a",
+                  outline: "none",
+                  direction: "ltr",
+                }}
+              />
+            </div>
+
+            <button
+              className={c("btn btn-primary")}
+              disabled={verifyingOtp || otpCode.length !== 6}
+              onClick={verifyOtp}
+            >
+              {verifyingOtp ? "מאמת..." : "אמת ואיפשר כניסה ◄"}
             </button>
             <div style={{ marginBottom: 12 }}></div>
             <button
@@ -441,13 +499,13 @@ function OnboardingInner() {
               onClick={resendVerification}
               disabled={resending}
             >
-              {resending ? "שולח..." : "שלח שוב את מייל האימות"}
+              {resending ? "שולח..." : "שלח קוד חדש"}
             </button>
             <div className={c("signup-terms")}>
-              לא קיבלת? בדוק בתיקיית הספאם, או שלח שוב. הקישור תקף לזמן מוגבל.
+              הקוד תקף ל-10 דקות. לא קיבלת? בדוק בתיקיית הספאם או בקש קוד חדש.
             </div>
             <div className={c("signup-login")}>
-              רוצה להתחיל מחדש? <a onClick={() => setScreen("signup")}>חזרה להרשמה</a>
+              רוצה להתחיל מחדש? <a onClick={() => { setOtpCode(""); setScreen("signup"); }}>חזרה להרשמה</a>
             </div>
           </div>
         </div>
