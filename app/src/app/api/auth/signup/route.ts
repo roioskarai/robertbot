@@ -52,20 +52,42 @@ export async function POST(req: Request) {
       .single();
 
     if (!row?.id) {
-      // In auth.users but not in users table → already confirmed or edge case
-      return jsonError("כתובת המייל כבר רשומה. נסה להתחבר.");
-    }
+      // Not in public.users — find the auth user directly (e.g. public row was
+      // manually deleted from Supabase Table Editor while auth user persists).
+      const { data: list } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const authUser = list?.users?.find((u) => u.email === email);
 
-    // If they're already confirmed, don't resend OTP — just ask to log in.
-    const { data: authUser } = await admin.auth.admin.getUserById(row.id);
-    if (authUser.user?.email_confirmed_at) {
-      return jsonError("כתובת המייל כבר רשומה. נסה להתחבר.");
-    }
+      if (!authUser) {
+        // createUser returned "exists" but user is truly gone (propagation lag).
+        // Give it one more try — on failure surface the real error.
+        const retry = await admin.auth.admin.createUser({
+          email, password, email_confirm: false,
+          user_metadata: { full_name: full_name ?? "" },
+        });
+        if (retry.error) return jsonError(hebAuthError(retry.error.message));
+        userId = retry.data.user?.id ?? null;
+      } else if (authUser.email_confirmed_at) {
+        return jsonError("כתובת המייל כבר רשומה. נסה להתחבר.");
+      } else {
+        userId = authUser.id;
+        isResend = true;
+        // Update password + re-create missing public.users row
+        await admin.auth.admin.updateUserById(userId, { password });
+        await admin.from("users")
+          .upsert({ id: userId, email, full_name: full_name ?? "", role: "tenant" }, { onConflict: "id", ignoreDuplicates: true });
+      }
+    } else {
+      // If they're already confirmed, don't resend OTP — just ask to log in.
+      const { data: authUser } = await admin.auth.admin.getUserById(row.id);
+      if (authUser.user?.email_confirmed_at) {
+        return jsonError("כתובת המייל כבר רשומה. נסה להתחבר.");
+      }
 
-    userId = row.id;
-    isResend = true;
-    // Update password in case it changed between attempts
-    await admin.auth.admin.updateUserById(row.id, { password });
+      userId = row.id;
+      isResend = true;
+      // Update password in case it changed between attempts
+      await admin.auth.admin.updateUserById(row.id, { password });
+    }
   } else {
     userId = data.user?.id ?? null;
   }
