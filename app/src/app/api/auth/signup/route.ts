@@ -14,18 +14,33 @@ export async function POST(req: Request) {
     return jsonError("יותר מדי נסיונות. נסה שוב בעוד דקה.", 429);
   }
 
-  let body: { email?: string; password?: string; full_name?: string };
+  let body: {
+    email?: string;
+    password?: string;
+    first_name?: string;
+    last_name?: string;
+    phone?: string;
+    full_name?: string; // legacy fallback
+  };
   try {
     body = await req.json();
   } catch {
     return jsonError("בקשה לא תקינה");
   }
 
-  const { email, password, full_name } = body;
+  const { email, password } = body;
   if (!email || !password) return jsonError("חסר אימייל או סיסמה");
   if (!isValidEmail(email)) return jsonError("כתובת מייל לא תקינה");
   if (password.length < 8) return jsonError("הסיסמה חייבת להכיל לפחות 8 תווים");
   if (password.length > LIMITS.password) return jsonError("הסיסמה ארוכה מדי");
+
+  // Personal details (stored in user_metadata — no schema change). full_name is
+  // composed from first+last so the handle_new_user DB trigger keeps working.
+  const firstName = (body.first_name ?? "").trim();
+  const lastName = (body.last_name ?? "").trim();
+  const phone = (body.phone ?? "").trim();
+  const fullName = [firstName, lastName].filter(Boolean).join(" ") || (body.full_name ?? "").trim();
+  const metadata = { first_name: firstName, last_name: lastName, phone, full_name: fullName };
 
   const admin = createAdminClient();
   let userId: string | null = null;
@@ -36,7 +51,7 @@ export async function POST(req: Request) {
     email,
     password,
     email_confirm: false,
-    user_metadata: { full_name: full_name ?? "" },
+    user_metadata: metadata,
   });
 
   if (error) {
@@ -62,7 +77,7 @@ export async function POST(req: Request) {
         // Give it one more try — on failure surface the real error.
         const retry = await admin.auth.admin.createUser({
           email, password, email_confirm: false,
-          user_metadata: { full_name: full_name ?? "" },
+          user_metadata: metadata,
         });
         if (retry.error) return jsonError(hebAuthError(retry.error.message));
         userId = retry.data.user?.id ?? null;
@@ -71,10 +86,10 @@ export async function POST(req: Request) {
       } else {
         userId = authUser.id;
         isResend = true;
-        // Update password + re-create missing public.users row
-        await admin.auth.admin.updateUserById(userId, { password });
+        // Update password + metadata, and re-create missing public.users row
+        await admin.auth.admin.updateUserById(userId, { password, user_metadata: metadata });
         await admin.from("users")
-          .upsert({ id: userId, email, full_name: full_name ?? "", role: "tenant" }, { onConflict: "id", ignoreDuplicates: true });
+          .upsert({ id: userId, email, full_name: fullName, role: "tenant" }, { onConflict: "id", ignoreDuplicates: true });
       }
     } else {
       // If they're already confirmed, don't resend OTP — just ask to log in.
@@ -85,8 +100,8 @@ export async function POST(req: Request) {
 
       userId = row.id;
       isResend = true;
-      // Update password in case it changed between attempts
-      await admin.auth.admin.updateUserById(row.id, { password });
+      // Update password + metadata in case they changed between attempts
+      await admin.auth.admin.updateUserById(row.id, { password, user_metadata: metadata });
     }
   } else {
     userId = data.user?.id ?? null;
@@ -102,13 +117,21 @@ export async function POST(req: Request) {
     app_metadata: { otp_code: code, otp_expires: expires, otp_attempts: 0 },
   });
 
-  // Send branded OTP email via Resend (best-effort).
+  // Send branded OTP email via Resend. Failures no longer block signup, but
+  // they ARE logged and reported to the client (emailSent flag) so the user
+  // can be told to retry instead of silently waiting for a mail that never came.
+  let emailSent = false;
   if (hasResendKey()) {
     try {
       const { subject, html } = otpEmail({ code });
       await sendEmail(email, subject, html);
-    } catch { /* email failure never blocks signup */ }
+      emailSent = true;
+    } catch (e) {
+      console.error("[signup] OTP email send failed:", e);
+    }
+  } else {
+    console.error("[signup] RESEND_API_KEY missing — cannot send OTP email");
   }
 
-  return NextResponse.json({ ok: true, userId, hasSession: false, resent: isResend });
+  return NextResponse.json({ ok: true, userId, hasSession: false, resent: isResend, emailSent });
 }

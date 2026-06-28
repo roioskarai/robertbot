@@ -171,5 +171,14 @@ export function dailyOwnerReportEmail(opts: {
 
 export async function sendEmail(to: string, subject: string, html: string) {
   const resend = getResend();
-  return resend.emails.send({ from: FROM, to, subject, html });
+  // The Resend SDK does NOT throw on API errors (e.g. unverified domain) —
+  // it returns { data, error }. We surface the error so callers' try/catch
+  // works and the failure is visible in logs instead of vanishing silently.
+  const { data, error } = await resend.emails.send({ from: FROM, to, subject, html });
+  if (error) {
+    const msg = typeof error === "string" ? error : (error.message || JSON.stringify(error));
+    console.error("[resend] send failed:", { to, subject, from: FROM, error });
+    throw new Error(msg);
+  }
+  return data;
 }

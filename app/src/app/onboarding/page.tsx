@@ -15,7 +15,7 @@ import {
   GENERIC_SERVICES,
 } from "./subcats";
 import type { BotStyle, Service, FaqItem, WorkingHours } from "@/lib/types";
-import { isValidEmail } from "@/lib/validation";
+import { isValidEmail, isValidPhoneIL } from "@/lib/validation";
 
 const c = scoped(styles);
 
@@ -49,6 +49,27 @@ interface DayRow {
   closed: boolean;
 }
 
+// Live password-strength meter (0–4). Pure UI hint — the hard rule (8+ chars)
+// is still enforced in validation + on the server.
+function passwordStrength(pw: string): { score: number; label: string; color: string } {
+  if (!pw) return { score: 0, label: "", color: "#e2e8f0" };
+  let s = 0;
+  if (pw.length >= 8) s++;
+  if (pw.length >= 12) s++;
+  if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) s++;
+  if (/\d/.test(pw)) s++;
+  if (/[^A-Za-z0-9]/.test(pw)) s++;
+  s = Math.min(4, s);
+  const map = [
+    { label: "", color: "#e2e8f0" },
+    { label: "חלשה", color: "#ef4444" },
+    { label: "סבירה", color: "#f59e0b" },
+    { label: "טובה", color: "#22c55e" },
+    { label: "חזקה", color: "#16a34a" },
+  ];
+  return { score: s, ...map[s] };
+}
+
 export default function OnboardingPage() {
   return (
     <Suspense fallback={null}>
@@ -80,7 +101,15 @@ function OnboardingInner() {
   const [curStep, setCurStep] = useState(1);
 
   // signup
-  const [su, setSu] = useState({ full_name: "", email: "", password: "", confirm: "" });
+  const [su, setSu] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirm: "",
+    terms: false,
+  });
 
   // step 1 — category
   const [catView, setCatView] = useState<"main" | "sub">("main");
@@ -140,12 +169,17 @@ function OnboardingInner() {
 
     // ── client-side validation (runs in demo + real so the UX is consistent
     //    and the user can't advance with empty/invalid/mismatched data) ──
-    const name = su.full_name.trim();
+    const first = su.first_name.trim();
+    const last = su.last_name.trim();
     const email = su.email.trim();
-    if (!name) { toast("נא להזין שם מלא"); return; }
+    const phone = su.phone.trim();
+    if (!first) { toast("נא להזין שם פרטי"); return; }
+    if (!last) { toast("נא להזין שם משפחה"); return; }
     if (!isValidEmail(email)) { toast("נא להזין כתובת מייל תקינה"); return; }
+    if (!isValidPhoneIL(phone)) { toast("נא להזין מספר טלפון ישראלי תקין"); return; }
     if (su.password.length < 8) { toast("הסיסמה חייבת להכיל לפחות 8 תווים"); return; }
     if (su.password !== su.confirm) { toast("הסיסמאות אינן תואמות"); return; }
+    if (!su.terms) { toast("יש לאשר את תנאי השימוש ומדיניות הפרטיות"); return; }
 
     // In demo mode there's no real backend — keep the original "always
     // advance" UX so the wizard is fully explorable offline.
@@ -159,7 +193,7 @@ function OnboardingInner() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ full_name: name, email, password: su.password }),
+        body: JSON.stringify({ first_name: first, last_name: last, phone, email, password: su.password }),
       });
       if (!res.ok) {
         // Real failure (weak password / duplicate email / rate-limit):
@@ -172,10 +206,17 @@ function OnboardingInner() {
       // user verifies their email. Gate the wizard behind email verification
       // (#3); if a session already exists (confirmation disabled), go straight in.
       const d = await res.json().catch(() => ({}));
-      if (d?.resent) {
-        toast("קוד אימות חדש נשלח לתיבת הדואר שלך.");
+      if (d && d.hasSession) {
+        setScreen("ob");
+      } else {
+        // Tell the user the truth about whether the code email actually went out.
+        if (d?.emailSent === false) {
+          toast("החשבון נוצר, אך שליחת קוד האימות נכשלה. לחץ 'שלח קוד חדש' בעוד רגע.");
+        } else if (d?.resent) {
+          toast("קוד אימות חדש נשלח לתיבת הדואר שלך.");
+        }
+        setScreen("verify");
       }
-      setScreen(d?.hasSession ? "ob" : "verify");
     } catch {
       toast("אין חיבור לשרת — נסה שוב.");
     } finally {
@@ -192,10 +233,12 @@ function OnboardingInner() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: su.email.trim(), password: su.password, full_name: su.full_name.trim() }),
+        body: JSON.stringify({ email: su.email.trim(), password: su.password, first_name: su.first_name.trim(), last_name: su.last_name.trim(), phone: su.phone.trim() }),
       });
       const d = await res.json().catch(() => ({}));
-      toast(res.ok ? "קוד אימות חדש נשלח לתיבת הדואר שלך." : (d.error || "שליחה נכשלה — נסה שוב."));
+      if (!res.ok) toast(d.error || "שליחה נכשלה — נסה שוב.");
+      else if (d?.emailSent === false) toast("שליחת המייל נכשלה כרגע. נסה שוב בעוד רגע.");
+      else toast("קוד אימות חדש נשלח לתיבת הדואר שלך.");
     } catch {
       toast("שליחה נכשלה — נסה שוב.");
     } finally {
@@ -356,15 +399,27 @@ function OnboardingInner() {
             </div>
             <div className={c("signup-title")}>התחל 7 ימים חינם</div>
             <div className={c("signup-sub")}>ללא כרטיס אשראי. מבטל מתי שרוצה.</div>
-            <div className={c("fg")}>
-              <label className={c("fl")}>שם מלא</label>
-              <input
-                className={c("fi")}
-                placeholder="ישראל ישראלי"
-                autoComplete="name"
-                value={su.full_name}
-                onChange={(e) => setSu({ ...su, full_name: e.target.value })}
-              />
+            <div style={{ display: "flex", gap: 10 }}>
+              <div className={c("fg")} style={{ flex: 1 }}>
+                <label className={c("fl")}>שם פרטי</label>
+                <input
+                  className={c("fi")}
+                  placeholder="ישראל"
+                  autoComplete="given-name"
+                  value={su.first_name}
+                  onChange={(e) => setSu({ ...su, first_name: e.target.value })}
+                />
+              </div>
+              <div className={c("fg")} style={{ flex: 1 }}>
+                <label className={c("fl")}>שם משפחה</label>
+                <input
+                  className={c("fi")}
+                  placeholder="ישראלי"
+                  autoComplete="family-name"
+                  value={su.last_name}
+                  onChange={(e) => setSu({ ...su, last_name: e.target.value })}
+                />
+              </div>
             </div>
             <div className={c("fg")}>
               <label className={c("fl")}>אימייל</label>
@@ -377,41 +432,84 @@ function OnboardingInner() {
                 onChange={(e) => setSu({ ...su, email: e.target.value })}
               />
             </div>
-            <div className={c("fg")} style={{ position: "relative" }}>
+            <div className={c("fg")}>
+              <label className={c("fl")}>טלפון אישי</label>
+              <input
+                className={c("fi")}
+                type="tel"
+                inputMode="tel"
+                placeholder="050-1234567"
+                autoComplete="tel"
+                value={su.phone}
+                onChange={(e) => setSu({ ...su, phone: e.target.value })}
+              />
+              <div style={{ fontSize: 11.5, color: "var(--t4)", marginTop: 5 }}>
+                לעדכונים ואבטחה — זה לא המספר העסקי לבוט (אותו תחבר בהמשך)
+              </div>
+            </div>
+            <div className={c("fg")}>
               <label className={c("fl")}>סיסמה</label>
-              <input
-                className={c("fi")}
-                type={showPw ? "text" : "password"}
-                placeholder="לפחות 8 תווים"
-                autoComplete="new-password"
-                value={su.password}
-                onChange={(e) => setSu({ ...su, password: e.target.value })}
-                style={{ paddingLeft: 40 }}
-              />
-              <button type="button" onClick={() => setShowPw(s => !s)} style={{ position: "absolute", left: 10, top: 34, background: "none", border: "none", cursor: "pointer", color: "var(--t3)", padding: 4 }}>
-                {showPw
-                  ? <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                  : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
-              </button>
+              <div style={{ position: "relative" }}>
+                <input
+                  className={c("fi")}
+                  type={showPw ? "text" : "password"}
+                  placeholder="לפחות 8 תווים"
+                  autoComplete="new-password"
+                  value={su.password}
+                  onChange={(e) => setSu({ ...su, password: e.target.value })}
+                  style={{ paddingInlineStart: 40 }}
+                />
+                <button type="button" aria-label="הצג סיסמה" onClick={() => setShowPw(s => !s)} style={{ position: "absolute", insetInlineStart: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--t3)", padding: 4, display: "flex" }}>
+                  {showPw
+                    ? <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
+                </button>
+              </div>
+              {su.password && (() => {
+                const st = passwordStrength(su.password);
+                return (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+                    <div style={{ flex: 1, height: 5, background: "#e2e8f0", borderRadius: 100, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${(st.score / 4) * 100}%`, background: st.color, transition: "width .2s" }} />
+                    </div>
+                    <span style={{ fontSize: 11.5, color: st.color, fontWeight: 600, minWidth: 38, textAlign: "left" }}>{st.label}</span>
+                  </div>
+                );
+              })()}
             </div>
-            <div className={c("fg")} style={{ position: "relative" }}>
+            <div className={c("fg")}>
               <label className={c("fl")}>אימות סיסמה</label>
-              <input
-                className={c("fi")}
-                type={showConfirm ? "text" : "password"}
-                placeholder="הקלד שוב את הסיסמה"
-                autoComplete="new-password"
-                value={su.confirm}
-                onChange={(e) => setSu({ ...su, confirm: e.target.value })}
-                style={{ paddingLeft: 40 }}
-              />
-              <button type="button" onClick={() => setShowConfirm(s => !s)} style={{ position: "absolute", left: 10, top: 34, background: "none", border: "none", cursor: "pointer", color: "var(--t3)", padding: 4 }}>
-                {showConfirm
-                  ? <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                  : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
-              </button>
+              <div style={{ position: "relative" }}>
+                <input
+                  className={c("fi")}
+                  type={showConfirm ? "text" : "password"}
+                  placeholder="הקלד שוב את הסיסמה"
+                  autoComplete="new-password"
+                  value={su.confirm}
+                  onChange={(e) => setSu({ ...su, confirm: e.target.value })}
+                  style={{ paddingInlineStart: 40 }}
+                />
+                <button type="button" aria-label="הצג סיסמה" onClick={() => setShowConfirm(s => !s)} style={{ position: "absolute", insetInlineStart: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--t3)", padding: 4, display: "flex" }}>
+                  {showConfirm
+                    ? <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
+                </button>
+              </div>
+              {su.confirm.length > 0 && su.confirm !== su.password && (
+                <div style={{ fontSize: 11.5, color: "#ef4444", marginTop: 5 }}>הסיסמאות אינן תואמות</div>
+              )}
             </div>
-            <div style={{ marginBottom: 16 }}></div>
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 8, margin: "4px 0 16px", cursor: "pointer", fontSize: 12.5, color: "var(--t2)", lineHeight: 1.5 }}>
+              <input
+                type="checkbox"
+                checked={su.terms}
+                onChange={(e) => setSu({ ...su, terms: e.target.checked })}
+                style={{ marginTop: 2, width: 16, height: 16, accentColor: "var(--green)", flexShrink: 0, cursor: "pointer" }}
+              />
+              <span>
+                קראתי ואני מסכים ל<a href="/legal" target="_blank" style={{ color: "var(--green)", fontWeight: 600 }}>תנאי השימוש</a> ול<a href="/legal" target="_blank" style={{ color: "var(--green)", fontWeight: 600 }}>מדיניות הפרטיות</a>
+              </span>
+            </label>
             <button className={c("btn btn-primary")} onClick={doSignup} disabled={signingUp}>
               {signingUp ? "יוצר חשבון..." : "יצירת חשבון בחינם"}
             </button>
@@ -427,9 +525,6 @@ function OnboardingInner() {
               </svg>
               המשך עם Google
             </button>
-            <div className={c("signup-terms")}>
-              בהרשמה אתה מסכים ל<a href="/legal">תנאי השימוש</a> ו<a href="/legal">מדיניות הפרטיות</a>
-            </div>
             <div className={c("signup-login")}>
               כבר יש לך חשבון? <a onClick={() => router.push("/login")}>התחבר</a>
             </div>

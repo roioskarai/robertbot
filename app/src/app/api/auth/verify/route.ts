@@ -95,7 +95,9 @@ export async function POST(req: Request) {
         });
         await sendEmail(email, subject, html);
       }
-    } catch { /* never block login on email failure */ }
+    } catch (e) {
+      console.error("[verify] welcome email send failed:", e);
+    }
   }
 
   return NextResponse.json({ ok: true });
