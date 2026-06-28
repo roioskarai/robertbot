@@ -10,6 +10,7 @@ import PricingPlans from "@/components/PricingPlans";
 import ConnectWhatsApp from "@/components/ConnectWhatsApp";
 import type { Bot } from "@/lib/types";
 import { isPlanId, planLabelHe, type PlanId } from "@/lib/plans";
+import { isValidPhoneIL } from "@/lib/validation";
 
 const c = scoped(styles);
 
@@ -117,6 +118,7 @@ interface ConvRow {
   status: string;
   preview?: string;
   time?: string;
+  last_message_at?: string | null;
   bots?: { name?: string; bot_name?: string; whatsapp_number?: string } | null;
 }
 
@@ -124,6 +126,13 @@ const DEMO_CONVS: ConvRow[] = [
   { id: "d1", customer_name: "רחל לוי", customer_phone: "052-1234567", status: "human", preview: "יש לך מקום לשישי בבוקר?", time: "09:41", bots: { name: "מספרת מיטל" } },
   { id: "d2", customer_name: "משה כהן", customer_phone: "050-2222222", status: "human", preview: "אפשר לדחות את התור?", time: "08:22", bots: { name: "מספרת מיטל" } },
   { id: "d3", customer_name: "שרה אברהם", customer_phone: "054-3333333", status: "human", preview: "כמה עולה צביעה שלמה?", time: "אתמול", bots: { name: "מספרת מיטל" } },
+];
+
+const DEMO_HISTORY: ConvRow[] = [
+  { id: "h1", customer_name: "רחל לוי", customer_phone: "052-1234567", status: "human", last_message_at: new Date().toISOString(), bots: { name: "מספרת מיטל" } },
+  { id: "h2", customer_name: "יוסי גולן", customer_phone: "050-7654321", status: "closed", last_message_at: new Date(Date.now() - 3600e3).toISOString(), bots: { name: "גריל הבשרים" } },
+  { id: "h3", customer_name: "דינה ברק", customer_phone: "054-1112222", status: "bot", last_message_at: new Date(Date.now() - 86400e3).toISOString(), bots: { name: "מספרת מיטל" } },
+  { id: "h4", customer_name: "אמיר כץ", customer_phone: "053-3334444", status: "bot", last_message_at: new Date(Date.now() - 90000e3).toISOString(), bots: { name: "גריל הבשרים" } },
 ];
 
 type PageId =
@@ -141,8 +150,11 @@ export default function DashboardPage() {
   const [bots, setBots] = useState<Partial<Bot>[]>(DEMO_MODE ? DEMO_BOTS : []);
   const [analytics, setAnalytics] = useState<Analytics>(DEMO_MODE ? DEMO_ANALYTICS : ZERO_ANALYTICS);
   const [convs, setConvs] = useState<ConvRow[]>(DEMO_MODE ? DEMO_CONVS : []);
+  const [history, setHistory] = useState<ConvRow[]>(DEMO_MODE ? DEMO_HISTORY : []);
   const [user, setUser] = useState(DEMO_MODE ? { name: "דני כהן", email: "dani@gmail.com", phone: "" } : { name: "", email: "", phone: "" });
   const [accountForm, setAccountForm] = useState({ name: "", phone: "" });
+  const [referral, setReferral] = useState<{ link: string; code: string; friends: number; earned: number; available: number } | null>(null);
+  const [notifPrefs, setNotifPrefs] = useState({ waiting: true, daily: true, quota: false });
   const [pwForm, setPwForm] = useState({ current: "", next: "" });
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPw, setSavingPw] = useState(false);
@@ -153,6 +165,14 @@ export default function DashboardPage() {
   const [editBot, setEditBot] = useState<Partial<Bot> | null>(null);
   const [editorTab, setEditorTab] = useState<"info" | "faq" | "connect">("info");
 
+  // manual WhatsApp connection (Twilio OTP) inside the editor's "connect" tab
+  const [manualPhone, setManualPhone] = useState("");
+  const [manualCode, setManualCode] = useState("");
+  const [manualStep, setManualStep] = useState<"idle" | "sent">("idle");
+  const [manualBusy, setManualBusy] = useState(false);
+  // Reset the manual-connect flow whenever the edited bot changes / editor closes.
+  useEffect(() => { setManualStep("idle"); setManualPhone(""); setManualCode(""); }, [editBot?.id]);
+
   // store / inbox / history
   const [storeTab, setStoreTab] = useState<"plans" | "packs">("plans");
   const [planAnnual, setPlanAnnual] = useState(false);
@@ -161,10 +181,11 @@ export default function DashboardPage() {
 
   const loadData = useCallback(async () => {
     try {
-      const [aRes, bRes, cRes] = await Promise.all([
+      const [aRes, bRes, cRes, hRes] = await Promise.all([
         fetch("/api/analytics"),
         fetch("/api/bots"),
         fetch("/api/conversations?status=human"),
+        fetch("/api/conversations"),
       ]);
       if (aRes.ok && bRes.ok) {
         const a = await aRes.json();
@@ -177,12 +198,17 @@ export default function DashboardPage() {
           setConvs(cc.conversations ?? []);
           setActiveConvId(cc.conversations?.[0]?.id ?? null);
         }
+        if (hRes.ok) {
+          const hh = await hRes.json();
+          setHistory(hh.conversations ?? []);
+        }
       } else if (!DEMO_MODE) {
         // Real deployment but the API failed — show a clean empty state, never
         // the demo numbers, so the user is not misled by fake data.
         setBots([]);
         setAnalytics(ZERO_ANALYTICS);
         setConvs([]);
+        setHistory([]);
         setActiveConvId(null);
         toast("טעינת הנתונים נכשלה. רענן את הדף ונסה שוב.");
       }
@@ -194,6 +220,15 @@ export default function DashboardPage() {
         const phone = (authUser.user_metadata?.phone as string) || "";
         setUser({ name, email: authUser.email || "", phone });
         setAccountForm({ name, phone });
+        const np = authUser.user_metadata?.notif_prefs as Partial<typeof notifPrefs> | undefined;
+        if (np && typeof np === "object") {
+          setNotifPrefs({ waiting: np.waiting ?? true, daily: np.daily ?? true, quota: np.quota ?? false });
+        }
+        // Real per-user referral link (deterministic from the user id — no DB
+        // needed). Credit/friend tracking stays 0 until the referrals table ships.
+        const refCode = authUser.id.replace(/-/g, "").slice(0, 8);
+        const origin = typeof window !== "undefined" ? window.location.origin : "https://robertbot.co.il";
+        setReferral({ link: `${origin}/?ref=${refCode}`, code: refCode, friends: 0, earned: 0, available: 0 });
       }
     } catch {
       if (!DEMO_MODE) {
@@ -201,6 +236,7 @@ export default function DashboardPage() {
         setBots([]);
         setAnalytics(ZERO_ANALYTICS);
         setConvs([]);
+        setHistory([]);
         setActiveConvId(null);
         toast("טעינת הנתונים נכשלה. בדוק את החיבור ונסה שוב.");
       }
@@ -337,9 +373,100 @@ export default function DashboardPage() {
     }
   }
 
+  // ── Manual WhatsApp connection (Twilio OTP) ──
+  async function sendManualCode() {
+    if (!editBot?.id || manualBusy) return;
+    if (!isValidPhoneIL(manualPhone)) { toast("מספר טלפון לא תקין"); return; }
+    if (DEMO_MODE) { setManualStep("sent"); toast("מצב הדגמה — הזן קוד כלשהו"); return; }
+    setManualBusy(true);
+    try {
+      const res = await fetch(`/api/bots/${editBot.id}/connect`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ number: manualPhone.trim() }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { toast(d.error || "שליחת הקוד נכשלה"); return; }
+      setManualStep("sent");
+      toast(d.demo ? "מצב הדגמה — הזן קוד כלשהו" : "קוד אימות נשלח לוואטסאפ של המספר");
+    } catch {
+      toast("אין חיבור לשרת — נסה שוב");
+    } finally {
+      setManualBusy(false);
+    }
+  }
+
+  async function verifyManualCode() {
+    if (!editBot?.id || manualBusy) return;
+    if (manualCode.trim().length < 4) { toast("הזן את הקוד שקיבלת"); return; }
+    if (DEMO_MODE) {
+      setEditBot((eb) => (eb ? { ...eb, whatsapp_number: manualPhone.trim(), active: true } : eb));
+      setManualStep("idle"); setManualPhone(""); setManualCode("");
+      toast("המספר חובר (הדגמה) ✓");
+      return;
+    }
+    setManualBusy(true);
+    try {
+      const res = await fetch(`/api/bots/${editBot.id}/connect`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ number: manualPhone.trim(), code: manualCode.trim() }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { toast(d.error || "אימות הקוד נכשל"); return; }
+      setEditBot((eb) => (eb ? { ...eb, whatsapp_number: d.bot?.whatsapp_number ?? manualPhone.trim(), active: true } : eb));
+      setManualStep("idle"); setManualPhone(""); setManualCode("");
+      toast("המספר חובר בהצלחה ✓");
+      loadData();
+    } catch {
+      toast("אין חיבור לשרת — נסה שוב");
+    } finally {
+      setManualBusy(false);
+    }
+  }
+
+  // Notification preferences — controlled toggles persisted to user_metadata.
+  async function toggleNotif(key: "waiting" | "daily" | "quota") {
+    const next = { ...notifPrefs, [key]: !notifPrefs[key] };
+    setNotifPrefs(next);
+    if (DEMO_MODE) return;
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({ data: { notif_prefs: next } });
+      if (error) { setNotifPrefs(notifPrefs); toast("שמירת ההעדפה נכשלה"); }
+    } catch {
+      setNotifPrefs(notifPrefs);
+      toast("אין חיבור לשרת — ההעדפה לא נשמרה");
+    }
+  }
+
+  async function disconnectNumber() {
+    if (!editBot) return;
+    // Bot not persisted yet → just clear local state.
+    if (!editBot.id || DEMO_MODE || String(editBot.id).startsWith("demo")) {
+      setEditBot((eb) => (eb ? { ...eb, whatsapp_number: null, active: false } : eb));
+      toast(DEMO_MODE ? "המספר נותק (הדגמה)" : "המספר נותק");
+      return;
+    }
+    if (manualBusy) return;
+    setManualBusy(true);
+    try {
+      const res = await fetch(`/api/bots/${editBot.id}/disconnect`, { method: "POST" });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { toast(d.error || "הניתוק נכשל"); return; }
+      setEditBot((eb) => (eb ? { ...eb, whatsapp_number: null, active: false } : eb));
+      toast("המספר נותק");
+      loadData();
+    } catch {
+      toast("אין חיבור לשרת — נסה שוב");
+    } finally {
+      setManualBusy(false);
+    }
+  }
+
   function copyRef() {
-    navigator.clipboard?.writeText("https://robertbot.co.il/ref/dani-k");
-    toast("הלינק הועתק");
+    if (referral?.link) navigator.clipboard?.writeText(referral.link);
+    toast(referral?.link ? "הלינק הועתק" : "הלינק עדיין לא זמין");
   }
 
   const usagePct = analytics.quota
@@ -651,7 +778,7 @@ export default function DashboardPage() {
                       </div>
                       <div><div style={{ fontSize: 14, fontWeight: 700 }}>{editBot.whatsapp_number ? `מחובר — ${editBot.whatsapp_number}` : "לא מחובר"}</div><div style={{ fontSize: 12, color: "var(--t3)", marginTop: 2 }}>{editBot.whatsapp_number ? "הבוט פעיל ועונה על הודעות" : "חבר מספר כדי להפעיל"}</div></div>
                     </div>
-                    {editBot.whatsapp_number && <button className={c("btn btn-outline btn-sm")} onClick={() => setEditBot({ ...editBot, whatsapp_number: null, active: false })}>נתק מספר</button>}
+                    {editBot.whatsapp_number && <button className={c("btn btn-outline btn-sm")} onClick={disconnectNumber} disabled={manualBusy}>נתק מספר</button>}
                   </div>
                   {!editBot.whatsapp_number && editBot.id && (
                     <div style={{ marginTop: 16 }}>
@@ -662,13 +789,58 @@ export default function DashboardPage() {
                       />
                     </div>
                   )}
-                  <div style={{ marginTop: 16 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: "var(--t2)", marginBottom: 10 }}>חיבור מספר ידני</p>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <input className={c("fi")} placeholder="05X-XXXXXXX" style={{ flex: 1 }} onChange={(e) => setEditBot({ ...editBot, whatsapp_number: e.target.value })} value={editBot.whatsapp_number ?? ""} />
-                      <button className={c("btn btn-primary btn-sm")} onClick={() => toast("נשלח קוד אימות")}>חבר</button>
+                  {!editBot.whatsapp_number && editBot.id && (
+                    <div style={{ marginTop: 16 }}>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: "var(--t2)", marginBottom: 10 }}>חיבור מספר ידני</p>
+                      {manualStep === "idle" ? (
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <input
+                            className={c("fi")}
+                            placeholder="05X-XXXXXXX"
+                            type="tel"
+                            inputMode="tel"
+                            style={{ flex: 1 }}
+                            value={manualPhone}
+                            onChange={(e) => setManualPhone(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === "Enter") sendManualCode(); }}
+                          />
+                          <button className={c("btn btn-primary btn-sm")} onClick={sendManualCode} disabled={manualBusy}>
+                            {manualBusy ? "שולח..." : "שלח קוד"}
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <div style={{ fontSize: 12, color: "var(--t3)", marginBottom: 8 }}>שלחנו קוד אימות אל {manualPhone}. הזן אותו כאן:</div>
+                          <div style={{ display: "flex", gap: 8 }}>
+                            <input
+                              className={c("fi")}
+                              placeholder="קוד אימות"
+                              inputMode="numeric"
+                              style={{ flex: 1 }}
+                              value={manualCode}
+                              onChange={(e) => setManualCode(e.target.value.replace(/\D/g, ""))}
+                              onKeyDown={(e) => { if (e.key === "Enter") verifyManualCode(); }}
+                            />
+                            <button className={c("btn btn-primary btn-sm")} onClick={verifyManualCode} disabled={manualBusy}>
+                              {manualBusy ? "מאמת..." : "אמת וחבר"}
+                            </button>
+                          </div>
+                          <button
+                            className={c("btn btn-ghost btn-xs")}
+                            style={{ marginTop: 8 }}
+                            onClick={() => { setManualStep("idle"); setManualCode(""); }}
+                          >
+                            החלף מספר / שלח שוב
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  )}
+                  {!editBot.id && (
+                    <div style={{ marginTop: 16, fontSize: 12.5, color: "var(--t3)" }}>
+                      שמור את הבוט קודם כדי לחבר מספר וואטסאפ.
+                    </div>
+                  )}
                 </div>
               )}
               <div className={c("ed-actions")}>
@@ -731,32 +903,51 @@ export default function DashboardPage() {
   }
 
   function renderHistory() {
-    const rows = [
-      ["רחל לוי", "מספרת מיטל", "קביעת תור לשישי", "היום 09:41", "amber", "הועבר לאדם"],
-      ["יוסי גולן", "גריל הבשרים", "הזמנת שולחן ל-6", "היום 08:15", "green", "הושלם"],
-      ["דינה ברק", "מספרת מיטל", "שאלה על מחיר צביעה", "אתמול 18:30", "green", "הושלם"],
-      ["אמיר כץ", "גריל הבשרים", "שאלות על התפריט", "אתמול 14:12", "green", "הושלם"],
-      ["מיכל שמיר", "מספרת מיטל", "ביטול תור", "אתמול 11:05", "red", "בוטל"],
-    ];
+    const statusHe = (s: string) =>
+      s === "human" ? { label: "הועבר לאדם", badge: "amber" }
+        : s === "closed" ? { label: "נסגר", badge: "green" }
+          : { label: "טופל ע\"י בוט", badge: "green" };
+    const fmtDate = (iso?: string | null) => {
+      if (!iso) return "—";
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return "—";
+      return d.toLocaleString("he-IL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+    };
+    const botNames = Array.from(new Set(history.map((h) => h.bots?.name).filter(Boolean))) as string[];
+    const filters = ["הכל", "הועבר לאדם", "טופל ע\"י בוט", ...botNames];
+    const rows = history.filter((h) => {
+      if (histFilter === "הכל") return true;
+      if (histFilter === "הועבר לאדם") return h.status === "human";
+      if (histFilter === "טופל ע\"י בוט") return h.status === "bot" || h.status === "closed";
+      return h.bots?.name === histFilter;
+    });
     return (
       <div className={pageCls("history")}>
         <div className={c("ph")}><div><div className={c("ph-title")}>היסטוריית שיחות</div><div className={c("ph-sub")}>כל השיחות שהבוטים שלך ניהלו</div></div></div>
         <div className={c("hist-filters")}>
-          {["הכל", "הושלם ע\"י בוט", "הועבר לאדם", "מספרת מיטל", "גריל הבשרים"].map((f) => (
+          {filters.map((f) => (
             <button key={f} className={c("hf-pill") + (histFilter === f ? " " + styles.act : "")} onClick={() => setHistFilter(f)}>{f}</button>
           ))}
         </div>
         <div className={c("card")}>
           <table className={c("tbl")}>
-            <thead><tr><th>שם לקוח</th><th>בוט</th><th>נושא</th><th>תאריך</th><th>סטטוס</th><th></th></tr></thead>
+            <thead><tr><th>שם לקוח</th><th>בוט</th><th>טלפון</th><th>תאריך</th><th>סטטוס</th><th></th></tr></thead>
             <tbody>
-              {rows.map((r, i) => (
-                <tr key={i}>
-                  <td style={{ fontWeight: 600 }}>{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td><td>{r[3]}</td>
-                  <td><span className={c("badge badge-" + r[4])}>{r[5]}</span></td>
-                  <td><button className={c("btn btn-ghost btn-xs")} onClick={() => { goPage("inbox"); }}>צפה</button></td>
-                </tr>
-              ))}
+              {rows.length === 0 ? (
+                <tr><td colSpan={6} style={{ textAlign: "center", padding: 28, color: "var(--t3)" }}>אין עדיין שיחות להצגה</td></tr>
+              ) : rows.map((r) => {
+                const st = statusHe(r.status);
+                return (
+                  <tr key={r.id}>
+                    <td style={{ fontWeight: 600 }}>{r.customer_name || "לקוח"}</td>
+                    <td>{r.bots?.name || "—"}</td>
+                    <td dir="ltr" style={{ textAlign: "right" }}>{r.customer_phone}</td>
+                    <td>{fmtDate(r.last_message_at)}</td>
+                    <td><span className={c("badge badge-" + st.badge)}>{st.label}</span></td>
+                    <td><button className={c("btn btn-ghost btn-xs")} onClick={() => { setActiveConvId(r.id); goPage("inbox"); }}>צפה</button></td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -897,13 +1088,13 @@ export default function DashboardPage() {
               <div className={c("ref-title")}>חבר מביא חבר</div>
               <div className={c("ref-sub")}>שתף את הלינק האישי שלך — כל חבר שנרשם דרכך מקבל ₪50 קרדיט, וגם אתה מקבל ₪50.</div>
               <div className={c("ref-link-row")}>
-                <input className={c("ref-link")} value="robert.bot/ref/dani-k" readOnly />
+                <input className={c("ref-link")} value={referral?.link ?? "טוען..."} readOnly dir="ltr" />
                 <button className={c("btn btn-outline btn-sm")} onClick={copyRef}>העתק</button>
               </div>
               <div className={c("ref-stats")}>
-                <div className={c("ref-stat")}><div className={c("ref-stat-n")}>3</div><div className={c("ref-stat-l")}>חברים הצטרפו</div></div>
-                <div className={c("ref-stat")}><div className={c("ref-stat-n")}>₪150</div><div className={c("ref-stat-l")}>קרדיט שנצבר</div></div>
-                <div className={c("ref-stat")}><div className={c("ref-stat-n")}>₪50</div><div className={c("ref-stat-l")}>זמין לשימוש</div></div>
+                <div className={c("ref-stat")}><div className={c("ref-stat-n")}>{referral?.friends ?? 0}</div><div className={c("ref-stat-l")}>חברים הצטרפו</div></div>
+                <div className={c("ref-stat")}><div className={c("ref-stat-n")}>₪{referral?.earned ?? 0}</div><div className={c("ref-stat-l")}>קרדיט שנצבר</div></div>
+                <div className={c("ref-stat")}><div className={c("ref-stat-n")}>₪{referral?.available ?? 0}</div><div className={c("ref-stat-l")}>זמין לשימוש</div></div>
               </div>
             </div>
           </div>
@@ -1011,9 +1202,9 @@ export default function DashboardPage() {
           </div>
           <div className={c("card card-pad")}>
             <div className={c("card-title")}>התראות</div>
-            <div className={c("trow")}><div className={c("tinfo")}><h4>התראה על שיחה שממתינה</h4><p>כשהבוט מעביר שיחה אליך</p></div><label className={c("tog")}><input type="checkbox" defaultChecked /><span className={c("tog-sl")}></span></label></div>
-            <div className={c("trow")}><div className={c("tinfo")}><h4>סיכום יומי במייל</h4><p>הודעות, שיחות שנסגרו, ממתינות</p></div><label className={c("tog")}><input type="checkbox" defaultChecked /><span className={c("tog-sl")}></span></label></div>
-            <div className={c("trow")}><div className={c("tinfo")}><h4>התראת חריגה בהודעות</h4><p>כשמגיעים ל-80% מהמכסה</p></div><label className={c("tog")}><input type="checkbox" /><span className={c("tog-sl")}></span></label></div>
+            <div className={c("trow")}><div className={c("tinfo")}><h4>התראה על שיחה שממתינה</h4><p>כשהבוט מעביר שיחה אליך</p></div><label className={c("tog")}><input type="checkbox" checked={notifPrefs.waiting} onChange={() => toggleNotif("waiting")} /><span className={c("tog-sl")}></span></label></div>
+            <div className={c("trow")}><div className={c("tinfo")}><h4>סיכום יומי במייל</h4><p>הודעות, שיחות שנסגרו, ממתינות</p></div><label className={c("tog")}><input type="checkbox" checked={notifPrefs.daily} onChange={() => toggleNotif("daily")} /><span className={c("tog-sl")}></span></label></div>
+            <div className={c("trow")}><div className={c("tinfo")}><h4>התראת חריגה בהודעות</h4><p>כשמגיעים ל-80% מהמכסה</p></div><label className={c("tog")}><input type="checkbox" checked={notifPrefs.quota} onChange={() => toggleNotif("quota")} /><span className={c("tog-sl")}></span></label></div>
           </div>
           <div className={c("card card-pad")}>
             <div className={c("card-title")}>אבטחה</div>
@@ -1069,15 +1260,27 @@ export default function DashboardPage() {
     const input = document.getElementById("reply-input") as HTMLInputElement | null;
     const text = input?.value.trim();
     if (!text || !activeConvId) return;
-    if (input) input.value = "";
-    if (!DEMO_MODE) {
-      await fetch(`/api/conversations/${activeConvId}/reply`, {
+    if (DEMO_MODE) {
+      if (input) input.value = "";
+      toast("התגובה נשלחה");
+      return;
+    }
+    try {
+      const res = await fetch(`/api/conversations/${activeConvId}/reply`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ body: text }),
-      }).catch(() => {});
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        toast(d.error || "שליחת התגובה נכשלה — נסה שוב");
+        return; // keep the text so the user can retry
+      }
+      if (input) input.value = "";
+      toast("התגובה נשלחה");
+    } catch {
+      toast("אין חיבור לשרת — התגובה לא נשלחה");
     }
-    toast("התגובה נשלחה");
   }
 
   async function returnToBot() {
