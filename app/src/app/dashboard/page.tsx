@@ -9,8 +9,9 @@ import { createClient } from "@/lib/supabase/client";
 import PricingPlans from "@/components/PricingPlans";
 import ConnectWhatsApp from "@/components/ConnectWhatsApp";
 import type { Bot } from "@/lib/types";
-import { isPlanId, planLabelHe, type PlanId } from "@/lib/plans";
+import { isPlanId, planLabelHe, PRICING, type PlanId } from "@/lib/plans";
 import { isValidPhoneIL } from "@/lib/validation";
+import type { BillingInfo } from "@/lib/payments/types";
 
 const c = scoped(styles);
 
@@ -73,6 +74,9 @@ interface Analytics {
   botLimit: number;
   messagesThisMonth: number;
   subscriptionStatus?: string;
+  subscriptionEndsAt?: string | null;
+  billingCycle?: string;
+  cancelAtPeriodEnd?: boolean;
   packBalance: number;
   weekly: number[];
   monthly: { label: string; count: number }[];
@@ -155,6 +159,7 @@ export default function DashboardPage() {
   const [accountForm, setAccountForm] = useState({ name: "", phone: "" });
   const [referral, setReferral] = useState<{ link: string; code: string; friends: number; earned: number; available: number } | null>(null);
   const [notifPrefs, setNotifPrefs] = useState({ waiting: true, daily: true, quota: false });
+  const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null);
   const [pwForm, setPwForm] = useState({ current: "", next: "" });
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPw, setSavingPw] = useState(false);
@@ -172,6 +177,26 @@ export default function DashboardPage() {
   const [manualBusy, setManualBusy] = useState(false);
   // Reset the manual-connect flow whenever the edited bot changes / editor closes.
   useEffect(() => { setManualStep("idle"); setManualPhone(""); setManualCode(""); }, [editBot?.id]);
+
+  // Lazily load real card + invoices the first time the billing tab is opened.
+  useEffect(() => {
+    if (page !== "billing" || billingInfo) return;
+    if (DEMO_MODE) {
+      setBillingInfo({
+        supported: true,
+        card: { brand: "visa", last4: "4242", expMonth: 12, expYear: 2027 },
+        invoices: [
+          { id: "d1", date: Math.floor(Date.now() / 1000), amount: 199, currency: "ils", status: "paid", url: null },
+          { id: "d2", date: Math.floor(Date.now() / 1000) - 2592000, amount: 199, currency: "ils", status: "paid", url: null },
+        ],
+      });
+      return;
+    }
+    fetch("/api/billing/invoices")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setBillingInfo(d); })
+      .catch(() => {});
+  }, [page, billingInfo]);
 
   // store / inbox / history
   const [storeTab, setStoreTab] = useState<"plans" | "packs">("plans");
@@ -991,13 +1016,15 @@ export default function DashboardPage() {
   }
 
   function renderTemplates() {
-    const tmpls = [
-      ["יופי ובריאות", "מספרה / קוסמטיקאית", "תורים, מחירים, שאלות נפוצות. מותאם לסלוני יופי."],
-      ["מסעדנות", "מסעדה / קפה", "תפריט, שעות, הזמנת שולחן, עמדות חנייה."],
-      ["שירותים מקצועיים", "יועץ / עורך דין / רואה חשבון", "קביעת פגישות, שאלות נפוצות, הכוונה ראשונית."],
-      ["קמעונאות", "חנות / אתר מכירות", "שאלות על מוצרים, מדיניות החזרה, מעקב הזמנה."],
-      ["רפואה", "מרפאה / קליניקה", "קביעת תורים, שאלות על שירותים, הכנה לביקור."],
-      ["נדל\"ן", "סוכן נדל\"ן", "פרטים על נכסים, קביעת סיורים, מידע על שכונות."],
+    // [tag, name, desc, onboarding category key] — the key pre-selects the
+    // business type + its default services/FAQ in the wizard (step 1).
+    const tmpls: [string, string, string, string][] = [
+      ["יופי ובריאות", "מספרה / קוסמטיקאית", "תורים, מחירים, שאלות נפוצות. מותאם לסלוני יופי.", "beauty"],
+      ["מסעדנות", "מסעדה / קפה", "תפריט, שעות, הזמנת שולחן, עמדות חנייה.", "food"],
+      ["שירותים מקצועיים", "יועץ / עורך דין / רואה חשבון", "קביעת פגישות, שאלות נפוצות, הכוונה ראשונית.", "professional"],
+      ["קמעונאות", "חנות / אתר מכירות", "שאלות על מוצרים, מדיניות החזרה, מעקב הזמנה.", "retail"],
+      ["רפואה", "מרפאה / קליניקה", "קביעת תורים, שאלות על שירותים, הכנה לביקור.", "medical"],
+      ["נדל\"ן", "סוכן נדל\"ן", "פרטים על נכסים, קביעת סיורים, מידע על שכונות.", "realestate"],
     ];
     return (
       <div className={pageCls("templates")}>
@@ -1008,7 +1035,7 @@ export default function DashboardPage() {
               <div className={c("tmpl-tag")}>{t[0]}</div>
               <div className={c("tmpl-name")}>{t[1]}</div>
               <div className={c("tmpl-desc")}>{t[2]}</div>
-              <button className={c("btn btn-primary btn-sm")} onClick={() => router.push("/onboarding?new=1")}>השתמש בתבנית</button>
+              <button className={c("btn btn-primary btn-sm")} onClick={() => router.push(`/onboarding?new=1&cat=${t[3]}`)}>השתמש בתבנית</button>
             </div>
           ))}
         </div>
@@ -1017,6 +1044,18 @@ export default function DashboardPage() {
   }
 
   function renderBilling() {
+    const planId = (isPlanId(analytics.plan) ? analytics.plan : "basic") as PlanId;
+    const cycle: "monthly" | "annual" = analytics.billingCycle === "annual" ? "annual" : "monthly";
+    const price = PRICING[planId][cycle];
+    const renewLabel =
+      analytics.subscriptionStatus === "trial" ? "תקופת ניסיון חינם"
+        : analytics.subscriptionEndsAt
+          ? `${analytics.cancelAtPeriodEnd ? "מסתיים בתאריך" : "חידוש אוטומטי"} · ${new Date(analytics.subscriptionEndsAt).toLocaleDateString("he-IL")}`
+          : "מנוי פעיל";
+    const cardBrandHe = (b: string) =>
+      b === "visa" ? "ויזה" : b === "mastercard" ? "מאסטרקארד" : b === "amex" ? "אמקס" : b;
+    const invStatusHe = (s: string) =>
+      s === "paid" ? "שולם" : s === "open" ? "ממתין" : s === "void" ? "בוטל" : s;
     return (
       <div className={pageCls("billing")}>
         <div className={c("ph")}><div><div className={c("ph-title")}>מנוי וחיוב</div><div className={c("ph-sub")}>ניהול המנוי, שינוי מסלול ותשלומים</div></div></div>
@@ -1025,9 +1064,9 @@ export default function DashboardPage() {
             <div className={c("card card-pad")} style={{ marginBottom: 16 }}>
               <div className={c("card-title")}>המסלול הנוכחי</div>
               <div className={c("plan-box")}>
-                <div className={c("plan-box-name")}>מסלול מקצועי</div>
-                <div className={c("plan-box-price")}>₪199<sub>/חודש</sub></div>
-                <div className={c("plan-box-renew")}>חידוש אוטומטי · 1 ביולי 2026</div>
+                <div className={c("plan-box-name")}>מסלול {planLabelHe(planId)}</div>
+                <div className={c("plan-box-price")}>₪{price}<sub>/{cycle === "annual" ? "חודש · חיוב שנתי" : "חודש"}</sub></div>
+                <div className={c("plan-box-renew")}>{renewLabel}</div>
               </div>
               <div className={c("ubar-wrap")}><div className={c("ubar-top")}><span>הודעות החודש</span><span style={{ fontWeight: 600 }}>{analytics.messagesThisMonth.toLocaleString()} / {analytics.quota.toLocaleString()}</span></div><div className={c("ubar")}><div className={c("ubar-fill")} style={{ width: usagePct + "%" }}></div></div></div>
               <div className={c("ubar-wrap")}><div className={c("ubar-top")}><span>בוטים פעילים</span><span style={{ fontWeight: 600 }}>{analytics.activeBots} / {analytics.botLimit}</span></div><div className={c("ubar")}><div className={c("ubar-fill")} style={{ width: botPct + "%" }}></div></div></div>
@@ -1045,20 +1084,37 @@ export default function DashboardPage() {
           <div>
             <div className={c("card card-pad")} style={{ marginBottom: 16 }}>
               <div className={c("card-title")}>פרטי תשלום</div>
-              <div className={c("cc-row")}>
-                <div className={c("cc-icon")}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg></div>
-                <div className={c("cc-info")}><div className={c("cc-num")}>ויזה •••• 4242</div><div className={c("cc-exp")}>פג תוקף 12/27</div></div>
-                <button className={c("btn btn-outline btn-xs")} onClick={billingPortal}>עדכן</button>
-              </div>
+              {billingInfo?.card ? (
+                <div className={c("cc-row")}>
+                  <div className={c("cc-icon")}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg></div>
+                  <div className={c("cc-info")}><div className={c("cc-num")}>{cardBrandHe(billingInfo.card.brand)} •••• {billingInfo.card.last4}</div><div className={c("cc-exp")}>פג תוקף {String(billingInfo.card.expMonth).padStart(2, "0")}/{String(billingInfo.card.expYear).slice(-2)}</div></div>
+                  <button className={c("btn btn-outline btn-xs")} onClick={billingPortal}>עדכן</button>
+                </div>
+              ) : (
+                <div style={{ fontSize: 13, color: "var(--t3)", padding: "8px 0" }}>
+                  {billingInfo && !billingInfo.supported
+                    ? "פרטי התשלום מנוהלים אצל ספק הסליקה."
+                    : "אין כרטיס אשראי שמור עדיין."}
+                </div>
+              )}
               <div className={c("card-title")} style={{ marginTop: 16 }}>חשבוניות</div>
-              <table className={c("tbl")}>
-                <thead><tr><th>תאריך</th><th>סכום</th><th>סטטוס</th><th></th></tr></thead>
-                <tbody>
-                  {["יוני 2026", "מאי 2026", "אפריל 2026"].map((m) => (
-                    <tr key={m}><td>{m}</td><td style={{ fontWeight: 600 }}>₪199</td><td><span className={c("badge badge-green")}>שולם</span></td><td><button className={c("btn btn-ghost btn-xs")} onClick={() => toast("החשבונית הורדה")}>הורד</button></td></tr>
-                  ))}
-                </tbody>
-              </table>
+              {billingInfo?.invoices?.length ? (
+                <table className={c("tbl")}>
+                  <thead><tr><th>תאריך</th><th>סכום</th><th>סטטוס</th><th></th></tr></thead>
+                  <tbody>
+                    {billingInfo.invoices.map((inv) => (
+                      <tr key={inv.id}>
+                        <td>{new Date(inv.date * 1000).toLocaleDateString("he-IL")}</td>
+                        <td style={{ fontWeight: 600 }}>₪{inv.amount}</td>
+                        <td><span className={c("badge badge-" + (inv.status === "paid" ? "green" : "amber"))}>{invStatusHe(inv.status)}</span></td>
+                        <td>{inv.url ? <a className={c("btn btn-ghost btn-xs")} href={inv.url} target="_blank" rel="noopener noreferrer">הורד</a> : <span style={{ color: "var(--t4)", fontSize: 12 }}>—</span>}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div style={{ fontSize: 13, color: "var(--t3)", padding: "8px 0" }}>אין חשבוניות להצגה.</div>
+              )}
             </div>
 
             <div className={c("settings-card")} style={{ marginBottom: 16 }}>
@@ -1238,14 +1294,20 @@ export default function DashboardPage() {
           <div className={c("card sc")}><div className={c("sc-label")}>גרסת מערכת</div><div className={c("sc-val")}>2.4.1</div><div className={c("sc-sub nt")}>עדכנית</div></div>
         </div>
         <div className={c("support-list")}>
-          <div className={c("support-item")} onClick={() => toast("פותח את מרכז העזרה...")}>
+          <a className={c("support-item")} href="/#faq" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
             <div className={c("support-ic")} style={{ background: "var(--blue-pale)" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" strokeWidth="1.8"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg></div>
-            <div><div className={c("support-title")}>מרכז עזרה</div><div className={c("support-sub")}>מדריכים, FAQ ותיעוד המוצר</div></div>
-          </div>
-          <div className={c("support-item")} onClick={() => toast("פותח צ'אט תמיכה...")}>
+            <div><div className={c("support-title")}>מרכז עזרה</div><div className={c("support-sub")}>מדריכים, שאלות נפוצות ותיעוד המוצר</div></div>
+          </a>
+          <a
+            className={c("support-item")}
+            href={process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP ? `https://wa.me/${process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP}` : "mailto:support@robertbot.co.il?subject=צ'אט תמיכה"}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ textDecoration: "none" }}
+          >
             <div className={c("support-ic")} style={{ background: "var(--green-pale)" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green-d)" strokeWidth="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></div>
             <div><div className={c("support-title")}>צ&apos;אט עם התמיכה</div><div className={c("support-sub")}>תגובה בתוך שעתיים בימי עבודה</div></div>
-          </div>
+          </a>
           <a className={c("support-item")} href="mailto:support@robertbot.co.il" style={{ textDecoration: "none" }}>
             <div className={c("support-ic")} style={{ background: "var(--amber-pale)" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" strokeWidth="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg></div>
             <div><div className={c("support-title")}>שלח מייל</div><div className={c("support-sub")}>support@robertbot.co.il</div></div>

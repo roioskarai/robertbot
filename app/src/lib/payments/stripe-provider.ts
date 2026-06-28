@@ -10,6 +10,7 @@ import type {
   CheckoutOutput,
   PaymentEvent,
   PaymentProvider,
+  BillingInfo,
 } from "./types";
 
 export const stripeProvider: PaymentProvider = {
@@ -79,6 +80,35 @@ export const stripeProvider: PaymentProvider = {
     await stripe.subscriptions.update(subscriptionId, {
       pause_collection: { behavior: "void" },
     });
+  },
+
+  async getBillingInfo(customerId: string): Promise<BillingInfo> {
+    const stripe = getStripe();
+    // Card on file (most recent card payment method).
+    let card: BillingInfo["card"] = null;
+    try {
+      const pms = await stripe.paymentMethods.list({ customer: customerId, type: "card", limit: 1 });
+      const pm = pms.data[0];
+      if (pm?.card) {
+        card = { brand: pm.card.brand, last4: pm.card.last4, expMonth: pm.card.exp_month, expYear: pm.card.exp_year };
+      }
+    } catch { /* card optional */ }
+    // Invoice history.
+    const invoices: BillingInfo["invoices"] = [];
+    try {
+      const list = await stripe.invoices.list({ customer: customerId, limit: 12 });
+      for (const i of list.data) {
+        invoices.push({
+          id: i.id ?? i.number ?? String(i.created),
+          date: i.created,
+          amount: (i.amount_paid || i.total || 0) / 100,
+          currency: i.currency || "ils",
+          status: i.status || "open",
+          url: i.hosted_invoice_url || i.invoice_pdf || null,
+        });
+      }
+    } catch { /* invoices optional */ }
+    return { supported: true, card, invoices };
   },
 
   async parseWebhook(req: Request): Promise<PaymentEvent> {

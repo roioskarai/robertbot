@@ -87,6 +87,8 @@ function OnboardingInner() {
   const startOnWizard = searchParams.get("new") === "1";
   // Redirected here after a failed email verification link (expired/already used).
   const hasVerifyError = searchParams.get("verify-error") === "1";
+  // Optional template pre-selection from the dashboard "השתמש בתבנית" buttons.
+  const presetCat = searchParams.get("cat");
 
   const [screen, setScreen] = useState<"signup" | "verify" | "ob" | "success">(
     startOnWizard ? "ob" : "signup",
@@ -95,6 +97,10 @@ function OnboardingInner() {
   useEffect(() => {
     if (hasVerifyError) {
       toast("הקישור פג תוקף. הזן את פרטיך שוב ונשלח קישור אימות חדש.");
+    }
+    // Pre-select a business category when arriving from a template card.
+    if (startOnWizard && presetCat && MAIN_CATEGORIES.some((m) => m.key === presetCat)) {
+      openSub(presetCat);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

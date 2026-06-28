@@ -52,6 +52,31 @@ export type PaymentEvent =
   | { type: "subscription_paused"; userId?: string; subscriptionId?: string | null; eventId?: string | null }
   | { type: "ignore" };
 
+/** Saved card on file (for display only — never the full PAN). */
+export interface BillingCard {
+  brand: string;
+  last4: string;
+  expMonth: number;
+  expYear: number;
+}
+
+/** One past invoice/receipt for the billing history list. */
+export interface BillingInvoice {
+  id: string;
+  date: number; // unix seconds
+  amount: number; // major units (₪)
+  currency: string;
+  status: string;
+  url: string | null; // hosted invoice / PDF
+}
+
+/** Read-only billing snapshot for the dashboard billing tab. */
+export interface BillingInfo {
+  supported: boolean; // false when the provider can't expose this (e.g. Grow)
+  card: BillingCard | null;
+  invoices: BillingInvoice[];
+}
+
 export interface PaymentProvider {
   readonly id: PaymentProviderId;
   /** True when the required env keys are present (else demo mode). */
@@ -65,4 +90,6 @@ export interface PaymentProvider {
   pauseSubscription(subscriptionId: string): Promise<void>;
   /** Verifies signature and returns a normalized event (throws on bad signature). */
   parseWebhook(req: Request): Promise<PaymentEvent>;
+  /** Card on file + invoice history. Optional — only providers with an API for it. */
+  getBillingInfo?(customerId: string): Promise<BillingInfo>;
 }
