@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robert — הבוט שעובד בשבילך</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/lab.css">
+<script>if(location.search.includes('theme=pro')){document.write('<link rel="stylesheet" href="assets/tokens-pro.css">')}</script>
+<style>
+  /* ===== HERO ===== */
+  .hero { padding: calc(var(--nav-h) + 72px) 0 80px; }
+  .hero-grid { display: grid; grid-template-columns: 1fr 380px; gap: 64px; align-items: center; }
+  .hero h1 { font-size: clamp(40px, 5vw, 60px); font-weight: 800; line-height: 1.08; letter-spacing: -1.8px; color: var(--text); }
+  .hero h1 .accent { color: var(--green-600); }
+  .hero-sub { font-size: var(--text-lg); color: var(--text-2); line-height: 1.7; max-width: 460px; margin: 20px 0 32px; }
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+  .hero-trust { display: flex; align-items: center; gap: 12px; font-size: var(--text-sm); color: var(--text-3); }
+  .hero-trust b { color: var(--text-2); }
+  .avatars { display: flex; }
+  .avatars span { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--surface); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-inline-start: -9px; }
+  .avatars span:first-child { margin-inline-start: 0; }
+
+  /* phone mockup — refined */
+  .phone { width: 300px; margin-inline: auto; background: #fff; border-radius: 32px; border: 1px solid var(--border); box-shadow: var(--shadow-2xl); overflow: hidden; }
+  .ph-hdr { background: linear-gradient(135deg, #075e54, #128c7e); padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+  .ph-av { width: 38px; height: 38px; border-radius: 50%; background: var(--green-500); display: flex; align-items: center; justify-content: center; color: #03130c; font-weight: 900; }
+  .ph-name { font-size: 14px; font-weight: 700; color: #fff; }
+  .ph-st { font-size: 11px; color: rgba(255,255,255,.75); margin-top: 1px; display: flex; align-items: center; gap: 5px; }
+  .ph-st .live { width: 7px; height: 7px; border-radius: 50%; background: #5fffa0; }
+  .ph-body { padding: 16px 12px; background: #ece5dd; min-height: 320px; display: flex; flex-direction: column; gap: 8px; }
+  .bub { max-width: 84%; padding: 9px 12px; border-radius: 12px; font-size: 13px; line-height: 1.5; box-shadow: var(--shadow-xs); }
+  .bub-in { background: #fff; align-self: flex-start; border-bottom-right-radius: 3px; }
+  .bub-out { background: #dcf8c6; align-self: flex-end; border-bottom-left-radius: 3px; }
+  .bub .tm { font-size: 10px; color: rgba(0,0,0,.35); margin-top: 3px; text-align: left; }
+
+  /* ===== STAT BAND ===== */
+  .stat-band { background: var(--surface); border-block: 1px solid var(--border); }
+  .stat-band-inner { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .sb-item { text-align: center; padding: 32px 16px; border-inline-start: 1px solid var(--border); }
+  .sb-item:first-child { border-inline-start: none; }
+  .sb-num { font-size: var(--display-sm); font-weight: 800; letter-spacing: -1px; color: var(--text); }
+  .sb-lbl { font-size: var(--text-sm); color: var(--text-3); margin-top: 4px; }
+
+  /* ===== SECTIONS ===== */
+  .sec { padding: 88px 0; }
+  .sec-alt { background: var(--surface); border-block: 1px solid var(--border); }
+  .sec-head { max-width: 600px; margin-bottom: 48px; }
+  .sec-head.center { margin-inline: auto; text-align: center; }
+  .sec-head h2 { font-size: var(--display-md); font-weight: 800; letter-spacing: -1px; line-height: 1.15; margin: 14px 0 10px; }
+  .sec-head p { font-size: var(--text-lg); color: var(--text-3); line-height: 1.6; }
+
+  /* steps */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow-xs); }
+  .step-n { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: var(--radius-lg); background: var(--green-50); color: var(--green-600); margin-bottom: 18px; }
+  .step h3 { font-size: var(--text-xl); font-weight: 700; margin-bottom: 8px; }
+  .step p { color: var(--text-3); line-height: 1.65; }
+  .step .num-tag { font-size: var(--text-xs); font-weight: 700; color: var(--green-600); letter-spacing: 1px; }
+
+  /* features */
+  .feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .feat { padding: 26px; border-radius: var(--radius-xl); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-xs); }
+  .feat-ic { width: 46px; height: 46px; border-radius: var(--radius-lg); background: var(--green-50); color: var(--green-600); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+  .feat h3 { font-size: var(--text-lg); font-weight: 700; margin-bottom: 7px; }
+  .feat p { color: var(--text-3); line-height: 1.65; font-size: var(--text-sm); }
+
+  /* pricing */
+  .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: start; max-width: 980px; margin-inline: auto; }
+  .plan { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-2xl); padding: 32px 28px; box-shadow: var(--shadow-sm); position: relative; }
+  .plan.pop { border-color: var(--green-500); box-shadow: 0 0 0 1px var(--green-500), var(--shadow-lg); }
+  .pop-tag { position: absolute; top: -13px; inset-inline-start: 50%; transform: translateX(50%); background: var(--green-600); color: #fff; font-size: var(--text-xs); font-weight: 700; padding: 5px 16px; border-radius: var(--radius-full); }
+  .plan-name { font-size: var(--text-sm); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-4); }
+  .plan-price { font-size: 40px; font-weight: 800; letter-spacing: -1.5px; margin-top: 12px; }
+  .plan-price sub { font-size: var(--text-sm); font-weight: 500; color: var(--text-4); vertical-align: baseline; }
+  .plan-period { font-size: var(--text-sm); color: var(--text-4); margin-bottom: 22px; }
+  .plan-list { list-style: none; display: flex; flex-direction: column; gap: 11px; margin-bottom: 26px; }
+  .plan-list li { display: flex; align-items: center; gap: 9px; font-size: var(--text-sm); color: var(--text-2); }
+  .plan-list .ic { color: var(--green-600); width: 17px; height: 17px; }
+  .plan-list li.off { color: var(--text-4); }
+  .plan-list li.off .ic { color: var(--gray-300); }
+  .price-annual { display: none; }
+  body.annual .price-annual { display: block; }
+  body.annual .price-monthly { display: none; }
+
+  /* testimonials */
+  .testis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .testi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 26px; box-shadow: var(--shadow-xs); }
+  .testi .stars { display: flex; gap: 2px; color: var(--warning-500); margin-bottom: 14px; }
+  .testi .stars .ic { width: 16px; height: 16px; fill: var(--warning-500); }
+  .testi p { color: var(--text-2); line-height: 1.7; margin-bottom: 18px; }
+  .testi .who { display: flex; align-items: center; gap: 11px; }
+
+  /* faq */
+  .faqs { max-width: 720px; margin-inline: auto; display: flex; flex-direction: column; gap: 10px; }
+  .faq { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-xs); overflow: hidden; }
+  .faq-q { padding: 18px 22px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .faq-q .ic { color: var(--text-4); transition: transform .25s; }
+  .faq.open { border-color: var(--green-300); }
+  .faq.open .faq-q { color: var(--green-700); }
+  .faq.open .faq-q .ic { transform: rotate(180deg); color: var(--green-600); }
+  .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s var(--ease), padding .3s; color: var(--text-3); line-height: 1.7; padding: 0 22px; }
+  .faq.open .faq-a { max-height: 200px; padding: 0 22px 18px; }
+
+  /* cta band */
+  .cta-band { background: var(--sidebar); padding: 80px 0; text-align: center; position: relative; overflow: hidden; }
+  .cta-band::before { content: ''; position: absolute; top: -120px; inset-inline-start: 50%; transform: translateX(50%); width: 720px; height: 400px; background: radial-gradient(ellipse, rgba(18,183,106,.18), transparent 70%); }
+  .cta-band h2 { font-size: var(--display-md); font-weight: 800; color: #fff; letter-spacing: -1px; position: relative; }
+  .cta-band p { color: rgba(255,255,255,.6); margin: 12px 0 28px; font-size: var(--text-lg); position: relative; }
+
+  /* footer */
+  footer { background: var(--surface); border-top: 1px solid var(--border); padding: 48px 0 32px; }
+  .foot-grid { display: flex; justify-content: space-between; align-items: flex-start; gap: 40px; flex-wrap: wrap; margin-bottom: 32px; }
+  .foot-trust { display: flex; gap: 18px; flex-wrap: wrap; }
+  .foot-trust .badge { background: var(--gray-50); }
+  .foot-bottom { border-top: 1px solid var(--border); padding-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; color: var(--text-4); font-size: var(--text-sm); }
+  .foot-links { display: flex; gap: 22px; }
+  .foot-links a { color: var(--text-3); }
+  .foot-links a:hover { color: var(--text); }
+
+  @media (max-width: 900px) {
+    .hero-grid { grid-template-columns: 1fr; text-align: center; }
+    .hero-cta, .hero-trust { justify-content: center; }
+    .hero-sub { margin-inline: auto; }
+    .phone { display: none; }
+    .stat-band-inner { grid-template-columns: repeat(2, 1fr); }
+    .sb-item:nth-child(3) { border-inline-start: none; }
+    .steps, .feats, .plans, .testis { grid-template-columns: 1fr; }
+    .sec { padding: 56px 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- icon sprite (shared) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7h15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h12"/><path d="M16 12h.01"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
+  <symbol id="i-brain" viewBox="0 0 24 24"><path d="M12 5a3 3 0 0 0-6 0 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 6 0z"/><path d="M12 5a3 3 0 0 1 6 0 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-6 0z"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-headset" viewBox="0 0 24 24"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 16a2 2 0 0 1-2 2h-1v-6h1a2 2 0 0 1 2 2zM3 16a2 2 0 0 0 2 2h1v-6H5a2 2 0 0 0-2 2z"/></symbol>
+  <symbol id="i-whatsapp" viewBox="0 0 24 24"><path d="M3 21l1.65-4.8a8 8 0 1 1 3.4 3.3z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+  <symbol id="i-arrow-next" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></symbol>
+</svg>
+
+<!-- NAV -->
+<nav class="pubnav">
+  <div class="brand"><span class="mark">R</span>Robert</div>
+  <ul class="pubnav-links">
+    <li><a href="#how">איך זה עובד</a></li>
+    <li><a href="#features">יתרונות</a></li>
+    <li><a href="#pricing">מחירים</a></li>
+    <li><a href="#faq">שאלות</a></li>
+  </ul>
+  <div class="row gap-2">
+    <a href="login.html" class="btn btn-secondary">כניסה</a>
+    <a href="onboarding.html" class="btn btn-primary">התחל חינם</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="container hero-grid">
+    <div class="reveal">
+      <span class="eyebrow"><span class="dot"></span>7 ימי ניסיון חינם · ללא כרטיס אשראי</span>
+      <h1 style="margin-top:20px;">הבוט שעונה ללקוחות שלך <span class="accent">בוואטסאפ</span></h1>
+      <p class="hero-sub">Robert עונה, מסביר וקובע פגישות — בשמך, 24/7. מגדירים פעם אחת, ומקבלים לקוחות מרוצים מסביב לשעון.</p>
+      <div class="hero-cta">
+        <a href="onboarding.html" class="btn btn-primary btn-lg">צור את הבוט שלך — חינם <svg class="ic"><use href="#i-arrow-next"/></svg></a>
+        <a href="#how" class="btn btn-secondary btn-lg">איך זה עובד?</a>
+      </div>
+      <div class="hero-trust">
+        <div class="avatars">
+          <span style="background:#d1fadf;color:#027a48;">מ</span>
+          <span style="background:#dbeafe;color:#1e40af;">ד</span>
+          <span style="background:#fef0c7;color:#b54708;">ר</span>
+          <span style="background:#fce7f6;color:#9f1239;">ש</span>
+        </div>
+        <span>כבר <b>+500 עסקים</b> השתמשו בתקופת הבטא</span>
+      </div>
+    </div>
+    <div class="reveal">
+      <div class="phone">
+        <div class="ph-hdr">
+          <div class="ph-av">R</div>
+          <div>
+            <div class="ph-name">Robert — נציג העסק</div>
+            <div class="ph-st"><span class="live"></span>מחובר · עונה תוך שניות</div>
+          </div>
+        </div>
+        <div class="ph-body">
+          <div class="bub bub-in">שלום! מה המחיר שלכם?<div class="tm">09:14</div></div>
+          <div class="bub bub-out">היי, תודה שפנית. המחיר מתחיל מ-₪99/חודש, עם 7 ימי ניסיון חינם.<div class="tm">09:14</div></div>
+          <div class="bub bub-in">מעולה. ואיך קובעים פגישה?<div class="tm">09:15</div></div>
+          <div class="bub bub-out">אפשר כבר מחר. רוצה שאקבע לך תור ל-10:00 או ל-14:00?<div class="tm">09:15</div></div>
+          <div class="bub bub-in">10:00 מושלם, תודה!<div class="tm">09:16</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- STAT BAND -->
+<section class="stat-band">
+  <div class="container stat-band-inner">
+    <div class="sb-item"><div class="sb-num">5 דק'</div><div class="sb-lbl">הקמת בוט מלא</div></div>
+    <div class="sb-item"><div class="sb-num">24/7</div><div class="sb-lbl">זמינות מלאה</div></div>
+    <div class="sb-item"><div class="sb-num">+500</div><div class="sb-lbl">עסקים בתקופת בטא</div></div>
+    <div class="sb-item"><div class="sb-num">ללא קוד</div><div class="sb-lbl">בלי טכנאים</div></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="sec" id="how">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="eyebrow"><span class="dot"></span>איך זה עובד</span>
+      <h2>מוכן תוך 3 צעדים פשוטים</h2>
+      <p>בלי קוד, בלי טכנאים, בלי כאב ראש. הכל דרך האזור האישי שלך.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-n"><svg class="ic ic-lg"><use href="#i-user"/></svg></div>
+        <div class="num-tag">צעד 01</div>
+        <h3>מגדירים את העסק</h3>
+        <p>שם, תחום, שאלות נפוצות, מחירים וסגנון דיבור. אתם בוחרים בדיוק איך Robert מדבר עם הלקוחות.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-n"><svg class="ic ic-lg"><use href="#i-zap"/></svg></div>
+        <div class="num-tag">צעד 02</div>
+        <h3>Robert נוצר תוך דקות</h3>
+        <p>המערכת בונה בוט מותאם לעסק. שיניתם דעתכם? עדכון בלחיצה — נכנס לתוקף מיד.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-n"><svg class="ic ic-lg"><use href="#i-whatsapp"/></svg></div>
+        <div class="num-tag">צעד 03</div>
+        <h3>מחברים לוואטסאפ</h3>
+        <p>מחברים את המספר העסקי בתהליך פשוט. Robert מתחיל לענות — ואתם נחים ומכניסים.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="sec sec-alt" id="features">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="eyebrow"><span class="dot"></span>למה Robert</span>
+      <h2>הכל במקום אחד — בלי להתפשר</h2>
+      <p>כל מה שנציג אנושי עושה, Robert עושה טוב יותר. וזול יותר.</p>
+    </div>
+    <div class="feats">
+      <div class="feat reveal"><div class="feat-ic"><svg class="ic ic-lg"><use href="#i-clock"/></svg></div><h3>זמין 24/7</h3><p>לקוחות שואלים בכל שעה. Robert תמיד שם, עונה תוך שניות, לא מתעייף ולא מבקש העלאה.</p></div>
+      <div class="feat reveal"><div class="feat-ic"><svg class="ic ic-lg"><use href="#i-refresh"/></svg></div><h3>גמישות מלאה</h3><p>לשנות סגנון, לעדכן מחיר, להוסיף שירות — שינוי בלחיצה אחת, בלי לשלם לאף אחד.</p></div>
+      <div class="feat reveal"><div class="feat-ic"><svg class="ic ic-lg"><use href="#i-wallet"/></svg></div><h3>חוסך אלפי שקלים</h3><p>נציג שירות עולה ₪6,000+ בחודש. Robert עושה את אותה עבודה בשבריר מהמחיר.</p></div>
+      <div class="feat reveal"><div class="feat-ic"><svg class="ic ic-lg"><use href="#i-brain"/></svg></div><h3>לומד את העסק</h3><p>מכיר את המוצרים, השירותים, השעות והמחירים — ועונה בדיוק כמו שאתם הייתם עונים.</p></div>
+      <div class="feat reveal"><div class="feat-ic"><svg class="ic ic-lg"><use href="#i-headset"/></svg></div><h3>מסירה לאדם בלחיצה</h3><p>שאלה מסובכת? Robert מעביר את השיחה אליכם עם כל ההיסטוריה. שום לקוח לא נאבד.</p></div>
+      <div class="feat reveal"><div class="feat-ic"><svg class="ic ic-lg"><use href="#i-shield"/></svg></div><h3>בלי התחייבות</h3><p>אין חוזים ואין קנסות. ביטול בלחיצה אחת. אתם תמיד בשליטה מלאה על המנוי.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="sec" id="pricing">
+  <div class="container">
+    <div class="sec-head center reveal">
+      <span class="eyebrow"><span class="dot"></span>מחירים</span>
+      <h2>מחיר פשוט, שקוף, ללא הפתעות</h2>
+      <p>מתחילים בחינם. משדרגים כשרוצים. מבטלים מתי שרוצים.</p>
+    </div>
+    <div class="row" style="justify-content:center;margin-bottom:36px;">
+      <div class="segment">
+        <button class="act" onclick="setBilling(false,this)">חיוב חודשי</button>
+        <button onclick="setBilling(true,this)">שנתי · חיסכון 20%</button>
+      </div>
+    </div>
+    <div class="plans">
+      <div class="plan reveal">
+        <div class="plan-name">בסיסי</div>
+        <div class="price-monthly"><div class="plan-price">₪99<sub>/חודש</sub></div><div class="plan-period">אחרי 7 ימים חינם</div></div>
+        <div class="price-annual"><div class="plan-price">₪79<sub>/חודש</sub></div><div class="plan-period">₪948 לשנה · חיסכון ₪240</div></div>
+        <ul class="plan-list">
+          <li><svg class="ic"><use href="#i-check"/></svg> בוט אחד</li>
+          <li><svg class="ic"><use href="#i-check"/></svg> 300 הודעות לחודש</li>
+          <li><svg class="ic"><use href="#i-check"/></svg> שאלות ותשובות + תפריט</li>
+          <li><svg class="ic"><use href="#i-check"/></svg> חיבור לוואטסאפ</li>
+          <li class="off"><svg class="ic"><use href="#i-x"/></svg> מסירה לנציג אנושי</li>
+          <li class="off"><svg class="ic"><use href="#i-x"/></svg> אנליטיקס ודוחות</li>
+        </ul>
+        <a href="onboarding.html" class="btn btn-secondary btn-block">התחל 7 ימים חינם</a>
+      </div>
+      <div class="plan pop reveal">
+        <div class="pop-tag">הכי פופולרי</div>
+        <div class="plan-name">מקצועי</div>
+        <div class="price-monthly"><div class="plan-price">₪199<sub>/חודש</sub></div><div class="plan-period">אחרי 7 ימים חינם</div></div>
+        <div class="price-annual"><div class="plan-price">₪159<sub>/חודש</sub></div><div class="plan-period">₪1,908 לשנה · חיסכון ₪480</div></div>
+        <ul class="plan-list">
+          <li><svg class="ic"><use href="#i-check"/></svg> 2 בוטים</li>
+          <li><svg class="ic"><use href="#i-check"/></svg> 1,000 הודעות לחודש</li>
+          <li><svg class="ic"><use href="#i-check"/></svg> AI מתקדם + קביעת תורים</li>
+          <li><svg class="ic"><use href="#i-check"/></svg> חיבור לוואטסאפ</li>
+          <li><svg class="ic"><use href="#i-check"/></svg> מסירה לנציג אנושי</li>
+          <li><svg class="ic"><use href="#i-check"/></svg> אנליטיקס בסיסי</li>
+        </ul>
+        <a href="onboarding.html" class="btn btn-primary btn-block">התחל 7 ימים חינם</a>
+      </div>
+      <div class="plan reveal">
+        <div class="plan-name">עסקים</div>
+        <div class="price-monthly"><div class="plan-price">₪399<sub>/חודש</sub></div><div class="plan-period">אחרי 7 ימים חינם</div></div>
+        <div class="price-annual"><div class="plan-price">₪319<sub>/חודש</sub></div><div class="plan-period">₪3,828 לשנה · חיסכון ₪960</div></div>
+        <ul class="plan-list">
+          <li><svg class="ic"><use href="#i-check"/></svg> 5 בוטים</li>
+          <li><svg class="ic"><use href="#i-check"/></svg> 6,000 הודעות לחודש</li>
+          <li><svg class="ic"><use href="#i-check"/></svg> AI מתקדם + זיכרון שיחה</li>
+          <li><svg class="ic"><use href="#i-check"/></svg> חיבור לוואטסאפ</li>
+          <li><svg class="ic"><use href="#i-check"/></svg> מסירה לנציג אנושי</li>
+          <li><svg class="ic"><use href="#i-check"/></svg> אנליטיקס מלא + עדיפות בתמיכה</li>
+        </ul>
+        <a href="onboarding.html" class="btn btn-secondary btn-block">התחל 7 ימים חינם</a>
+      </div>
+    </div>
+    <p class="text-sm text-3" style="text-align:center;margin-top:24px;">7 ימי ניסיון חינם בכל מסלול · ללא כרטיס אשראי · ביטול בלחיצה, ללא קנסות</p>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="sec sec-alt">
+  <div class="container">
+    <div class="sec-head center reveal">
+      <span class="eyebrow"><span class="dot"></span>לקוחות מספרים</span>
+      <h2>הם כבר עובדים עם Robert</h2>
+    </div>
+    <div class="testis">
+      <div class="testi reveal">
+        <div class="stars"><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></div>
+        <p>״הקמתי את הבוט תוך 10 דקות. עכשיו הוא עונה ללקוחות בזמן שאני ישן. פשוט מדהים.״</p>
+        <div class="who"><span class="avatar">מ</span><div><div style="font-weight:600">מיכאל כהן</div><div class="text-sm text-3">בעל מוסך · תל אביב</div></div></div>
+      </div>
+      <div class="testi reveal">
+        <div class="stars"><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></div>
+        <p>״חסכתי ₪4,000 בחודש על מזכירה. הבוט עונה טוב יותר ולא לוקח הפסקות.״</p>
+        <div class="who"><span class="avatar" style="background:#dbeafe;color:#1e40af;">ד</span><div><div style="font-weight:600">דנה לוי</div><div class="text-sm text-3">קוסמטיקאית · חיפה</div></div></div>
+      </div>
+      <div class="testi reveal">
+        <div class="stars"><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></div>
+        <p>״לקוחות כותבים בלילה ומקבלים תשובה מיידית. הסגרתי 3 עסקאות שפספסתי לפני.״</p>
+        <div class="who"><span class="avatar" style="background:#fef0c7;color:#b54708;">ר</span><div><div style="font-weight:600">רון אברהם</div><div class="text-sm text-3">יועץ עסקי · ירושלים</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="sec" id="faq">
+  <div class="container">
+    <div class="sec-head center reveal">
+      <span class="eyebrow"><span class="dot"></span>שאלות נפוצות</span>
+      <h2>יש לכם שאלות?</h2>
+    </div>
+    <div class="faqs">
+      <div class="faq"><div class="faq-q" onclick="toggleFaq(this)">האם צריך ידע טכני?<svg class="ic"><use href="#i-chevron-down"/></svg></div><div class="faq-a">בכלל לא. אם אתם יודעים למלא טופס — אתם יכולים להקים את Robert. אין קוד ואין הגדרות מסובכות.</div></div>
+      <div class="faq"><div class="faq-q" onclick="toggleFaq(this)">אפשר לחבר את המספר העסקי הקיים?<svg class="ic"><use href="#i-chevron-down"/></svg></div><div class="faq-a">כן. אפשר לחבר כל מספר וואטסאפ Business קיים. המערכת מדריכה שלב אחר שלב — כ-5 דקות.</div></div>
+      <div class="faq"><div class="faq-q" onclick="toggleFaq(this)">מה קורה אם הבוט לא יודע לענות?<svg class="ic"><use href="#i-chevron-down"/></svg></div><div class="faq-a">Robert מעביר את השיחה אליכם עם כל ההיסטוריה. אתם רואים הכל ועונים ישירות מהממשק.</div></div>
+      <div class="faq"><div class="faq-q" onclick="toggleFaq(this)">אפשר לשנות את הבוט אחרי שהוא עולה?<svg class="ic"><use href="#i-chevron-down"/></svg></div><div class="faq-a">בוודאי. שינוי מחיר, הוספת שירות, עדכון שעות — כל שינוי נכנס לתוקף מיד, בלי עלות נוספת.</div></div>
+      <div class="faq"><div class="faq-q" onclick="toggleFaq(this)">מה קורה בסוף 7 ימי הניסיון?<svg class="ic"><use href="#i-chevron-down"/></svg></div><div class="faq-a">אם אהבתם — עוברים למסלול שבחרתם. אם לא — הבוט מתנתק ואין חיוב. ללא התחייבות וללא קנסות.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-band">
+  <div class="container">
+    <h2>מוכנים ש-Robert יעבוד בשבילכם?</h2>
+    <p>7 ימים חינם · ללא כרטיס אשראי · ביטול מתי שרוצים</p>
+    <a href="onboarding.html" class="btn btn-primary btn-lg">צור את הבוט שלך עכשיו — חינם <svg class="ic"><use href="#i-arrow-next"/></svg></a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <div class="brand" style="margin-bottom:12px;"><span class="mark">R</span>Robert</div>
+        <p class="text-sm text-3" style="max-width:280px;">הבוט החכם שעונה ללקוחות שלך בוואטסאפ, 24/7. נבנה לעסקים קטנים בישראל.</p>
+      </div>
+      <div class="foot-trust">
+        <span class="badge badge-gray"><svg class="ic ic-sm"><use href="#i-lock"/></svg> הצפנת SSL</span>
+        <span class="badge badge-gray"><svg class="ic ic-sm"><use href="#i-shield"/></svg> תאימות לחוק הפרטיות</span>
+        <span class="badge badge-gray"><svg class="ic ic-sm"><use href="#i-whatsapp"/></svg> WhatsApp Business API</span>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Robert. כל הזכויות שמורות.</span>
+      <div class="foot-links"><a href="#">תנאי שימוש</a><a href="#">פרטיות</a><a href="#">צור קשר</a></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function toggleFaq(el) {
+    const item = el.parentElement;
+    const open = item.classList.contains('open');
+    document.querySelectorAll('.faq').forEach(f => f.classList.remove('open'));
+    if (!open) item.classList.add('open');
+  }
+  function setBilling(annual, btn) {
+    document.body.classList.toggle('annual', annual);
+    btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('act'));
+    btn.classList.add('act');
+  }
+  document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  }));
+  const reveals = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => { if (e.isIntersecting) setTimeout(() => e.target.classList.add('on'), i * 50); });
+    }, { threshold: .08 });
+    reveals.forEach(el => obs.observe(el));
+    // safety: never leave content hidden (e.g. print, or observer not firing)
+    setTimeout(() => reveals.forEach(el => el.classList.add('on')), 1500);
+  } else {
+    reveals.forEach(el => el.classList.add('on'));
+  }
+</script>
+</body>
+</html>

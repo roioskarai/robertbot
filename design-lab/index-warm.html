@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robert — הבוט שמדבר עם הלקוחות שלך</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ─── WARM TOKENS ─────────────────────────────────────────────── */
+:root {
+  --bg:          #faf9f6;
+  --bg-2:        #f3f1ec;
+  --surface:     #ffffff;
+  --surface-2:   #f5f3ee;
+
+  --orange-50:   #fff7ed;
+  --orange-100:  #ffedd5;
+  --orange-200:  #fed7aa;
+  --orange-300:  #fdba74;
+  --orange-400:  #fb923c;
+  --orange-500:  #f97316;
+  --orange-600:  #ea580c;
+  --orange-700:  #c2410c;
+  --orange-800:  #9a3412;
+
+  --stone-50:    #fafaf9;
+  --stone-100:   #f5f5f4;
+  --stone-200:   #e7e5e4;
+  --stone-300:   #d6d3d1;
+  --stone-400:   #a8a29e;
+  --stone-500:   #78716c;
+  --stone-600:   #57534e;
+  --stone-700:   #44403c;
+  --stone-800:   #292524;
+  --stone-900:   #1c1917;
+
+  --wa:          #25d366;
+  --wa-dark:     #075e54;
+  --wa-mid:      #128c7e;
+
+  --text:        #1c1917;
+  --text-2:      #44403c;
+  --text-3:      #78716c;
+  --text-4:      #a8a29e;
+  --border:      #e7e5e4;
+  --border-2:    #d6d3d1;
+
+  --radius-sm:   8px;
+  --radius:      12px;
+  --radius-lg:   18px;
+  --radius-xl:   24px;
+  --radius-full: 9999px;
+
+  --shadow-sm:   0 1px 3px rgba(28,25,23,.07);
+  --shadow:      0 2px 8px rgba(28,25,23,.09), 0 1px 2px rgba(28,25,23,.06);
+  --shadow-md:   0 4px 16px rgba(28,25,23,.1), 0 2px 4px rgba(28,25,23,.07);
+  --shadow-lg:   0 8px 32px rgba(28,25,23,.12), 0 2px 6px rgba(28,25,23,.08);
+  --shadow-xl:   0 16px 48px rgba(28,25,23,.14);
+  --shadow-2xl:  0 24px 64px rgba(28,25,23,.16);
+
+  --font: 'Rubik', sans-serif;
+  --nav-h: 64px;
+}
+
+/* ─── RESET ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { text-decoration: none; color: inherit; }
+img { max-width: 100%; }
+button { font-family: var(--font); cursor: pointer; border: none; }
+ul { list-style: none; }
+
+/* ─── LAYOUT ─────────────────────────────────────────────────── */
+.container { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+section { padding: 96px 0; }
+
+/* ─── BUTTONS ────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font); font-weight: 600; font-size: 15px;
+  border-radius: var(--radius); padding: 11px 22px;
+  transition: all .18s ease; white-space: nowrap;
+}
+.btn-primary {
+  background: var(--orange-600); color: #fff;
+  box-shadow: 0 1px 2px rgba(194,65,12,.3), 0 4px 12px rgba(234,88,12,.25);
+}
+.btn-primary:hover { background: var(--orange-700); transform: translateY(-1px); box-shadow: 0 2px 4px rgba(194,65,12,.35), 0 6px 18px rgba(234,88,12,.3); }
+.btn-secondary { background: var(--surface); color: var(--text); border: 1.5px solid var(--border-2); }
+.btn-secondary:hover { border-color: var(--stone-400); background: var(--stone-50); }
+.btn-wa { background: var(--wa); color: #fff; }
+.btn-wa:hover { background: #22c55e; }
+.btn-lg { font-size: 16px; padding: 14px 28px; border-radius: var(--radius-lg); }
+
+/* ─── NAV ────────────────────────────────────────────────────── */
+.nav {
+  position: fixed; top: 0; inset-inline: 0; z-index: 100;
+  height: var(--nav-h); background: rgba(250,249,246,.9);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(231,229,228,.6);
+}
+.nav-inner { max-width: 1120px; margin: 0 auto; padding: 0 24px; height: 100%; display: flex; align-items: center; gap: 40px; }
+.logo { font-size: 20px; font-weight: 800; color: var(--text); letter-spacing: -.5px; display: flex; align-items: center; gap: 8px; }
+.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange-500); }
+.nav-links { display: flex; gap: 28px; flex: 1; }
+.nav-links a { font-size: 14px; font-weight: 500; color: var(--text-3); transition: color .15s; }
+.nav-links a:hover { color: var(--text); }
+.nav-cta { display: flex; gap: 10px; align-items: center; margin-inline-start: auto; }
+
+/* ─── HERO ───────────────────────────────────────────────────── */
+.hero { padding: calc(var(--nav-h) + 80px) 0 72px; }
+.hero-inner { display: grid; grid-template-columns: 1fr 360px; gap: 72px; align-items: center; }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--orange-50); border: 1px solid var(--orange-200);
+  color: var(--orange-700); border-radius: var(--radius-full);
+  padding: 6px 14px; font-size: 13px; font-weight: 600; margin-bottom: 24px;
+}
+.hero-eyebrow span { width: 6px; height: 6px; border-radius: 50%; background: var(--orange-500); }
+.hero h1 {
+  font-size: clamp(38px, 4.5vw, 58px); font-weight: 800;
+  line-height: 1.1; letter-spacing: -1.5px; color: var(--text);
+  margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--orange-600); }
+.hero-sub { font-size: 18px; color: var(--text-3); line-height: 1.7; max-width: 460px; margin-bottom: 36px; }
+.hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
+.hero-proof { display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--text-4); }
+.hero-proof strong { color: var(--text-3); }
+.ava-row { display: flex; }
+.ava-row span {
+  width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; margin-inline-start: -8px;
+  background: var(--orange-200); color: var(--orange-800);
+}
+.ava-row span:first-child { margin-inline-start: 0; }
+
+/* phone mockup */
+.phone-wrap { position: relative; display: flex; justify-content: center; }
+.phone {
+  width: 280px; background: #fff; border-radius: 32px;
+  border: 1px solid var(--border); box-shadow: var(--shadow-xl);
+  overflow: hidden; position: relative;
+}
+.ph-hdr { background: linear-gradient(135deg, #075e54, #128c7e); padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+.ph-av { width: 38px; height: 38px; border-radius: 50%; background: var(--wa); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-size: 16px; }
+.ph-name { font-size: 14px; font-weight: 700; color: #fff; }
+.ph-st { font-size: 11px; color: rgba(255,255,255,.7); margin-top: 2px; }
+.ph-body { padding: 16px; background: #ece5dd; display: flex; flex-direction: column; gap: 10px; min-height: 280px; }
+.msg { max-width: 88%; padding: 9px 13px; font-size: 13px; line-height: 1.5; border-radius: 12px; position: relative; }
+.msg-in { background: #fff; border-radius: 0 12px 12px 12px; align-self: flex-start; color: #111; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.msg-out { background: #dcf8c6; border-radius: 12px 0 12px 12px; align-self: flex-end; color: #111; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.msg-time { font-size: 10px; color: #aaa; margin-top: 3px; text-align: end; }
+.ph-typing { background: #fff; border-radius: 0 12px 12px 12px; padding: 10px 14px; display: inline-flex; gap: 4px; align-self: flex-start; }
+.dot-typing { width: 6px; height: 6px; border-radius: 50%; background: #aaa; animation: blink 1.2s infinite; }
+.dot-typing:nth-child(2) { animation-delay: .2s; }
+.dot-typing:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%,80%,100%{opacity:.3} 40%{opacity:1} }
+.ph-badge {
+  position: absolute; bottom: -12px; inset-inline-end: -12px;
+  background: var(--orange-600); color: #fff; border-radius: var(--radius-lg);
+  padding: 10px 14px; font-size: 12px; font-weight: 700;
+  box-shadow: var(--shadow-md); display: flex; flex-direction: column; gap: 2px;
+}
+.ph-badge-num { font-size: 20px; font-weight: 800; line-height: 1; }
+.ph-badge-lbl { opacity: .85; }
+
+/* ─── STATS STRIP ─────────────────────────────────────────────── */
+.stats-strip { background: var(--stone-900); padding: 0; }
+.stats-inner { display: flex; }
+.stat-item {
+  flex: 1; padding: 28px 32px; display: flex; flex-direction: column; gap: 4px;
+  border-inline-end: 1px solid rgba(255,255,255,.1);
+}
+.stat-item:last-child { border-inline-end: none; }
+.stat-num { font-size: 32px; font-weight: 800; color: var(--orange-400); letter-spacing: -1px; }
+.stat-lbl { font-size: 14px; color: rgba(255,255,255,.55); }
+
+/* ─── HOW IT WORKS ───────────────────────────────────────────── */
+.hiw { background: var(--bg); }
+.section-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--orange-50); color: var(--orange-700); border: 1px solid var(--orange-200);
+  border-radius: var(--radius-full); padding: 5px 14px; font-size: 13px; font-weight: 600;
+  margin-bottom: 14px;
+}
+.section-title { font-size: clamp(28px, 3vw, 40px); font-weight: 800; letter-spacing: -1px; margin-bottom: 16px; }
+.section-sub { font-size: 17px; color: var(--text-3); max-width: 520px; }
+.section-head { margin-bottom: 56px; }
+.section-head.centered { text-align: center; }
+.section-head.centered .section-sub { margin: 0 auto; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.step-card {
+  background: var(--surface); border-radius: var(--radius-xl); padding: 32px 28px;
+  border: 1px solid var(--border); box-shadow: var(--shadow-sm); position: relative;
+  transition: box-shadow .2s, transform .2s;
+}
+.step-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
+.step-num {
+  width: 44px; height: 44px; border-radius: var(--radius);
+  background: var(--orange-600); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800; margin-bottom: 20px;
+}
+.step-title { font-size: 19px; font-weight: 700; margin-bottom: 10px; }
+.step-body { font-size: 15px; color: var(--text-3); line-height: 1.65; }
+.step-arrow {
+  position: absolute; top: 50%; inset-inline-end: -20px; transform: translateY(-50%);
+  width: 40px; height: 40px; background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  color: var(--text-4); font-size: 14px; z-index: 1;
+}
+.step-card:last-child .step-arrow { display: none; }
+
+/* ─── FEATURES ───────────────────────────────────────────────── */
+.features { background: var(--bg-2); }
+.feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.feat-card {
+  background: var(--surface); border-radius: var(--radius-xl); padding: 28px 24px;
+  border: 1px solid var(--border); transition: box-shadow .2s, transform .2s;
+}
+.feat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
+.feat-icon {
+  width: 48px; height: 48px; border-radius: var(--radius-lg);
+  background: var(--orange-50); border: 1px solid var(--orange-100);
+  display: flex; align-items: center; justify-content: center; margin-bottom: 18px;
+}
+.feat-icon svg { width: 22px; height: 22px; stroke: var(--orange-600); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.feat-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.feat-body { font-size: 14px; color: var(--text-3); line-height: 1.65; }
+
+/* ─── TESTIMONIALS ───────────────────────────────────────────── */
+.testimonials { background: var(--bg); }
+.testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.testi-card {
+  background: var(--surface); border-radius: var(--radius-xl); padding: 28px 24px;
+  border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+}
+.stars { display: flex; gap: 4px; margin-bottom: 16px; }
+.star { color: var(--orange-400); font-size: 16px; }
+.testi-quote { font-size: 15px; color: var(--text-2); line-height: 1.7; margin-bottom: 20px; }
+.testi-author { display: flex; align-items: center; gap: 12px; }
+.testi-av {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--orange-100); color: var(--orange-700);
+  display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
+}
+.testi-name { font-size: 14px; font-weight: 700; }
+.testi-biz { font-size: 12px; color: var(--text-4); margin-top: 2px; }
+
+/* ─── PRICING TEASER ─────────────────────────────────────────── */
+.pricing { background: var(--bg-2); }
+.price-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 900px; margin: 0 auto; }
+.price-card {
+  background: var(--surface); border-radius: var(--radius-xl); padding: 32px 28px;
+  border: 1.5px solid var(--border); box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column;
+}
+.price-card.popular {
+  border-color: var(--orange-500); box-shadow: 0 0 0 3px rgba(249,115,22,.1), var(--shadow-md);
+}
+.price-popular-badge {
+  display: inline-block; background: var(--orange-600); color: #fff;
+  border-radius: var(--radius-full); font-size: 12px; font-weight: 700;
+  padding: 3px 12px; margin-bottom: 16px; width: fit-content;
+}
+.price-name { font-size: 14px; font-weight: 600; color: var(--text-3); margin-bottom: 6px; }
+.price-num { font-size: 40px; font-weight: 800; color: var(--text); letter-spacing: -2px; line-height: 1; }
+.price-num sup { font-size: 20px; font-weight: 600; vertical-align: super; }
+.price-period { font-size: 13px; color: var(--text-4); margin-top: 4px; margin-bottom: 20px; }
+.price-divider { height: 1px; background: var(--border); margin-bottom: 20px; }
+.price-features { flex: 1; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+.price-feat { font-size: 14px; color: var(--text-2); display: flex; align-items: center; gap: 10px; }
+.price-feat::before { content: ''; width: 16px; height: 16px; border-radius: 50%; background: var(--orange-50); border: 1.5px solid var(--orange-300); display: block; flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23ea580c' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 8 3.5 3.5L13 4'/%3E%3C/svg%3E");
+  background-size: 10px; background-repeat: no-repeat; background-position: center; }
+
+/* ─── FINAL CTA ───────────────────────────────────────────────── */
+.final-cta {
+  background: linear-gradient(135deg, var(--stone-900) 0%, #2d1a0e 100%);
+  padding: 96px 0; text-align: center;
+}
+.final-cta h2 { font-size: clamp(28px, 3.5vw, 44px); font-weight: 800; color: #fff; letter-spacing: -1.2px; margin-bottom: 16px; }
+.final-cta p { font-size: 18px; color: rgba(255,255,255,.6); margin-bottom: 36px; }
+.final-cta .btn-primary { font-size: 17px; padding: 16px 36px; border-radius: var(--radius-xl); }
+.final-trust { display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: 28px; font-size: 13px; color: rgba(255,255,255,.4); }
+.final-trust span { display: flex; align-items: center; gap: 6px; }
+
+/* ─── FOOTER ─────────────────────────────────────────────────── */
+.footer { background: var(--stone-900); padding: 56px 0 32px; color: rgba(255,255,255,.5); }
+.footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 48px; }
+.footer-brand { color: #fff; font-size: 18px; font-weight: 800; letter-spacing: -.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.footer-brand-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orange-500); }
+.footer-desc { font-size: 14px; line-height: 1.65; }
+.footer-col h4 { color: rgba(255,255,255,.8); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 16px; }
+.footer-col ul { display: flex; flex-direction: column; gap: 10px; }
+.footer-col ul li a { font-size: 14px; transition: color .15s; }
+.footer-col ul li a:hover { color: rgba(255,255,255,.8); }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,.1); padding-top: 28px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+.footer-badges { display: flex; gap: 12px; }
+.badge-trust {
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+  border-radius: var(--radius-sm); padding: 5px 11px; font-size: 12px; color: rgba(255,255,255,.5);
+}
+
+/* ─── REVEAL ─────────────────────────────────────────────────── */
+.rv { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.rv.on { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ─────────────────────────────────────────────────────── -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="logo"><span class="logo-dot"></span>Robert</a>
+    <div class="nav-links">
+      <a href="#">תכונות</a>
+      <a href="#">מחירים</a>
+      <a href="#">תבניות</a>
+      <a href="#">שאלות נפוצות</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-secondary" style="font-size:14px;padding:8px 18px;">כניסה</a>
+      <a href="#" class="btn btn-primary" style="font-size:14px;padding:8px 18px;">התחל בחינם</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── HERO ─────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <div class="hero-eyebrow rv on"><span></span>חדש — מחובר ל-WhatsApp Business API</div>
+        <h1 class="rv on">תן ל<em>Robert</em> לענות<br>לכל שאלה<br>בוואטסאפ</h1>
+        <p class="hero-sub rv on">עסקים קטנים שמחברים בוט חכם מקבלים יותר תורים, פחות שיחות שחוזרות על עצמן, ולקוחות מרוצים יותר — 24/7.</p>
+        <div class="hero-cta rv on">
+          <a href="#" class="btn btn-primary btn-lg">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            7 ימים חינם, ללא כרטיס
+          </a>
+          <a href="#" class="btn btn-secondary btn-lg">ראה הדגמה חיה</a>
+        </div>
+        <div class="hero-proof rv on">
+          <div class="ava-row"><span>מ</span><span>ד</span><span>א</span><span>ר</span><span>ש</span></div>
+          <span><strong>+500 עסקים</strong> כבר עובדים עם Robert</span>
+        </div>
+      </div>
+
+      <div class="phone-wrap rv on">
+        <div class="phone">
+          <div class="ph-hdr">
+            <div class="ph-av">R</div>
+            <div>
+              <div class="ph-name">Robert — מספרת דנה</div>
+              <div class="ph-st">● מחובר</div>
+            </div>
+          </div>
+          <div class="ph-body">
+            <div class="msg msg-in">שלום! אפשר לקבוע תור לגזירה לשבוע הבא?<div class="msg-time">16:42</div></div>
+            <div class="msg msg-out">היי דנה! כן בטח 😊<br>איזה יום נוח לך?<div class="msg-time">16:42</div></div>
+            <div class="msg msg-in">ביום ג׳ או ד׳ בבוקר<div class="msg-time">16:43</div></div>
+            <div class="msg msg-out">מצוין! יש לי:<br>📅 יום ג׳ 10:00<br>📅 יום ד׳ 9:30<br>מה מתאים?<div class="msg-time">16:43</div></div>
+            <div class="ph-typing"><div class="dot-typing"></div><div class="dot-typing"></div><div class="dot-typing"></div></div>
+          </div>
+        </div>
+        <div class="ph-badge">
+          <div class="ph-badge-num">+12</div>
+          <div class="ph-badge-lbl">תורים חדשים היום</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STATS ─────────────────────────────────────────────────────── -->
+<div class="stats-strip">
+  <div class="stats-inner">
+    <div class="stat-item"><div class="stat-num">+500</div><div class="stat-lbl">עסקים מחוברים</div></div>
+    <div class="stat-item"><div class="stat-num">5 דק׳</div><div class="stat-lbl">להפעיל בוט ראשון</div></div>
+    <div class="stat-item"><div class="stat-num">24/7</div><div class="stat-lbl">זמין תמיד</div></div>
+    <div class="stat-item"><div class="stat-num">ללא קוד</div><div class="stat-lbl">אפס ידע טכני</div></div>
+  </div>
+</div>
+
+<!-- ── HOW IT WORKS ───────────────────────────────────────────────── -->
+<section class="hiw">
+  <div class="container">
+    <div class="section-head centered">
+      <div class="section-eyebrow">איך זה עובד</div>
+      <h2 class="section-title">בוט ואטסאפ בשלושה שלבים</h2>
+      <p class="section-sub">אין צורך בתכנות, אין שרתים, אין כאב ראש. רק עסק שעובד בשקט.</p>
+    </div>
+    <div class="steps">
+      <div class="step-card rv">
+        <div class="step-num">1</div>
+        <div class="step-title">ספר לנו על העסק</div>
+        <div class="step-body">הדבק טקסט מהאתר או המלא ידנית — Robert מבין לבד מה לעשות איתו.</div>
+        <div class="step-arrow">←</div>
+      </div>
+      <div class="step-card rv" style="transition-delay:.1s">
+        <div class="step-num">2</div>
+        <div class="step-title">Robert לומד ומתכונן</div>
+        <div class="step-body">AI מאמן את הבוט על השירותים, המחירים, השעות והשאלות שמגיעות אליך הכי הרבה.</div>
+        <div class="step-arrow">←</div>
+      </div>
+      <div class="step-card rv" style="transition-delay:.2s">
+        <div class="step-num">3</div>
+        <div class="step-title">חבר וואטסאפ — סיימת</div>
+        <div class="step-body">לחיצה אחת לחיבור. מרגע זה Robert עונה, קובע תורים ומוכר 24/7.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ───────────────────────────────────────────────────── -->
+<section class="features">
+  <div class="container">
+    <div class="section-head centered">
+      <div class="section-eyebrow">תכונות</div>
+      <h2 class="section-title">כל מה שעסק קטן צריך</h2>
+      <p class="section-sub">לא עוד אפליקציות מסובכות — הכל במקום אחד, ממשק פשוט.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card rv">
+        <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg></div>
+        <div class="feat-title">קביעת תורים אוטומטית</div>
+        <div class="feat-body">הלקוח שולח הודעה, Robert קובע תור, שולח תזכורת — בלי שמישהו הרים טלפון.</div>
+      </div>
+      <div class="feat-card rv" style="transition-delay:.08s">
+        <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <div class="feat-title">זמין 24/7</div>
+        <div class="feat-body">גם בשעות שסגרת, גם בסופ"ש, גם בחגים — Robert לא ישן ולא יוצא לחופשה.</div>
+      </div>
+      <div class="feat-card rv" style="transition-delay:.16s">
+        <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm-7 20a7 7 0 0 1 14 0"/></svg></div>
+        <div class="feat-title">מזהה לקוחות חוזרים</div>
+        <div class="feat-body">Robert זוכר כל לקוח ומתאים את התשובה. לקוח ותיק מקבל יחס אחר מלקוח חדש.</div>
+      </div>
+      <div class="feat-card rv" style="transition-delay:.04s">
+        <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <div class="feat-title">מענה מיידי</div>
+        <div class="feat-body">פחות מ-2 שניות תגובה בממוצע. לקוחות לא ממתינים ולא עוברים למתחרה.</div>
+      </div>
+      <div class="feat-card rv" style="transition-delay:.12s">
+        <div class="feat-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <div class="feat-title">דשבורד ניהול</div>
+        <div class="feat-body">מי פנה, מה שאל, כמה תורים נקבעו — כל המספרים בצלחת בכל בוקר.</div>
+      </div>
+      <div class="feat-card rv" style="transition-delay:.2s">
+        <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div class="feat-title">פרטיות ואבטחה</div>
+        <div class="feat-body">עומד בחוק הגנת הפרטיות הישראלי. הנתונים שלך נשארים שלך, לא משותפים עם אף אחד.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ───────────────────────────────────────────────── -->
+<section class="testimonials">
+  <div class="container">
+    <div class="section-head centered">
+      <div class="section-eyebrow">לקוחות</div>
+      <h2 class="section-title">עסקים שכבר עובדים חכם יותר</h2>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card rv">
+        <div class="stars">★★★★★</div>
+        <p class="testi-quote">״הבוט ענה על 90% מהשאלות בלי שנגעתי בטלפון. בסוף החודש עלתה לי ההכנסה ב-3,000 ש״ח כי הגעתי לעוד לקוחות.״</p>
+        <div class="testi-author"><div class="testi-av">מ</div><div><div class="testi-name">מיכל אברהם</div><div class="testi-biz">מספרה · תל אביב</div></div></div>
+      </div>
+      <div class="testi-card rv" style="transition-delay:.1s">
+        <div class="stars">★★★★★</div>
+        <p class="testi-quote">״הייתי חוזר על אותן 5 שאלות כל יום. עכשיו Robert עושה את זה ואני מתפנה לדברים שבאמת צריכים אותי.״</p>
+        <div class="testi-author"><div class="testi-av">ד</div><div><div class="testi-name">דוד לוי</div><div class="testi-biz">קליניקת פיזיותרפיה · חיפה</div></div></div>
+      </div>
+      <div class="testi-card rv" style="transition-delay:.2s">
+        <div class="stars">★★★★★</div>
+        <p class="testi-quote">״הקמתי את הבוט בשעה אחת בשישי בצהריים. בשבת קיבלתי 4 פניות ו-Robert סידר הכל לבד. פשוט לא יאמן.״</p>
+        <div class="testi-author"><div class="testi-av">ש</div><div><div class="testi-name">שירה כהן</div><div class="testi-biz">סטודיו לנייל · ירושלים</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ─────────────────────────────────────────────────────── -->
+<section class="pricing">
+  <div class="container">
+    <div class="section-head centered">
+      <div class="section-eyebrow">מחירים</div>
+      <h2 class="section-title">מחיר שמתאים לכל עסק</h2>
+      <p class="section-sub">7 ימי ניסיון חינמיים בכל מסלול. ללא התחייבות, ללא כרטיס אשראי.</p>
+    </div>
+    <div class="price-cards">
+      <div class="price-card rv">
+        <div class="price-name">בסיסי</div>
+        <div class="price-num"><sup>₪</sup>99</div>
+        <div class="price-period">לחודש + מע"מ</div>
+        <div class="price-divider"></div>
+        <div class="price-features">
+          <div class="price-feat">בוט אחד</div>
+          <div class="price-feat">500 שיחות/חודש</div>
+          <div class="price-feat">קביעת תורים</div>
+          <div class="price-feat">דשבורד בסיסי</div>
+        </div>
+        <a href="#" class="btn btn-secondary" style="width:100%;justify-content:center;">התחל ניסיון</a>
+      </div>
+      <div class="price-card popular rv" style="transition-delay:.1s">
+        <div class="price-popular-badge">הכי פופולרי</div>
+        <div class="price-name">מקצועי</div>
+        <div class="price-num"><sup>₪</sup>199</div>
+        <div class="price-period">לחודש + מע"מ</div>
+        <div class="price-divider"></div>
+        <div class="price-features">
+          <div class="price-feat">3 בוטים</div>
+          <div class="price-feat">שיחות ללא הגבלה</div>
+          <div class="price-feat">קטלוג מוצרים/שירותים</div>
+          <div class="price-feat">אנליטיקה מתקדמת</div>
+          <div class="price-feat">תמיכה מהירה</div>
+        </div>
+        <a href="#" class="btn btn-primary" style="width:100%;justify-content:center;">התחל ניסיון</a>
+      </div>
+      <div class="price-card rv" style="transition-delay:.2s">
+        <div class="price-name">עסקים</div>
+        <div class="price-num"><sup>₪</sup>399</div>
+        <div class="price-period">לחודש + מע"מ</div>
+        <div class="price-divider"></div>
+        <div class="price-features">
+          <div class="price-feat">בוטים ללא הגבלה</div>
+          <div class="price-feat">אינטגרציות CRM</div>
+          <div class="price-feat">API גישה</div>
+          <div class="price-feat">מנהל חשבון אישי</div>
+          <div class="price-feat">SLA 99.9%</div>
+        </div>
+        <a href="#" class="btn btn-secondary" style="width:100%;justify-content:center;">דברו איתנו</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FINAL CTA ───────────────────────────────────────────────────── -->
+<section class="final-cta">
+  <div class="container">
+    <h2>מוכן שהבוט יתחיל לעבוד?</h2>
+    <p>7 ימים חינם. ללא כרטיס אשראי. מוכן תוך 5 דקות.</p>
+    <a href="#" class="btn btn-primary">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      צור את הבוט שלי עכשיו
+    </a>
+    <div class="final-trust">
+      <span>✓ ללא כרטיס אשראי</span>
+      <span>✓ ביטול בכל עת</span>
+      <span>✓ תמיכה בעברית</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ─────────────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand"><span class="footer-brand-dot"></span>Robert</div>
+        <p class="footer-desc">פלטפורמת בוטים לווטסאפ לעסקים קטנים. הופכים כל עסק לזמין 24/7 — בלי ידע טכני.</p>
+      </div>
+      <div class="footer-col">
+        <h4>מוצר</h4>
+        <ul>
+          <li><a href="#">תכונות</a></li>
+          <li><a href="#">מחירים</a></li>
+          <li><a href="#">תבניות</a></li>
+          <li><a href="#">אינטגרציות</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>חברה</h4>
+        <ul>
+          <li><a href="#">אודות</a></li>
+          <li><a href="#">בלוג</a></li>
+          <li><a href="#">שותפים</a></li>
+          <li><a href="#">יצירת קשר</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>משפטי</h4>
+        <ul>
+          <li><a href="#">תנאי שימוש</a></li>
+          <li><a href="#">מדיניות פרטיות</a></li>
+          <li><a href="#">GDPR</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Robert. כל הזכויות שמורות.</span>
+      <div class="footer-badges">
+        <span class="badge-trust">🔒 SSL מאובטח</span>
+        <span class="badge-trust">✓ חוק הגנת הפרטיות</span>
+        <span class="badge-trust">WhatsApp Business API</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const rv = document.querySelectorAll('.rv:not(.on)');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); } });
+  }, { threshold: .15 });
+  rv.forEach(el => io.observe(el));
+  setTimeout(() => rv.forEach(el => el.classList.add('on')), 1600);
+</script>
+</body>
+</html>

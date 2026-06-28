@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Robert — הצעות לוגו ופאביקון</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #f1f5f9;
+      font-family: 'Rubik', system-ui, -apple-system, sans-serif;
+      color: #0f172a;
+      min-height: 100vh;
+    }
+
+    /* ─── Header ─────────────────────────────────────── */
+    .header {
+      background: #0f172a;
+      padding: 52px 48px 40px;
+      text-align: center;
+      color: white;
+    }
+    .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
+    .header p  { color: #64748b; font-size: 15px; }
+
+    /* ─── Layout ──────────────────────────────────────── */
+    .content { padding: 48px 40px; max-width: 1200px; margin: 0 auto; }
+    .section  { margin-bottom: 72px; }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .section-heading h2 { font-size: 19px; font-weight: 700; }
+    .pill {
+      background: #dcfce7;
+      color: #15803d;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.4px;
+    }
+
+    /* ─── Current banner ──────────────────────────────── */
+    .current-banner {
+      background: #fefce8;
+      border: 1.5px solid #fde047;
+      border-radius: 14px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 52px;
+    }
+    .current-banner h3 { font-size: 13px; font-weight: 700; color: #854d0e; margin-bottom: 3px; }
+    .current-banner p  { font-size: 12px; color: #a16207; line-height: 1.5; }
+
+    /* ─── Icon grid ───────────────────────────────────── */
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 20px;
+    }
+
+    .icon-card {
+      background: white;
+      border-radius: 18px;
+      padding: 28px 16px 20px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 4px 14px rgba(0,0,0,.04);
+      transition: transform .22s ease, box-shadow .22s ease, border-color .15s;
+      border: 2px solid transparent;
+      position: relative;
+      cursor: default;
+    }
+    .icon-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 28px rgba(0,0,0,.12);
+      border-color: #22c55e;
+    }
+    .icon-card.star {
+      border-color: #22c55e;
+    }
+    .icon-card.star::before {
+      content: '⭐ מומלץ';
+      position: absolute;
+      top: -13px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #22c55e;
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .icon-previews {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .preview-item { text-align: center; }
+    .size-lbl {
+      font-size: 9px;
+      color: #cbd5e1;
+      margin-top: 3px;
+      letter-spacing: 0.3px;
+    }
+
+    .card-name { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 5px; }
+    .card-desc { font-size: 11.5px; color: #64748b; line-height: 1.55; }
+
+    /* dark-bg preview wrapper for light icons */
+    .on-dark {
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    /* ─── Wordmark grid ───────────────────────────────── */
+    .wordmark-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .wm-wrap { }
+    .wm-card {
+      border-radius: 16px;
+      padding: 44px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07);
+    }
+    .wm-card.light { background: white; }
+    .wm-card.dark  { background: #0f172a; }
+    .wm-card.grey  { background: #f8fafc; border: 1px solid #e2e8f0; }
+    .wm-lbl {
+      font-size: 11.5px;
+      color: #94a3b8;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    /* ─── Footnote ────────────────────────────────────── */
+    .footnote {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 13px;
+      padding: 32px 16px;
+      border-top: 1px solid #e2e8f0;
+    }
+    .footnote strong { color: #22c55e; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ HEADER ══════════════ -->
+<div class="header">
+  <h1>Robert — הצעות לוגו ופאביקון</h1>
+  <p>10 קונספטים לאייקון · 6 וריאציות לוורדמארק · העבירו עכבר לצפייה בהדגשה</p>
+</div>
+
+<div class="content">
+
+  <!-- ══ CURRENT ══ -->
+  <div class="current-banner">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="60" height="60" style="flex-shrink:0">
+      <defs>
+        <linearGradient id="gc" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#0f172a"/>
+          <stop offset="100%" stop-color="#1e3a5f"/>
+        </linearGradient>
+      </defs>
+      <rect width="60" height="60" rx="14" fill="url(#gc)"/>
+      <text x="30" y="43" font-family="Georgia,serif" font-size="38" font-weight="700" fill="white" text-anchor="middle">R</text>
+      <circle cx="46" cy="14" r="5" fill="#22c55e"/>
+    </svg>
+    <div>
+      <h3>לוגו קיים — לא מספיק נקי</h3>
+      <p>גיאורגיה סריף ישן · גרדיאנט כחול-כחול · הנקודה הירוקה מרגישה מחוברת בכוח<br>
+         הצעות למטה מתקנות את כל שלושת הבעיות</p>
+    </div>
+  </div>
+
+  <!-- ══ ICONS ══ -->
+  <div class="section">
+    <div class="section-heading">
+      <h2>אייקון / פאביקון</h2>
+      <span class="pill">10 קונספטים</span>
+    </div>
+
+    <div class="icon-grid">
+
+      <!-- 01 ── Ultra-Minimal Circle -->
+      <div class="icon-card star">
+        <div class="icon-previews">
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="68" height="68">
+              <circle cx="30" cy="30" r="30" fill="#0f172a"/>
+              <text x="30" y="40" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="31" font-weight="200" fill="white" text-anchor="middle">R</text>
+            </svg>
+            <div class="size-lbl">68px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="36" height="36">
+              <circle cx="30" cy="30" r="30" fill="#0f172a"/>
+              <text x="30" y="40" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="31" font-weight="200" fill="white" text-anchor="middle">R</text>
+            </svg>
+            <div class="size-lbl">36px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="20" height="20">
+              <circle cx="30" cy="30" r="30" fill="#0f172a"/>
+              <text x="30" y="40" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="31" font-weight="200" fill="white" text-anchor="middle">R</text>
+            </svg>
+            <div class="size-lbl">20px</div>
+          </div>
+        </div>
+        <div class="card-name">מינימל עיגול</div>
+        <div class="card-desc">עיגול כהה, R דק ועדין. ללא זיהום ויזואלי. Apple-esque.</div>
+      </div>
+
+      <!-- 02 ── Bold Black Square + Dot -->
+      <div class="icon-card star">
+        <div class="icon-previews">
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="68" height="68">
+              <rect width="60" height="60" rx="13" fill="#060c18"/>
+              <text x="30" y="42" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="36" font-weight="800" fill="white" text-anchor="middle">R</text>
+              <circle cx="47" cy="11" r="6" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl">68px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="36" height="36">
+              <rect width="60" height="60" rx="13" fill="#060c18"/>
+              <text x="30" y="42" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="36" font-weight="800" fill="white" text-anchor="middle">R</text>
+              <circle cx="47" cy="11" r="6" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl">36px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="20" height="20">
+              <rect width="60" height="60" rx="13" fill="#060c18"/>
+              <text x="30" y="42" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="36" font-weight="800" fill="white" text-anchor="middle">R</text>
+              <circle cx="47" cy="11" r="6" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl">20px</div>
+          </div>
+        </div>
+        <div class="card-name">ריבוע שחור בולד</div>
+        <div class="card-desc">שחור כמעט מוחלט, R עבה גיאומטרי, נקודה ירוקה חדה בפינה.</div>
+      </div>
+
+      <!-- 03 ── Green Underline Bar -->
+      <div class="icon-card">
+        <div class="icon-previews">
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="68" height="68">
+              <rect width="60" height="60" rx="13" fill="#0f172a"/>
+              <text x="30" y="40" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="34" font-weight="700" fill="white" text-anchor="middle">R</text>
+              <rect x="17" y="46" width="26" height="4" rx="2" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl">68px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="36" height="36">
+              <rect width="60" height="60" rx="13" fill="#0f172a"/>
+              <text x="30" y="40" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="34" font-weight="700" fill="white" text-anchor="middle">R</text>
+              <rect x="17" y="46" width="26" height="4" rx="2" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl">36px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="20" height="20">
+              <rect width="60" height="60" rx="13" fill="#0f172a"/>
+              <text x="30" y="40" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="34" font-weight="700" fill="white" text-anchor="middle">R</text>
+              <rect x="17" y="46" width="26" height="4" rx="2" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl">20px</div>
+          </div>
+        </div>
+        <div class="card-name">קו ירוק תחתון</div>
+        <div class="card-desc">R גדול + קו ירוק תחתי מדויק. עדין, ייחודי, מודרני.</div>
+      </div>
+
+      <!-- 04 ── Left Green Side Bar -->
+      <div class="icon-card">
+        <div class="icon-previews">
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="68" height="68">
+              <rect width="60" height="60" rx="13" fill="#0f172a"/>
+              <rect x="0" y="12" width="5" height="36" rx="2.5" fill="#22c55e"/>
+              <text x="33" y="41" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="32" font-weight="700" fill="white" text-anchor="middle">R</text>
+            </svg>
+            <div class="size-lbl">68px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="36" height="36">
+              <rect width="60" height="60" rx="13" fill="#0f172a"/>
+              <rect x="0" y="12" width="5" height="36" rx="2.5" fill="#22c55e"/>
+              <text x="33" y="41" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="32" font-weight="700" fill="white" text-anchor="middle">R</text>
+            </svg>
+            <div class="size-lbl">36px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="20" height="20">
+              <rect width="60" height="60" rx="13" fill="#0f172a"/>
+              <rect x="0" y="12" width="5" height="36" rx="2.5" fill="#22c55e"/>
+              <text x="33" y="41" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="32" font-weight="700" fill="white" text-anchor="middle">R</text>
+            </svg>
+            <div class="size-lbl">20px</div>
+          </div>
+        </div>
+        <div class="card-name">פס ירוק בצד</div>
+        <div class="card-desc">פס אנכי ירוק כ-accent בצד שמאל. ייחודי, לא קיים בשוק.</div>
+      </div>
+
+      <!-- 05 ── Ring Monogram (light bg) -->
+      <div class="icon-card">
+        <div style="background:#f8fafc;border-radius:10px;padding:10px;margin-bottom:18px;display:flex;align-items:flex-end;justify-content:center;gap:10px;">
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="68" height="68">
+              <circle cx="30" cy="30" r="26" fill="none" stroke="#0f172a" stroke-width="3.5"/>
+              <text x="30" y="38" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="25" font-weight="600" fill="#0f172a" text-anchor="middle">R</text>
+              <circle cx="49" cy="12" r="5.5" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl" style="color:#94a3b8;">68px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="36" height="36">
+              <circle cx="30" cy="30" r="26" fill="none" stroke="#0f172a" stroke-width="3.5"/>
+              <text x="30" y="38" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="25" font-weight="600" fill="#0f172a" text-anchor="middle">R</text>
+              <circle cx="49" cy="12" r="5.5" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl" style="color:#94a3b8;">36px</div>
+          </div>
+        </div>
+        <div class="card-name">טבעת מונוגרם</div>
+        <div class="card-desc">עיגול קו — נקי לרקע בהיר, לוגו מינימליסטי ואלגנטי.</div>
+      </div>
+
+      <!-- 06 ── Blue→Green Gradient -->
+      <div class="icon-card">
+        <div class="icon-previews">
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="68" height="68">
+              <defs>
+                <linearGradient id="g6" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#0f172a"/>
+                  <stop offset="100%" stop-color="#14532d"/>
+                </linearGradient>
+              </defs>
+              <rect width="60" height="60" rx="14" fill="url(#g6)"/>
+              <text x="30" y="42" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="34" font-weight="700" fill="white" text-anchor="middle">R</text>
+            </svg>
+            <div class="size-lbl">68px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="36" height="36">
+              <defs>
+                <linearGradient id="g6b" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#0f172a"/>
+                  <stop offset="100%" stop-color="#14532d"/>
+                </linearGradient>
+              </defs>
+              <rect width="60" height="60" rx="14" fill="url(#g6b)"/>
+              <text x="30" y="42" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="34" font-weight="700" fill="white" text-anchor="middle">R</text>
+            </svg>
+            <div class="size-lbl">36px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="20" height="20">
+              <defs>
+                <linearGradient id="g6c" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#0f172a"/>
+                  <stop offset="100%" stop-color="#14532d"/>
+                </linearGradient>
+              </defs>
+              <rect width="60" height="60" rx="14" fill="url(#g6c)"/>
+              <text x="30" y="42" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="34" font-weight="700" fill="white" text-anchor="middle">R</text>
+            </svg>
+            <div class="size-lbl">20px</div>
+          </div>
+        </div>
+        <div class="card-name">גרדיאנט כחול → ירוק</div>
+        <div class="card-desc">שני צבעי המותג בגרדיאנט. R לבן נקי, ללא עומס.</div>
+      </div>
+
+      <!-- 07 ── Light (Inverted) -->
+      <div class="icon-card">
+        <div class="on-dark">
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="68" height="68">
+              <rect width="60" height="60" rx="13" fill="white"/>
+              <text x="30" y="42" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="36" font-weight="700" fill="#0f172a" text-anchor="middle">R</text>
+              <circle cx="46" cy="12" r="5.5" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl" style="color:#475569">68px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="36" height="36">
+              <rect width="60" height="60" rx="13" fill="white"/>
+              <text x="30" y="42" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="36" font-weight="700" fill="#0f172a" text-anchor="middle">R</text>
+              <circle cx="46" cy="12" r="5.5" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl" style="color:#475569">36px</div>
+          </div>
+        </div>
+        <div class="card-name">גרסת לבן (הפוך)</div>
+        <div class="card-desc">לרקעים כהים — R כהה על לבן עם נקודה ירוקה.</div>
+      </div>
+
+      <!-- 08 ── Luxury Serif Dark -->
+      <div class="icon-card">
+        <div class="icon-previews">
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="68" height="68">
+              <rect width="60" height="60" rx="16" fill="#04080f"/>
+              <text x="30" y="44" font-family="Georgia,'Times New Roman',serif" font-size="40" font-weight="400" fill="rgba(255,255,255,0.90)" text-anchor="middle">R</text>
+              <circle cx="9" cy="51" r="3.5" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl">68px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="36" height="36">
+              <rect width="60" height="60" rx="16" fill="#04080f"/>
+              <text x="30" y="44" font-family="Georgia,'Times New Roman',serif" font-size="40" font-weight="400" fill="rgba(255,255,255,0.90)" text-anchor="middle">R</text>
+              <circle cx="9" cy="51" r="3.5" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl">36px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="20" height="20">
+              <rect width="60" height="60" rx="16" fill="#04080f"/>
+              <text x="30" y="44" font-family="Georgia,'Times New Roman',serif" font-size="40" font-weight="400" fill="rgba(255,255,255,0.90)" text-anchor="middle">R</text>
+              <circle cx="9" cy="51" r="3.5" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl">20px</div>
+          </div>
+        </div>
+        <div class="card-name">סריף יוקרתי שחור</div>
+        <div class="card-desc">שחור עמוק, R סריף אלגנטי, נקודה ירוקה קטנה בפינה.</div>
+      </div>
+
+      <!-- 09 ── R• Period Mark -->
+      <div class="icon-card">
+        <div class="icon-previews">
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="68" height="68">
+              <rect width="60" height="60" rx="13" fill="#0f172a"/>
+              <text x="25" y="42" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="34" font-weight="700" fill="white" text-anchor="middle">R</text>
+              <circle cx="44" cy="43" r="5" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl">68px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="36" height="36">
+              <rect width="60" height="60" rx="13" fill="#0f172a"/>
+              <text x="25" y="42" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="34" font-weight="700" fill="white" text-anchor="middle">R</text>
+              <circle cx="44" cy="43" r="5" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl">36px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="20" height="20">
+              <rect width="60" height="60" rx="13" fill="#0f172a"/>
+              <text x="25" y="42" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="34" font-weight="700" fill="white" text-anchor="middle">R</text>
+              <circle cx="44" cy="43" r="5" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl">20px</div>
+          </div>
+        </div>
+        <div class="card-name">R• — נקודה ירוקה כסיומת</div>
+        <div class="card-desc">R + נקודה ירוקה, כמו "R." — ממותג, עקבי עם הוורדמארק.</div>
+      </div>
+
+      <!-- 10 ── Hexagon -->
+      <div class="icon-card">
+        <div class="icon-previews">
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="68" height="68">
+              <polygon points="30,3 53,16 53,44 30,57 7,44 7,16" fill="#0f172a"/>
+              <text x="30" y="40" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="27" font-weight="700" fill="white" text-anchor="middle">R</text>
+              <circle cx="46" cy="12" r="5" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl">68px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="36" height="36">
+              <polygon points="30,3 53,16 53,44 30,57 7,44 7,16" fill="#0f172a"/>
+              <text x="30" y="40" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="27" font-weight="700" fill="white" text-anchor="middle">R</text>
+              <circle cx="46" cy="12" r="5" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl">36px</div>
+          </div>
+          <div class="preview-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="20" height="20">
+              <polygon points="30,3 53,16 53,44 30,57 7,44 7,16" fill="#0f172a"/>
+              <text x="30" y="40" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="27" font-weight="700" fill="white" text-anchor="middle">R</text>
+              <circle cx="46" cy="12" r="5" fill="#22c55e"/>
+            </svg>
+            <div class="size-lbl">20px</div>
+          </div>
+        </div>
+        <div class="card-name">משושה</div>
+        <div class="card-desc">צורת משושה — ייחודית לגמרי, שונה מכל אחד בשוק.</div>
+      </div>
+
+    </div><!-- /icon-grid -->
+  </div><!-- /section icons -->
+
+
+  <!-- ══ WORDMARKS ══ -->
+  <div class="section">
+    <div class="section-heading">
+      <h2>וורדמארק — לוגו אופקי</h2>
+      <span class="pill">6 וריאציות</span>
+    </div>
+
+    <div class="wordmark-grid">
+
+      <!-- WM 1: dot + Robert light -->
+      <div class="wm-wrap">
+        <div class="wm-card light">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 56" width="250" height="56">
+            <circle cx="11" cy="36" r="9" fill="#22c55e"/>
+            <text x="30" y="44" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="36" font-weight="700" fill="#0f172a" text-anchor="start" letter-spacing="-1">Robert</text>
+          </svg>
+        </div>
+        <div class="wm-lbl">• Robert — לרקע בהיר · ברור ופשוט</div>
+      </div>
+
+      <!-- WM 2: dot + Robert dark -->
+      <div class="wm-wrap">
+        <div class="wm-card dark">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 56" width="250" height="56">
+            <circle cx="11" cy="36" r="9" fill="#22c55e"/>
+            <text x="30" y="44" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="36" font-weight="700" fill="white" text-anchor="start" letter-spacing="-1">Robert</text>
+          </svg>
+        </div>
+        <div class="wm-lbl">• Robert — לרקע כהה · גרסת header</div>
+      </div>
+
+      <!-- WM 3: R (green) + obert -->
+      <div class="wm-wrap">
+        <div class="wm-card light">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 56" width="230" height="56">
+            <text x="0" y="44" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="40" font-weight="700" fill="#22c55e" text-anchor="start">R</text>
+            <text x="28" y="44" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="36" font-weight="700" fill="#0f172a" text-anchor="start" letter-spacing="-0.5">obert</text>
+          </svg>
+        </div>
+        <div class="wm-lbl">R ירוק + obert כהה — הדגשת ראשי-תיבות</div>
+      </div>
+
+      <!-- WM 4: icon + text lockup -->
+      <div class="wm-wrap">
+        <div class="wm-card grey">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 60" width="260" height="60">
+            <circle cx="24" cy="30" r="24" fill="#0f172a"/>
+            <text x="24" y="38" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="24" font-weight="200" fill="white" text-anchor="middle">R</text>
+            <text x="58" y="42" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="30" font-weight="700" fill="#0f172a" text-anchor="start" letter-spacing="-0.5">Robert</text>
+          </svg>
+        </div>
+        <div class="wm-lbl">אייקון + שם — lockup מלא לניווט/header</div>
+      </div>
+
+      <!-- WM 5: Robert + subtitle -->
+      <div class="wm-wrap">
+        <div class="wm-card light">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" width="280" height="64">
+            <text x="0" y="34" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="30" font-weight="700" fill="#0f172a" text-anchor="start" letter-spacing="-0.5">Robert</text>
+            <text x="2" y="54" font-family="system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="11" font-weight="500" fill="#22c55e" text-anchor="start" letter-spacing="2.5">WHATSAPP BOT</text>
+          </svg>
+        </div>
+        <div class="wm-lbl">Robert + WHATSAPP BOT — לדף נחיתה / OG image</div>
+      </div>
+
+      <!-- WM 6: All-caps serif on dark -->
+      <div class="wm-wrap">
+        <div class="wm-card dark">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 60" width="270" height="60">
+            <text x="0" y="44" font-family="Georgia,'Times New Roman',serif" font-size="38" font-weight="400" fill="white" text-anchor="start" letter-spacing="6">ROBERT</text>
+            <rect x="0" y="50" width="120" height="2" fill="#22c55e"/>
+          </svg>
+        </div>
+        <div class="wm-lbl">ROBERT קאפס סריף + קו ירוק — גרסה יוקרתית</div>
+      </div>
+
+    </div><!-- /wordmark-grid -->
+  </div><!-- /section wordmarks -->
+
+</div><!-- /content -->
+
+<div class="footnote">
+  כדי להחיל עיצוב — בחר קונספט ואמור <strong>"תחיל קונספט X"</strong><br>
+  הפאביקון יוחלף ב- <code>app/public/favicon.svg</code>
+</div>
+
+</body>
+</html>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./onboarding.module.css";
 import { scoped } from "@/lib/cx";
@@ -64,10 +64,19 @@ function OnboardingInner() {
   // Logged-in users coming from the dashboard ("בוט חדש") skip signup
   // and land straight on the bot-creation wizard.
   const startOnWizard = searchParams.get("new") === "1";
+  // Redirected here after a failed email verification link (expired/already used).
+  const hasVerifyError = searchParams.get("verify-error") === "1";
 
   const [screen, setScreen] = useState<"signup" | "verify" | "ob" | "success">(
     startOnWizard ? "ob" : "signup",
   );
+
+  useEffect(() => {
+    if (hasVerifyError) {
+      toast("הקישור פג תוקף. הזן את פרטיך שוב ונשלח קישור אימות חדש.");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [curStep, setCurStep] = useState(1);
 
   // signup

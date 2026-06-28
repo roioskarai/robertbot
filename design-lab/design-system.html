@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RobertBot V2 — Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/lab.css">
+<style>
+  body { background: var(--bg); }
+  .ds-head { background: var(--surface); border-bottom: 1px solid var(--border); padding: var(--space-12) 0; }
+  .ds-sec { padding: var(--space-12) 0; border-bottom: 1px solid var(--border); }
+  .ds-sec h2 { font-size: var(--display-xs); font-weight: var(--fw-bold); letter-spacing: -.5px; margin-bottom: 4px; }
+  .ds-sec .sub { color: var(--text-3); margin-bottom: var(--space-8); font-size: var(--text-sm); }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: var(--space-3); }
+  .sw { border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-xs); }
+  .sw .chip { height: 72px; }
+  .sw .meta { padding: 8px 10px; background: var(--surface); }
+  .sw .name { font-size: var(--text-xs); font-weight: var(--fw-semibold); }
+  .sw .hex { font-size: 11px; color: var(--text-3); font-family: ui-monospace, monospace; }
+  .demo-grid { display: grid; gap: var(--space-4); }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: var(--space-6); box-shadow: var(--shadow-xs); }
+  .panel-label { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .5px; color: var(--text-4); margin-bottom: var(--space-4); font-weight: var(--fw-medium); }
+  .type-row { display: flex; align-items: baseline; gap: var(--space-6); padding: var(--space-3) 0; border-bottom: 1px dashed var(--border); }
+  .type-row .tk { width: 120px; flex-shrink: 0; font-size: var(--text-xs); color: var(--text-3); font-family: ui-monospace, monospace; }
+  .flexwrap { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+  .shadow-box { height: 90px; background: var(--surface); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: var(--text-xs); color: var(--text-3); }
+  .tok-badge { font-family: ui-monospace, monospace; font-size: 11px; background: var(--gray-100); color: var(--gray-600); padding: 2px 7px; border-radius: 5px; }
+</style>
+</head>
+<body>
+
+<!-- ============ ICON SPRITE (shared across all V2 screens) ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4M9 4h6"/><circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/><path d="M2 13v2M22 13v2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-check-circle" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
+  <symbol id="i-arrow-back" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol>
+  <symbol id="i-arrow-next" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7h15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h12"/><path d="M16 12h.01"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
+  <symbol id="i-brain" viewBox="0 0 24 24"><path d="M12 5a3 3 0 0 0-6 0 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 6 0z"/><path d="M12 5a3 3 0 0 1 6 0 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-6 0z"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-message" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></symbol>
+  <symbol id="i-whatsapp" viewBox="0 0 24 24"><path d="M3 21l1.65-4.8a8 8 0 1 1 3.4 3.3z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13 1 .37 1.94.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.87.33 1.81.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></symbol>
+  <symbol id="i-scissors" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></symbol>
+  <symbol id="i-utensils" viewBox="0 0 24 24"><path d="M3 2v7a3 3 0 0 0 6 0V2M6 2v20M16 2c-1.5 1-2.5 3-2.5 6.5 0 2 1 3 2.5 3s2.5-1 2.5-3C18.5 5 17.5 3 16 2zM18 11v11"/></symbol>
+  <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+  <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+  <symbol id="i-trending" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+  <symbol id="i-headset" viewBox="0 0 24 24"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 16a2 2 0 0 1-2 2h-1v-6h1a2 2 0 0 1 2 2zM3 16a2 2 0 0 0 2 2h1v-6H5a2 2 0 0 0-2 2z"/></symbol>
+</svg>
+
+<!-- ============ HEADER ============ -->
+<header class="ds-head">
+  <div class="container">
+    <span class="eyebrow"><span class="dot"></span>RobertBot V2 · Design System</span>
+    <h1 class="display-lg" style="margin-top:18px;">מערכת העיצוב</h1>
+    <p class="text-lg text-2" style="max-width:620px;margin-top:10px;">
+      שפה עיצובית אחת, מזוקקת ובוגרת — ירוק פרימיום, ניטרלים עשירים, אייקוני-קו עקביים.
+      כל מסך ב-V2 בנוי מהטוקנים והקומפוננטות שכאן.
+    </p>
+  </div>
+</header>
+
+<!-- ============ COLORS ============ -->
+<section class="ds-sec">
+  <div class="container">
+    <h2>צבעים</h2>
+    <p class="sub">ירוק מזוקק כצבע ליבה · ניטרלים עשירים · סמנטיקה במשורה</p>
+
+    <div class="panel-label">Brand green (primary = 500/600)</div>
+    <div class="swatches" style="margin-bottom:32px;">
+      <div class="sw"><div class="chip" style="background:var(--green-50)"></div><div class="meta"><div class="name">green-50</div><div class="hex">#ecfdf3</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--green-100)"></div><div class="meta"><div class="name">green-100</div><div class="hex">#d1fadf</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--green-300)"></div><div class="meta"><div class="name">green-300</div><div class="hex">#6ce9a6</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--green-500)"></div><div class="meta"><div class="name">green-500 ★</div><div class="hex">#12b76a</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--green-600)"></div><div class="meta"><div class="name">green-600 ★</div><div class="hex">#039855</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--green-700)"></div><div class="meta"><div class="name">green-700</div><div class="hex">#027a48</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--green-900)"></div><div class="meta"><div class="name">green-900</div><div class="hex">#054f31</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--wa)"></div><div class="meta"><div class="name">whatsapp</div><div class="hex">#25d366</div></div></div>
+    </div>
+
+    <div class="panel-label">Neutrals (ink / gray)</div>
+    <div class="swatches" style="margin-bottom:32px;">
+      <div class="sw"><div class="chip" style="background:var(--gray-50)"></div><div class="meta"><div class="name">gray-50</div><div class="hex">#f9fafb</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--gray-100)"></div><div class="meta"><div class="name">gray-100</div><div class="hex">#f2f4f7</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--gray-200)"></div><div class="meta"><div class="name">gray-200</div><div class="hex">#eaecf0</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--gray-300)"></div><div class="meta"><div class="name">gray-300</div><div class="hex">#d0d5dd</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--gray-500)"></div><div class="meta"><div class="name">gray-500</div><div class="hex">#667085</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--gray-700)"></div><div class="meta"><div class="name">gray-700</div><div class="hex">#344054</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--gray-900)"></div><div class="meta"><div class="name">gray-900</div><div class="hex">#101828</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--sidebar)"></div><div class="meta"><div class="name">sidebar</div><div class="hex">#0c1a14</div></div></div>
+    </div>
+
+    <div class="panel-label">Semantic</div>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:var(--success-500)"></div><div class="meta"><div class="name">success</div><div class="hex">#12b76a</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--warning-500)"></div><div class="meta"><div class="name">warning</div><div class="hex">#f79009</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--error-500)"></div><div class="meta"><div class="name">error</div><div class="hex">#f04438</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--info-500)"></div><div class="meta"><div class="name">info</div><div class="hex">#2e90fa</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TYPOGRAPHY ============ -->
+<section class="ds-sec">
+  <div class="container">
+    <h2>טיפוגרפיה</h2>
+    <p class="sub">Rubik · Hebrew-first · סולם תצוגה הדוק בכותרות גדולות</p>
+    <div class="panel">
+      <div class="type-row"><span class="tk">display-lg / 48</span><span class="display-lg">הבוט שעובד בשבילך</span></div>
+      <div class="type-row"><span class="tk">display-md / 36</span><span class="display-md">הבוט שעובד בשבילך</span></div>
+      <div class="type-row"><span class="tk">display-sm / 30</span><span class="display-sm">הבוט שעובד בשבילך</span></div>
+      <div class="type-row"><span class="tk">display-xs / 24</span><span class="display-xs">הבוט שעובד בשבילך</span></div>
+      <div class="type-row"><span class="tk">text-xl / 20</span><span class="text-xl">הבוט שעובד בשבילך 24/7</span></div>
+      <div class="type-row"><span class="tk">text-md / 16</span><span class="text-md">טקסט גוף רגיל — קריא, נקי, עם ריווח שורות נדיב.</span></div>
+      <div class="type-row" style="border:none;"><span class="tk">text-sm / 14</span><span class="text-sm text-3">טקסט משני וכיתובים</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BUTTONS ============ -->
+<section class="ds-sec">
+  <div class="container">
+    <h2>כפתורים</h2>
+    <p class="sub">היררכיה ברורה: primary אחד דומיננטי לכל מסך</p>
+    <div class="panel">
+      <div class="flexwrap" style="margin-bottom:18px;">
+        <button class="btn btn-primary">צור בוט חדש <svg class="ic"><use href="#i-plus"/></svg></button>
+        <button class="btn btn-secondary">ביטול</button>
+        <button class="btn btn-ghost">דלג</button>
+        <button class="btn btn-wa"><svg class="ic"><use href="#i-whatsapp"/></svg> חבר וואטסאפ</button>
+        <button class="btn btn-danger">מחק</button>
+        <button class="btn btn-primary" disabled>לא זמין</button>
+      </div>
+      <div class="flexwrap">
+        <button class="btn btn-primary btn-lg">כפתור גדול</button>
+        <button class="btn btn-primary">רגיל</button>
+        <button class="btn btn-primary btn-sm">קטן</button>
+        <a href="#" class="link">קישור טקסט ←</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BADGES + FORMS ============ -->
+<section class="ds-sec">
+  <div class="container">
+    <h2>תגיות וטפסים</h2>
+    <p class="sub">תגית-מבטא אחת (במקום ריבוי צבעים) · שדות עם פוקוס ברור וטיפול בשגיאות</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+      <div class="panel">
+        <div class="panel-label">Badges</div>
+        <div class="flexwrap" style="margin-bottom:20px;">
+          <span class="badge badge-green"><span class="dot"></span>פעיל</span>
+          <span class="badge badge-gray"><span class="dot"></span>מושהה</span>
+          <span class="badge badge-warn"><span class="dot"></span>ניסיון</span>
+          <span class="badge badge-error"><span class="dot"></span>בוטל</span>
+          <span class="badge badge-info"><span class="dot"></span>חדש</span>
+        </div>
+        <div class="panel-label">Eyebrow</div>
+        <span class="eyebrow"><span class="dot"></span>7 ימי ניסיון חינם</span>
+      </div>
+      <div class="panel">
+        <div class="field" style="margin-bottom:16px;">
+          <label class="label">שם העסק <span class="req">*</span></label>
+          <input class="input" placeholder="לדוגמה: מספרת רון">
+        </div>
+        <div class="field" style="margin-bottom:16px;">
+          <label class="label">אימייל</label>
+          <div class="input-group">
+            <svg class="ic input-ic"><use href="#i-mail"/></svg>
+            <input class="input" placeholder="name@business.co.il">
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">סיסמה</label>
+          <input class="input input-error" type="password" value="123">
+          <span class="field-error"><svg class="ic ic-sm"><use href="#i-x"/></svg> נדרשים לפחות 8 תווים</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHOICE TILES + TOGGLE + SEGMENT ============ -->
+<section class="ds-sec">
+  <div class="container">
+    <h2>בחירה ובקרות</h2>
+    <p class="sub">אריחי-בחירה לאונבורדינג · toggle · segmented control</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+      <div class="panel">
+        <div class="panel-label">Choice tiles</div>
+        <div class="stack gap-3">
+          <label class="choice sel"><span class="choice-ic"><svg class="ic"><use href="#i-scissors"/></svg></span><div><div style="font-weight:600">מספרה / ספא</div><div class="text-sm text-3">תורים, מחירונים, שעות</div></div></label>
+          <label class="choice"><span class="choice-ic"><svg class="ic"><use href="#i-utensils"/></svg></span><div><div style="font-weight:600">מסעדה</div><div class="text-sm text-3">הזמנות, תפריט, משלוחים</div></div></label>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-label">Toggle & Segment</div>
+        <label class="between" style="margin-bottom:20px;">
+          <span style="font-weight:500">מסירה לנציג אנושי</span>
+          <span class="toggle"><input type="checkbox" checked><span class="track"></span><span class="thumb"></span></span>
+        </label>
+        <div class="segment">
+          <button class="act">חודשי</button>
+          <button>שנתי</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STAT CARDS + ALERTS ============ -->
+<section class="ds-sec">
+  <div class="container">
+    <h2>כרטיסי-נתון והתראות</h2>
+    <p class="sub">דשבורד · מצבי מערכת</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+      <div class="stat-card">
+        <div class="stat-top"><span class="stat-ic"><svg class="ic"><use href="#i-message"/></svg></span><span class="stat-delta delta-up"><svg class="ic ic-sm"><use href="#i-trending"/></svg>12%</span></div>
+        <div class="stat-val">1,284</div><div class="stat-label">הודעות החודש</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top"><span class="stat-ic"><svg class="ic"><use href="#i-calendar"/></svg></span><span class="stat-delta delta-up"><svg class="ic ic-sm"><use href="#i-trending"/></svg>8%</span></div>
+        <div class="stat-val">47</div><div class="stat-label">פגישות נקבעו</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top"><span class="stat-ic"><svg class="ic"><use href="#i-clock"/></svg></span></div>
+        <div class="stat-val">3.2 שנ'</div><div class="stat-label">זמן תגובה ממוצע</div>
+      </div>
+    </div>
+    <div class="stack gap-3">
+      <div class="alert alert-green"><svg class="ic"><use href="#i-check-circle"/></svg><div><div class="alert-title">הבוט פעיל</div>מחובר לוואטסאפ ועונה ללקוחות.</div></div>
+      <div class="alert alert-warn"><svg class="ic"><use href="#i-clock"/></svg><div><div class="alert-title">תקופת הניסיון מסתיימת בעוד יומיים</div>שדרג כדי לשמור על הבוט פעיל.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TABLE ============ -->
+<section class="ds-sec">
+  <div class="container">
+    <h2>טבלה</h2>
+    <p class="sub">רשימות ניהול — אדמין, חיובים, משתמשים</p>
+    <div class="card" style="overflow:hidden;">
+      <table class="table">
+        <thead><tr><th>לקוח</th><th>מסלול</th><th>סטטוס</th><th>הודעות</th></tr></thead>
+        <tbody>
+          <tr><td><div class="row gap-3"><span class="avatar avatar-sm">ר</span><span class="td-strong">מספרת רון</span></div></td><td>מקצועי</td><td><span class="badge badge-green"><span class="dot"></span>פעיל</span></td><td>842</td></tr>
+          <tr><td><div class="row gap-3"><span class="avatar avatar-sm">ד</span><span class="td-strong">דנה קוסמטיקס</span></div></td><td>בסיסי</td><td><span class="badge badge-warn"><span class="dot"></span>ניסיון</span></td><td>120</td></tr>
+          <tr><td><div class="row gap-3"><span class="avatar avatar-sm">מ</span><span class="td-strong">מוסך מאיר</span></div></td><td>עסקים</td><td><span class="badge badge-gray"><span class="dot"></span>מושהה</span></td><td>0</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ELEVATION + RADIUS ============ -->
+<section class="ds-sec" style="border-bottom:none;">
+  <div class="container">
+    <h2>גובה ועיגול</h2>
+    <p class="sub">סולם צללים מדורג · רדיוסים</p>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;">
+      <div class="shadow-box" style="box-shadow:var(--shadow-xs)">xs</div>
+      <div class="shadow-box" style="box-shadow:var(--shadow-sm)">sm</div>
+      <div class="shadow-box" style="box-shadow:var(--shadow-md)">md</div>
+      <div class="shadow-box" style="box-shadow:var(--shadow-lg)">lg</div>
+      <div class="shadow-box" style="box-shadow:var(--shadow-xl)">xl</div>
+    </div>
+    <div class="flexwrap" style="margin-top:24px;">
+      <span class="tok-badge">--radius-sm 8px</span>
+      <span class="tok-badge">--radius-md 10px</span>
+      <span class="tok-badge">--radius-lg 12px</span>
+      <span class="tok-badge">--radius-xl 16px</span>
+      <span class="tok-badge">--radius-full</span>
+    </div>
+  </div>
+</section>
+
+<footer style="padding:40px 0;text-align:center;color:var(--text-4);font-size:14px;">
+  RobertBot V2 Design System · מעבדת עיצוב מבודדת (read-only ביחס לפרודקשן)
+</footer>
+
+</body>
+</html>

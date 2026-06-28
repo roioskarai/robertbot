@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robert — לוגו Waveform (גלי קול)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background:#f1f5f9; font-family:'Rubik',system-ui,sans-serif; color:#0f172a; }
+  .header { background:#0f172a; padding:48px; text-align:center; color:#fff; }
+  .header h1 { font-size:26px; font-weight:800; margin-bottom:8px; }
+  .header p { color:#94a3b8; font-size:14px; }
+  .content { padding:48px 40px; max-width:1100px; margin:0 auto; }
+  .section { margin-bottom:64px; }
+  .sh { display:flex; align-items:center; gap:12px; margin-bottom:24px; }
+  .sh h2 { font-size:18px; font-weight:800; }
+  .pill { background:#dcfce7; color:#15803d; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; }
+  .hero-card { background:#fff; border-radius:20px; padding:56px; display:flex; gap:40px; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,.06); flex-wrap:wrap; }
+  .hero-card.dark { background:#0f172a; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; }
+  .card { background:#fff; border-radius:16px; padding:36px 24px 20px; box-shadow:0 1px 3px rgba(0,0,0,.07); border:2px solid transparent; position:relative; text-align:center; }
+  .card.dark { background:#0f172a; }
+  .card.star { border-color:#22c55e; }
+  .card.star::before { content:'⭐ תואם לתמונה ששלחת'; position:absolute; top:-12px; right:50%; transform:translateX(50%); background:#22c55e; color:#fff; font-size:10px; font-weight:700; padding:3px 12px; border-radius:20px; white-space:nowrap; }
+  .card .name { font-size:13px; font-weight:700; margin-top:16px; }
+  .card.dark .name { color:#fff; }
+  .card .desc { font-size:11.5px; color:#64748b; line-height:1.5; margin-top:5px; }
+  .card.dark .desc { color:#94a3b8; }
+  .fav-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:20px; }
+  .fav-card { background:#fff; border-radius:16px; padding:28px 16px 18px; box-shadow:0 1px 3px rgba(0,0,0,.07); border:2px solid transparent; text-align:center; position:relative; }
+  .fav-card.star { border-color:#22c55e; }
+  .fav-card.star::before { content:'⭐ מומלץ'; position:absolute; top:-12px; right:50%; transform:translateX(50%); background:#22c55e; color:#fff; font-size:10px; font-weight:700; padding:3px 12px; border-radius:20px; }
+  .fav-row { display:flex; align-items:flex-end; justify-content:center; gap:12px; margin-bottom:16px; }
+  .size-lbl { font-size:9px; color:#cbd5e1; margin-top:4px; }
+  .footnote { text-align:center; color:#94a3b8; font-size:13px; padding:32px; border-top:1px solid #e2e8f0; }
+  .footnote strong { color:#22c55e; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Robert — לוגו Waveform (גלי קול)</h1>
+  <p>הלוגו שביקשת + 4 וריאציות באותו סגנון + 3 אפשרויות פאביקון · בחר ואני מטמיע</p>
+</div>
+
+<div class="content">
+
+  <!-- HERO: primary, light + dark -->
+  <div class="section">
+    <div class="sh"><h2>הלוגו הראשי</h2><span class="pill">תואם לתמונה</span></div>
+    <div class="hero-card" style="margin-bottom:16px;">
+      <svg viewBox="0 0 250 64" width="280" height="72">
+        <defs><linearGradient id="wv" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#16a34a"/><stop offset="55%" stop-color="#10b981"/><stop offset="100%" stop-color="#06b6d4"/>
+        </linearGradient></defs>
+        <g fill="url(#wv)">
+          <rect x="6"  y="24" width="6" height="16" rx="3"/>
+          <rect x="16" y="17" width="6" height="30" rx="3"/>
+          <rect x="26" y="20" width="6" height="24" rx="3"/>
+          <rect x="36" y="8"  width="6" height="48" rx="3"/>
+          <rect x="46" y="12" width="6" height="40" rx="3"/>
+          <rect x="56" y="19" width="6" height="26" rx="3"/>
+          <rect x="66" y="26" width="6" height="12" rx="3"/>
+        </g>
+        <text x="86" y="43" font-family="Rubik,sans-serif" font-size="36" font-weight="800" fill="#1e293b" letter-spacing="-1">Robert</text>
+      </svg>
+    </div>
+    <div class="hero-card dark">
+      <svg viewBox="0 0 250 64" width="280" height="72">
+        <defs><linearGradient id="wvd" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#22c55e"/><stop offset="55%" stop-color="#14e0a3"/><stop offset="100%" stop-color="#22d3ee"/>
+        </linearGradient></defs>
+        <g fill="url(#wvd)">
+          <rect x="6"  y="24" width="6" height="16" rx="3"/>
+          <rect x="16" y="17" width="6" height="30" rx="3"/>
+          <rect x="26" y="20" width="6" height="24" rx="3"/>
+          <rect x="36" y="8"  width="6" height="48" rx="3"/>
+          <rect x="46" y="12" width="6" height="40" rx="3"/>
+          <rect x="56" y="19" width="6" height="26" rx="3"/>
+          <rect x="66" y="26" width="6" height="12" rx="3"/>
+        </g>
+        <text x="86" y="43" font-family="Rubik,sans-serif" font-size="36" font-weight="800" fill="#fff" letter-spacing="-1">Robert</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- VARIATIONS -->
+  <div class="section">
+    <div class="sh"><h2>וריאציות באותו סגנון</h2><span class="pill">4 כיוונים</span></div>
+    <div class="grid">
+
+      <!-- A: gradient (primary) -->
+      <div class="card star">
+        <svg viewBox="0 0 250 64" width="220" height="56">
+          <defs><linearGradient id="va" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#16a34a"/><stop offset="55%" stop-color="#10b981"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs>
+          <g fill="url(#va)"><rect x="6" y="24" width="6" height="16" rx="3"/><rect x="16" y="17" width="6" height="30" rx="3"/><rect x="26" y="20" width="6" height="24" rx="3"/><rect x="36" y="8" width="6" height="48" rx="3"/><rect x="46" y="12" width="6" height="40" rx="3"/><rect x="56" y="19" width="6" height="26" rx="3"/><rect x="66" y="26" width="6" height="12" rx="3"/></g>
+          <text x="86" y="43" font-family="Rubik,sans-serif" font-size="36" font-weight="800" fill="#1e293b" letter-spacing="-1">Robert</text>
+        </svg>
+        <div class="name">A · גרדיאנט ירוק→טורקיז</div>
+        <div class="desc">בדיוק כמו התמונה. מודרני, אנרגטי, צבעי המותג.</div>
+      </div>
+
+      <!-- B: solid brand green -->
+      <div class="card">
+        <svg viewBox="0 0 250 64" width="220" height="56">
+          <g fill="#22c55e"><rect x="6" y="24" width="6" height="16" rx="3"/><rect x="16" y="17" width="6" height="30" rx="3"/><rect x="26" y="20" width="6" height="24" rx="3"/><rect x="36" y="8" width="6" height="48" rx="3"/><rect x="46" y="12" width="6" height="40" rx="3"/><rect x="56" y="19" width="6" height="26" rx="3"/><rect x="66" y="26" width="6" height="12" rx="3"/></g>
+          <text x="86" y="43" font-family="Rubik,sans-serif" font-size="36" font-weight="800" fill="#1e293b" letter-spacing="-1">Robert</text>
+        </svg>
+        <div class="name">B · ירוק אחיד</div>
+        <div class="desc">פס אחד, נקי. מדפיס/מעתיק טוב בכל מקום.</div>
+      </div>
+
+      <!-- C: rising bars (progress) -->
+      <div class="card">
+        <svg viewBox="0 0 250 64" width="220" height="56">
+          <defs><linearGradient id="vc" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#16a34a"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs>
+          <g fill="url(#vc)"><rect x="6" y="40" width="6" height="16" rx="3"/><rect x="16" y="33" width="6" height="23" rx="3"/><rect x="26" y="26" width="6" height="30" rx="3"/><rect x="36" y="18" width="6" height="38" rx="3"/><rect x="46" y="12" width="6" height="44" rx="3"/><rect x="56" y="8" width="6" height="48" rx="3"/></g>
+          <text x="78" y="43" font-family="Rubik,sans-serif" font-size="36" font-weight="800" fill="#1e293b" letter-spacing="-1">Robert</text>
+        </svg>
+        <div class="name">C · עולה (צמיחה)</div>
+        <div class="desc">ברים שעולים — תחושת התקדמות/גדילה לעסק.</div>
+      </div>
+
+      <!-- D: badge lockup -->
+      <div class="card">
+        <svg viewBox="0 0 250 64" width="220" height="56">
+          <defs><linearGradient id="vd" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#134e4a"/></linearGradient><linearGradient id="vdb" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#22d3ee"/></linearGradient></defs>
+          <rect x="2" y="8" width="48" height="48" rx="13" fill="url(#vd)"/>
+          <g fill="url(#vdb)"><rect x="13" y="28" width="4.5" height="8" rx="2.25"/><rect x="20" y="22" width="4.5" height="20" rx="2.25"/><rect x="27" y="17" width="4.5" height="30" rx="2.25"/><rect x="34" y="24" width="4.5" height="16" rx="2.25"/></g>
+          <text x="62" y="42" font-family="Rubik,sans-serif" font-size="32" font-weight="800" fill="#1e293b" letter-spacing="-1">Robert</text>
+        </svg>
+        <div class="name">D · אייקון בתוך באדג'</div>
+        <div class="desc">גלים בתוך ריבוע כהה + שם. lockup מלא ל-header/אפליקציה.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FAVICONS -->
+  <div class="section">
+    <div class="sh"><h2>פאביקון (אייקון לשונית הדפדפן + אפליקציה)</h2><span class="pill">3 אפשרויות</span></div>
+    <div class="fav-grid">
+
+      <!-- F1: bars on navy square -->
+      <div class="fav-card star">
+        <div class="fav-row">
+          <div><svg viewBox="0 0 60 60" width="64" height="64"><defs><linearGradient id="f1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#22d3ee"/></linearGradient></defs><rect width="60" height="60" rx="14" fill="#0f172a"/><g fill="url(#f1)"><rect x="13" y="27" width="5" height="14" rx="2.5"/><rect x="22" y="19" width="5" height="30" rx="2.5"/><rect x="31" y="14" width="5" height="40" rx="2.5"/><rect x="40" y="23" width="5" height="22" rx="2.5"/></g></svg><div class="size-lbl">64px</div></div>
+          <div><svg viewBox="0 0 60 60" width="32" height="32"><rect width="60" height="60" rx="14" fill="#0f172a"/><g fill="url(#f1)"><rect x="13" y="27" width="5" height="14" rx="2.5"/><rect x="22" y="19" width="5" height="30" rx="2.5"/><rect x="31" y="14" width="5" height="40" rx="2.5"/><rect x="40" y="23" width="5" height="22" rx="2.5"/></g></svg><div class="size-lbl">32px</div></div>
+          <div><svg viewBox="0 0 60 60" width="20" height="20"><rect width="60" height="60" rx="14" fill="#0f172a"/><g fill="url(#f1)"><rect x="13" y="27" width="5" height="14" rx="2.5"/><rect x="22" y="19" width="5" height="30" rx="2.5"/><rect x="31" y="14" width="5" height="40" rx="2.5"/><rect x="40" y="23" width="5" height="22" rx="2.5"/></g></svg><div class="size-lbl">20px</div></div>
+        </div>
+        <div class="name">F1 · גלים על ריבוע כחול-כהה</div>
+        <div class="desc">קונטרסט מצוין, ברור גם בקטן. תואם ללוגו A.</div>
+      </div>
+
+      <!-- F2: white bars on green square -->
+      <div class="fav-card">
+        <div class="fav-row">
+          <div><svg viewBox="0 0 60 60" width="64" height="64"><defs><linearGradient id="f2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#16a34a"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs><rect width="60" height="60" rx="14" fill="url(#f2)"/><g fill="#fff"><rect x="13" y="27" width="5" height="14" rx="2.5"/><rect x="22" y="19" width="5" height="30" rx="2.5"/><rect x="31" y="14" width="5" height="40" rx="2.5"/><rect x="40" y="23" width="5" height="22" rx="2.5"/></g></svg><div class="size-lbl">64px</div></div>
+          <div><svg viewBox="0 0 60 60" width="32" height="32"><rect width="60" height="60" rx="14" fill="url(#f2)"/><g fill="#fff"><rect x="13" y="27" width="5" height="14" rx="2.5"/><rect x="22" y="19" width="5" height="30" rx="2.5"/><rect x="31" y="14" width="5" height="40" rx="2.5"/><rect x="40" y="23" width="5" height="22" rx="2.5"/></g></svg><div class="size-lbl">32px</div></div>
+          <div><svg viewBox="0 0 60 60" width="20" height="20"><rect width="60" height="60" rx="14" fill="url(#f2)"/><g fill="#fff"><rect x="13" y="27" width="5" height="14" rx="2.5"/><rect x="22" y="19" width="5" height="30" rx="2.5"/><rect x="31" y="14" width="5" height="40" rx="2.5"/><rect x="40" y="23" width="5" height="22" rx="2.5"/></g></svg><div class="size-lbl">20px</div></div>
+        </div>
+        <div class="name">F2 · גלים לבנים על ריבוע ירוק</div>
+        <div class="desc">בולט וצבעוני. נוכחות חזקה בלשונית.</div>
+      </div>
+
+      <!-- F3: bars no background -->
+      <div class="fav-card">
+        <div class="fav-row" style="background:#f8fafc;border-radius:10px;padding:10px;">
+          <div><svg viewBox="0 0 60 60" width="64" height="64"><defs><linearGradient id="f3" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#16a34a"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs><g fill="url(#f3)"><rect x="9" y="24" width="6" height="20" rx="3"/><rect x="20" y="14" width="6" height="40" rx="3"/><rect x="31" y="8" width="6" height="52" rx="3" transform="translate(0,-4)"/><rect x="31" y="6" width="6" height="48" rx="3"/><rect x="42" y="18" width="6" height="32" rx="3"/></g></svg><div class="size-lbl" style="color:#94a3b8">64px</div></div>
+          <div><svg viewBox="0 0 60 60" width="32" height="32"><g fill="url(#f3)"><rect x="9" y="24" width="6" height="20" rx="3"/><rect x="20" y="14" width="6" height="40" rx="3"/><rect x="31" y="6" width="6" height="48" rx="3"/><rect x="42" y="18" width="6" height="32" rx="3"/></g></svg><div class="size-lbl" style="color:#94a3b8">32px</div></div>
+        </div>
+        <div class="name">F3 · גלים בלבד (ללא רקע)</div>
+        <div class="desc">מינימלי. טוב לרקע בהיר; פחות בולט בקטן.</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="footnote">
+  כדי להחיל — אמור <strong>"תטמיע לוגו A + פאביקון F1"</strong> (או כל שילוב).<br>
+  הלוגו הישן מגובה ב- <code>design-lab/logo-backup/</code>
+</div>
+
+</body>
+</html>
