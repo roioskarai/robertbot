@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { processInboundMessage } from "@/lib/whatsapp/inbound";
+import { MAX_WEBHOOK_BYTES, declaredBodyTooLarge } from "@/lib/validation";
 import type { Bot } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -55,7 +56,13 @@ export async function POST(req: Request) {
     console.error("[meta-webhook] META_APP_SECRET not set — all inbound messages rejected");
     return new NextResponse("not configured", { status: 503 });
   }
+  if (declaredBodyTooLarge(req)) {
+    return new NextResponse("payload too large", { status: 413 });
+  }
   const raw = await req.text();
+  if (raw.length > MAX_WEBHOOK_BYTES) {
+    return new NextResponse("payload too large", { status: 413 });
+  }
   if (!validSignature(raw, req.headers.get("x-hub-signature-256"))) {
     return new NextResponse("invalid signature", { status: 403 });
   }

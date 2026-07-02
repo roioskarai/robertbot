@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, unauthorized } from "@/lib/errors";
 import { enforceActiveBotLimit } from "@/lib/bot-limit";
+import { rateLimit } from "@/lib/rate-limit";
 import { encryptSecret } from "@/lib/crypto";
 import { hasMetaCreds } from "@/lib/whatsapp/meta";
 import {
@@ -23,6 +24,10 @@ export async function POST(req: Request, { params }: Ctx) {
   if (!session) return unauthorized();
   if (!hasMetaCreds()) return jsonError("חיבור Meta אינו מוגדר עדיין", 503);
 
+  if (!rateLimit(`bot-connect:${session.authId}`, 5, 60_000).allowed) {
+    return jsonError("יותר מדי ניסיונות חיבור. נסה שוב בעוד דקה.", 429);
+  }
+
   let body: {
     code?: string;
     wabaId?: string;
@@ -39,11 +44,12 @@ export async function POST(req: Request, { params }: Ctx) {
   if (!body.code || !body.wabaId) return jsonError("חסרים פרטי חיבור (code/wabaId)");
 
   const supabase = createClient();
-  // RLS guarantees the user can only update a bot they own.
+  // Explicit user_id filter = defense-in-depth on top of RLS.
   const { data: ownBot } = await supabase
     .from("bots")
     .select("id, meta_waba_id")
     .eq("id", params.id)
+    .eq("user_id", session.authId)
     .maybeSingle();
   if (!ownBot) return jsonError("הבוט לא נמצא", 404);
 
@@ -106,6 +112,7 @@ export async function POST(req: Request, { params }: Ctx) {
         active: true,
       })
       .eq("id", params.id)
+      .eq("user_id", session.authId)
       .select("id, whatsapp_number, active, wa_provider")
       .single();
     if (error) {

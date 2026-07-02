@@ -31,7 +31,7 @@ export async function POST(req: Request, { params }: Ctx) {
   const supabase = createClient();
   const { data: conv, error: convErr } = await supabase
     .from("conversations")
-    .select("*")
+    .select("*, bots!inner(user_id)")
     .eq("id", params.id)
     .maybeSingle();
   if (convErr) {
@@ -39,6 +39,11 @@ export async function POST(req: Request, { params }: Ctx) {
     return jsonError("טעינת השיחה נכשלה. נסה שוב.", 500);
   }
   if (!conv) return jsonError("השיחה לא נמצאה", 404);
+
+  // Ownership via the bot relation — defense-in-depth on top of RLS.
+  if ((conv as { bots?: { user_id?: string } }).bots?.user_id !== session.authId) {
+    return jsonError("השיחה לא נמצאה", 404);
+  }
 
   // Persist the human message and mark conversation as human-handled.
   const { data: msg, error: msgErr } = await supabase

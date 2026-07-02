@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { stripeProvider } from "@/lib/payments/stripe-provider";
 import { applyPaymentEvent, getPaymentProvider } from "@/lib/payments";
+import { declaredBodyTooLarge } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,9 @@ export async function POST(req: Request) {
   }
   if (!stripeProvider.isConfigured() || !process.env.STRIPE_WEBHOOK_SECRET) {
     return NextResponse.json({ error: "Stripe not configured" }, { status: 503 });
+  }
+  if (declaredBodyTooLarge(req)) {
+    return NextResponse.json({ error: "payload too large" }, { status: 413 });
   }
   try {
     const event = await stripeProvider.parseWebhook(req);

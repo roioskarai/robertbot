@@ -3,6 +3,7 @@ import twilio from "twilio";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { processInboundMessage } from "@/lib/whatsapp/inbound";
 import { isDemoMode } from "@/lib/env";
+import { MAX_WEBHOOK_BYTES, declaredBodyTooLarge } from "@/lib/validation";
 import type { Bot } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +29,13 @@ function numbersMatch(a: string | null, b: string): boolean {
 
 // Twilio inbound WhatsApp webhook → shared reply pipeline.
 export async function POST(req: Request) {
+  if (declaredBodyTooLarge(req)) {
+    return new NextResponse("payload too large", { status: 413 });
+  }
   const raw = await req.text();
+  if (raw.length > MAX_WEBHOOK_BYTES) {
+    return new NextResponse("payload too large", { status: 413 });
+  }
   const params = new URLSearchParams(raw);
 
   // Twilio signature validation. Fail-closed in any real deployment: without a

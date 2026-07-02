@@ -22,3 +22,4 @@ git-push.bat
 # QA / test artifacts (Playwright MCP snapshots, console logs, screenshots)
 .playwright-mcp/
 dash-mobile-overview.png
+registration-form.png

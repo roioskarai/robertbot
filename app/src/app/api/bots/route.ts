@@ -5,6 +5,7 @@ import { buildSystemPrompt } from "@/lib/claude";
 import { PLAN_LIMITS } from "@/lib/plans";
 import { jsonError, unauthorized } from "@/lib/errors";
 import { LIMITS } from "@/lib/validation";
+import { rateLimit } from "@/lib/rate-limit";
 import type { Bot } from "@/lib/types";
 
 // GET /api/bots — list the current user's bots
@@ -13,9 +14,11 @@ export async function GET() {
   if (!session) return unauthorized();
 
   const supabase = createClient();
+  // user_id filter = defense-in-depth on top of RLS.
   const { data, error } = await supabase
     .from("bots")
     .select("*")
+    .eq("user_id", session.authId)
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -29,6 +32,10 @@ export async function GET() {
 export async function POST(req: Request) {
   const session = await getSessionUser();
   if (!session) return unauthorized();
+
+  if (!rateLimit(`bot-create:${session.authId}`, 10, 60_000).allowed) {
+    return jsonError("יותר מדי בקשות בזמן קצר. נסה שוב בעוד דקה.", 429);
+  }
 
   let body: Partial<Bot>;
   try {
@@ -49,7 +56,8 @@ export async function POST(req: Request) {
   const limit = PLAN_LIMITS[plan].bots;
   const { count } = await supabase
     .from("bots")
-    .select("id", { count: "exact", head: true });
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", session.authId);
   if ((count ?? 0) >= limit) {
     return jsonError(
       `הגעת למגבלת הבוטים במסלול ${plan} (${limit}). שדרג כדי להוסיף עוד.`,

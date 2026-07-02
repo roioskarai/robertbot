@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, unauthorized } from "@/lib/errors";
 import { decryptSecret } from "@/lib/crypto";
+import { rateLimit } from "@/lib/rate-limit";
 import { unsubscribeAppFromWaba } from "@/lib/whatsapp/embedded-signup";
 
 type Ctx = { params: { id: string } };
@@ -14,13 +15,18 @@ export async function POST(_req: Request, { params }: Ctx) {
   const session = await getSessionUser();
   if (!session) return unauthorized();
 
+  if (!rateLimit(`bot-write:${session.authId}`, 30, 60_000).allowed) {
+    return jsonError("יותר מדי בקשות בזמן קצר. נסה שוב בעוד דקה.", 429);
+  }
+
   const supabase = createClient();
 
-  // Load current connection (RLS scopes this to the owner).
+  // Load current connection (user_id filter = defense-in-depth on top of RLS).
   const { data: bot } = await supabase
     .from("bots")
     .select("wa_provider, meta_waba_id, wa_access_token")
     .eq("id", params.id)
+    .eq("user_id", session.authId)
     .maybeSingle();
 
   // Best-effort: release the WABA back to the tenant's plain WhatsApp.
@@ -45,6 +51,7 @@ export async function POST(_req: Request, { params }: Ctx) {
       wa_access_token: null,
     })
     .eq("id", params.id)
+    .eq("user_id", session.authId)
     .select("*")
     .single();
   if (error) return jsonError(error.message, 500);

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
-import { unauthorized } from "@/lib/errors";
+import { jsonError, unauthorized } from "@/lib/errors";
 import { getPaymentProvider, hasPayment } from "@/lib/payments";
+import { rateLimit } from "@/lib/rate-limit";
 
 // GET /api/billing/invoices — card on file + invoice history.
 // Returns { supported:false } when the active provider can't expose this
@@ -9,6 +10,10 @@ import { getPaymentProvider, hasPayment } from "@/lib/payments";
 export async function GET() {
   const session = await getSessionUser();
   if (!session) return unauthorized();
+
+  if (!rateLimit(`billing-read:${session.authId}`, 30, 60_000).allowed) {
+    return jsonError("יותר מדי בקשות בזמן קצר. נסה שוב בעוד דקה.", 429);
+  }
 
   const provider = getPaymentProvider();
   const customerId =

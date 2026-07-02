@@ -13,7 +13,7 @@ export async function GET(_req: Request, { params }: Ctx) {
   const supabase = createClient();
   const { data: conversation, error } = await supabase
     .from("conversations")
-    .select("*, bots(name, bot_name, whatsapp_number)")
+    .select("*, bots!inner(name, bot_name, whatsapp_number, user_id)")
     .eq("id", params.id)
     .maybeSingle();
   if (error) {
@@ -21,6 +21,10 @@ export async function GET(_req: Request, { params }: Ctx) {
     return jsonError("טעינת השיחה נכשלה. נסה שוב.", 500);
   }
   if (!conversation) return jsonError("השיחה לא נמצאה", 404);
+
+  // Ownership via the bot relation — defense-in-depth on top of RLS.
+  const ownerId = (conversation as { bots?: { user_id?: string } }).bots?.user_id;
+  if (ownerId !== session.authId) return jsonError("השיחה לא נמצאה", 404);
 
   const { data: messages, error: mErr } = await supabase
     .from("messages")

@@ -15,7 +15,9 @@ import { getSessionUser } from "./auth";
 import { requiredSecret } from "./env";
 import type { DBUser } from "./types";
 
-export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "roioskarai@gmail.com";
+// Optional bootstrap allowlist: grants admin to this email even before the DB
+// role is set. Empty (unset) = role-only — fail-closed, no hardcoded default.
+export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "";
 export const ADMIN_COOKIE = "robert_admin_2fa";
 const TTL_SECONDS = 8 * 60 * 60; // 8 hours
 
@@ -65,7 +67,8 @@ export interface AdminSession {
 export async function requireAdminPreTotp(): Promise<AdminSession | null> {
   const session = await getSessionUser();
   if (!session?.profile) return null;
-  const isAdmin = session.profile.role === "admin" || session.email === ADMIN_EMAIL;
+  const isAdmin =
+    session.profile.role === "admin" || (!!ADMIN_EMAIL && session.email === ADMIN_EMAIL);
   if (!isAdmin) return null;
   return { authId: session.authId, email: session.email, profile: session.profile };
 }

@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/auth";
 import { getPaymentProvider, hasPayment } from "@/lib/payments";
 import { parseProduct } from "@/lib/plans";
 import { jsonError, unauthorized } from "@/lib/errors";
+import { rateLimit } from "@/lib/rate-limit";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -11,6 +12,10 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 export async function POST(req: Request) {
   const session = await getSessionUser();
   if (!session) return unauthorized();
+
+  if (!rateLimit(`billing:${session.authId}`, 10, 60_000).allowed) {
+    return jsonError("יותר מדי בקשות בזמן קצר. נסה שוב בעוד דקה.", 429);
+  }
 
   if (!hasPayment()) return jsonError("סליקה אינה זמינה כרגע", 503);
 

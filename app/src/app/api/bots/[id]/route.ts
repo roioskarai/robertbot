@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/auth";
 import { buildSystemPrompt } from "@/lib/claude";
 import { jsonError, unauthorized } from "@/lib/errors";
 import { enforceActiveBotLimit } from "@/lib/bot-limit";
+import { rateLimit } from "@/lib/rate-limit";
 import type { Bot } from "@/lib/types";
 
 type Ctx = { params: { id: string } };
@@ -14,10 +15,12 @@ export async function GET(_req: Request, { params }: Ctx) {
   if (!session) return unauthorized();
 
   const supabase = createClient();
+  // user_id filter = defense-in-depth on top of RLS.
   const { data, error } = await supabase
     .from("bots")
     .select("*")
     .eq("id", params.id)
+    .eq("user_id", session.authId)
     .maybeSingle();
 
   if (error) {
@@ -33,6 +36,10 @@ export async function PUT(req: Request, { params }: Ctx) {
   const session = await getSessionUser();
   if (!session) return unauthorized();
 
+  if (!rateLimit(`bot-write:${session.authId}`, 30, 60_000).allowed) {
+    return jsonError("יותר מדי בקשות בזמן קצר. נסה שוב בעוד דקה.", 429);
+  }
+
   let body: Partial<Bot>;
   try {
     body = await req.json();
@@ -45,6 +52,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     .from("bots")
     .select("*")
     .eq("id", params.id)
+    .eq("user_id", session.authId)
     .maybeSingle();
   if (fetchErr) {
     console.error("[bot PUT] fetch error:", fetchErr.message);
@@ -82,6 +90,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     .from("bots")
     .update(update)
     .eq("id", params.id)
+    .eq("user_id", session.authId)
     .select("*")
     .single();
 
@@ -97,8 +106,16 @@ export async function DELETE(_req: Request, { params }: Ctx) {
   const session = await getSessionUser();
   if (!session) return unauthorized();
 
+  if (!rateLimit(`bot-write:${session.authId}`, 30, 60_000).allowed) {
+    return jsonError("יותר מדי בקשות בזמן קצר. נסה שוב בעוד דקה.", 429);
+  }
+
   const supabase = createClient();
-  const { error } = await supabase.from("bots").delete().eq("id", params.id);
+  const { error } = await supabase
+    .from("bots")
+    .delete()
+    .eq("id", params.id)
+    .eq("user_id", session.authId);
   if (error) {
     console.error("[bot DELETE] db error:", error.message);
     return jsonError("מחיקת הבוט נכשלה. נסה שוב.", 500);

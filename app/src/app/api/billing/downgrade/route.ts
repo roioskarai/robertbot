@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { isPlanId, planLabelHe, PLAN_IDS } from "@/lib/plans";
 import { jsonError, unauthorized } from "@/lib/errors";
+import { rateLimit } from "@/lib/rate-limit";
 import type { PlanId } from "@/lib/plans";
 
 // Numeric rank for each plan (ascending = higher tier).
@@ -15,6 +16,10 @@ const PLAN_RANK = Object.fromEntries(PLAN_IDS.map((p, i) => [p, i])) as Record<s
 export async function POST(req: Request) {
   const session = await getSessionUser();
   if (!session) return unauthorized();
+
+  if (!rateLimit(`billing:${session.authId}`, 10, 60_000).allowed) {
+    return jsonError("יותר מדי בקשות בזמן קצר. נסה שוב בעוד דקה.", 429);
+  }
 
   let body: { plan?: string };
   try {

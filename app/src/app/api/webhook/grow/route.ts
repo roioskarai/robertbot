@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { growProvider } from "@/lib/payments/grow-provider";
 import { applyPaymentEvent } from "@/lib/payments";
+import { declaredBodyTooLarge } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,9 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   if (!growProvider.isConfigured()) {
     return NextResponse.json({ error: "Grow not configured" }, { status: 503 });
+  }
+  if (declaredBodyTooLarge(req)) {
+    return NextResponse.json({ error: "payload too large" }, { status: 413 });
   }
   try {
     const event = await growProvider.parseWebhook(req);

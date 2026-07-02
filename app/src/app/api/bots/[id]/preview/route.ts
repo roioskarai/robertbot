@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { generateReply, hasAnthropicKey, type HistoryMessage } from "@/lib/claude";
 import { jsonError } from "@/lib/errors";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 import type { Bot } from "@/lib/types";
 
 type Ctx = { params: { id: string } };
@@ -11,6 +12,12 @@ type Ctx = { params: { id: string } };
 // body: { message, history?, bot? }
 // `bot` (inline config) lets the onboarding preview run on an unsaved draft.
 export async function POST(req: Request, { params }: Ctx) {
+  // Every call burns Anthropic credit, and the inline-bot path is reachable
+  // pre-signup — throttle by IP.
+  if (!rateLimit(`preview:${clientKey(req)}`, 15, 60_000).allowed) {
+    return jsonError("יותר מדי הודעות בזמן קצר. נסה שוב בעוד דקה.", 429);
+  }
+
   let body: { message?: string; history?: HistoryMessage[]; bot?: Bot };
   try {
     body = await req.json();
@@ -20,6 +27,10 @@ export async function POST(req: Request, { params }: Ctx) {
 
   const message = (body.message || "").trim();
   if (!message) return jsonError("הודעה ריקה");
+  if (message.length > 1000) return jsonError("ההודעה ארוכה מדי");
+  if (Array.isArray(body.history) && body.history.length > 20) {
+    body.history = body.history.slice(-20);
+  }
 
   if (!hasAnthropicKey()) {
     return NextResponse.json(
@@ -38,6 +49,7 @@ export async function POST(req: Request, { params }: Ctx) {
       .from("bots")
       .select("*")
       .eq("id", params.id)
+      .eq("user_id", session.authId)
       .maybeSingle();
     if (!data) return jsonError("הבוט לא נמצא", 404);
     bot = data as Bot;

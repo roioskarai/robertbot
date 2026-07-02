@@ -27,3 +27,14 @@ export const LIMITS = {
   serviceName: 120,
   password: 200,
 } as const;
+
+/**
+ * Max accepted webhook payload in bytes (DoS guard). Real WhatsApp/Stripe/Grow
+ * events are a few KB — 1MB leaves generous headroom.
+ */
+export const MAX_WEBHOOK_BYTES = 1_000_000;
+
+/** True when the declared Content-Length exceeds the webhook size cap. */
+export function declaredBodyTooLarge(req: Request): boolean {
+  return Number(req.headers.get("content-length") || 0) > MAX_WEBHOOK_BYTES;
+}

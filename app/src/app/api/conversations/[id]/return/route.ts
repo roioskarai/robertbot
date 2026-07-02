@@ -11,6 +11,17 @@ export async function POST(_req: Request, { params }: Ctx) {
   if (!session) return unauthorized();
 
   const supabase = createClient();
+
+  // Ownership via the bot relation — defense-in-depth on top of RLS.
+  const { data: conv } = await supabase
+    .from("conversations")
+    .select("id, bots!inner(user_id)")
+    .eq("id", params.id)
+    .maybeSingle();
+  if (!conv || (conv as { bots?: { user_id?: string } }).bots?.user_id !== session.authId) {
+    return jsonError("השיחה לא נמצאה", 404);
+  }
+
   const { data, error } = await supabase
     .from("conversations")
     .update({ status: "bot" })

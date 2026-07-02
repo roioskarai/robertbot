@@ -3,12 +3,17 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { getPaymentProvider, hasPayment } from "@/lib/payments";
 import { jsonError, unauthorized } from "@/lib/errors";
+import { rateLimit } from "@/lib/rate-limit";
 
 // POST /api/billing/cancel
 // Cancels at period end — the bot stays active until the period ends.
 export async function POST() {
   const session = await getSessionUser();
   if (!session) return unauthorized();
+
+  if (!rateLimit(`billing:${session.authId}`, 10, 60_000).allowed) {
+    return jsonError("יותר מדי בקשות בזמן קצר. נסה שוב בעוד דקה.", 429);
+  }
 
   const supabase = createClient();
   const subId =

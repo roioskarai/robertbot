@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     .eq("id", data.user.id)
     .maybeSingle();
 
-  const isAdmin = profile?.role === "admin" || email === ADMIN_EMAIL;
+  const isAdmin = profile?.role === "admin" || (!!ADMIN_EMAIL && email === ADMIN_EMAIL);
   if (!isAdmin || profile?.is_suspended) {
     await supabase.auth.signOut();
     return jsonError("אין הרשאת אדמין", 403);
