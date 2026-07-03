@@ -5,7 +5,8 @@ import { requirePermission } from "@/lib/site/permissions";
 import { logAudit } from "@/lib/site/admin";
 
 // GET → full page row (for the editor)
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await requirePermission("content.read");
   if (!session) return unauthorized();
   const db = createAdminClient();
@@ -15,7 +16,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 }
 
 // PUT → save draft (draft_doc / meta / title / slug / scheduling / taxonomy)
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await requirePermission("content.write");
   if (!session) return unauthorized();
   const body = await req.json().catch(() => ({}));
@@ -46,7 +48,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 // DELETE → remove a page (not the home page)
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await requirePermission("content.write");
   if (!session) return unauthorized();
   const db = createAdminClient();

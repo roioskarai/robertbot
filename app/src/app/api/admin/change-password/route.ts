@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   if (newPassword.length < 8) return jsonError("הסיסמה החדשה חייבת להכיל לפחות 8 תווים");
 
   // Verify current password by re-signing in.
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error: signInErr } = await supabase.auth.signInWithPassword({
     email: session.email, password: currentPassword,
   });

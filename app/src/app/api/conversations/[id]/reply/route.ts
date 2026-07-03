@@ -6,10 +6,11 @@ import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { getWhatsAppProvider, hasWhatsApp } from "@/lib/whatsapp";
 import type { Bot } from "@/lib/types";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 // POST /api/conversations/[id]/reply  body: { body } — human agent reply
-export async function POST(req: Request, { params }: Ctx) {
+export async function POST(req: Request, props: Ctx) {
+  const params = await props.params;
   const session = await getSessionUser();
   if (!session) return unauthorized();
 
@@ -28,7 +29,7 @@ export async function POST(req: Request, { params }: Ctx) {
   if (!text) return jsonError("הודעה ריקה");
   if (text.length > 4000) return jsonError("ההודעה ארוכה מדי");
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: conv, error: convErr } = await supabase
     .from("conversations")
     .select("*, bots!inner(user_id)")

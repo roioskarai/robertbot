@@ -11,7 +11,7 @@ export async function getSessionUser(): Promise<{
   email: string;
   profile: DBUser | null;
 } | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

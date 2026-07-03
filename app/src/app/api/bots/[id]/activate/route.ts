@@ -5,10 +5,11 @@ import { jsonError, unauthorized } from "@/lib/errors";
 import { enforceActiveBotLimit } from "@/lib/bot-limit";
 import { rateLimit } from "@/lib/rate-limit";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 // POST /api/bots/[id]/activate  body: { active?: boolean }  (default true)
-export async function POST(req: Request, { params }: Ctx) {
+export async function POST(req: Request, props: Ctx) {
+  const params = await props.params;
   const session = await getSessionUser();
   if (!session) return unauthorized();
 
@@ -24,7 +25,7 @@ export async function POST(req: Request, { params }: Ctx) {
     /* default true */
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Enforce plan bot limit when activating.
   if (active) {

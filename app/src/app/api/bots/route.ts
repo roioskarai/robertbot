@@ -13,7 +13,7 @@ export async function GET() {
   const session = await getSessionUser();
   if (!session) return unauthorized();
 
-  const supabase = createClient();
+  const supabase = await createClient();
   // user_id filter = defense-in-depth on top of RLS.
   const { data, error } = await supabase
     .from("bots")
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
   if (body.description && body.description.length > LIMITS.description)
     return jsonError("התיאור ארוך מדי");
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Enforce plan bot limit
   const plan = session.profile?.plan ?? "basic";

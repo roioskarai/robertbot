@@ -5,7 +5,8 @@ import { requirePermission } from "@/lib/site/permissions";
 import { logAudit } from "@/lib/site/admin";
 
 // Restore a version into the DRAFT (admin reviews, then publishes).
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await requirePermission("content.write");
   if (!session) return unauthorized();
   const { versionId } = await req.json().catch(() => ({}));

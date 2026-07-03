@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function LandingPage() {
-  const { isEnabled } = draftMode();
+  const { isEnabled } = await draftMode();
   const [{ theme, settings }, page, banners] = await Promise.all([
     getResolvedSite(),
     getRenderPage("home", { draft: isEnabled }),

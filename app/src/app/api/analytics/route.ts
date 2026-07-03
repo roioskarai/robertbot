@@ -10,7 +10,7 @@ export async function GET() {
   const session = await getSessionUser();
   if (!session) return unauthorized();
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);

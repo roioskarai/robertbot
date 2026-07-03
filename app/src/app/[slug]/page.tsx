@@ -18,7 +18,8 @@ import Tracker from "@/components/site/Tracker";
 // Reserved top-level segments are real routes; this dynamic route only catches
 // builder-created pages/posts. (Next prioritizes static segments over [slug].)
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const page = await getRenderPage(params.slug);
   if (!page) return {};
   const meta = page.meta ?? {};
@@ -30,8 +31,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function DynamicPage({ params }: { params: { slug: string } }) {
-  const { isEnabled } = draftMode();
+export default async function DynamicPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
+  const { isEnabled } = await draftMode();
   const [{ theme, settings }, page, banners] = await Promise.all([
     getResolvedSite(),
     getRenderPage(params.slug, { draft: isEnabled }),

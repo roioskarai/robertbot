@@ -14,7 +14,7 @@ export async function POST() {
     return jsonError("יותר מדי בקשות בזמן קצר. נסה שוב בעוד דקה.", 429);
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const subId =
     session.profile?.payment_subscription_id ?? session.profile?.stripe_subscription_id;
 

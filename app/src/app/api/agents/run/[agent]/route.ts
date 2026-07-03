@@ -6,12 +6,13 @@ import type { AgentMode } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-type Ctx = { params: { agent: string } };
+type Ctx = { params: Promise<{ agent: string }> };
 
 // GET /api/agents/run/[agent]?secret=...&mode=dry|live
 // Secret-guarded (Vercel Cron / manual). `agent` is "orchestrator" or any
 // name in SCHEDULED_AGENT_NAMES. `mode=dry` (default) returns proposals only.
-export async function GET(req: Request, { params }: Ctx) {
+export async function GET(req: Request, props: Ctx) {
+  const params = await props.params;
   const url = new URL(req.url);
   // Accept the secret via query, custom header, or Vercel Cron's
   // `Authorization: Bearer <CRON_SECRET>` (auto-sent when CRON_SECRET is set).

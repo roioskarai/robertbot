@@ -7,7 +7,8 @@ import { logAudit } from "@/lib/site/admin";
 import { revalidateSite } from "@/lib/site/content";
 
 // Make a theme the active one (deactivate the rest) + revalidate.
-export async function POST(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await requireAdmin();
   if (!session || !hasPermission(session.profile.admin_role, "design.write"))
     return unauthorized();

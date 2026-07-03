@@ -2,7 +2,7 @@ import type { createClient } from "@/lib/supabase/server";
 import { jsonError } from "@/lib/errors";
 import { PLAN_LIMITS, type PlanId } from "@/lib/plans";
 
-type ServerClient = ReturnType<typeof createClient>;
+type ServerClient = Awaited<ReturnType<typeof createClient>>;
 
 // Enforce the plan's active-bot limit before activating a bot.
 // Pass a USER-CONTEXT client (RLS-scoped) so the count only sees the

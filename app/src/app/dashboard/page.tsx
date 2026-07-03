@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import styles from "./dashboard.module.css";
 import { scoped } from "@/lib/cx";
 import { useToast } from "@/components/Toast";
@@ -1193,7 +1194,7 @@ export default function DashboardPage() {
             {!hasActiveSubscription && (
               <div style={{ background: "var(--red-pale)", border: "1px solid #fecaca", borderRadius: "var(--r)", padding: "12px 14px", marginBottom: 14, fontSize: 13, color: "var(--red)", textAlign: "center" }}>
                 רכישת Packs זמינה למנויים פעילים בלבד.{" "}
-                <a href="/onboarding" style={{ color: "var(--red)", fontWeight: 700, textDecoration: "underline" }}>הירשם למנוי</a>
+                <Link href="/onboarding" style={{ color: "var(--red)", fontWeight: 700, textDecoration: "underline" }}>הירשם למנוי</Link>
               </div>
             )}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12 }}>

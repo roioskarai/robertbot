@@ -6,7 +6,8 @@ import { logAudit } from "@/lib/site/admin";
 import { revalidateSite } from "@/lib/site/content";
 
 // Publish: copy draft_doc → published_doc, snapshot to page_versions, revalidate.
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await requirePermission("content.write");
   if (!session) return unauthorized();
 

@@ -6,12 +6,13 @@ import { jsonError } from "@/lib/errors";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 import type { Bot } from "@/lib/types";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 // POST /api/bots/[id]/preview
 // body: { message, history?, bot? }
 // `bot` (inline config) lets the onboarding preview run on an unsaved draft.
-export async function POST(req: Request, { params }: Ctx) {
+export async function POST(req: Request, props: Ctx) {
+  const params = await props.params;
   // Every call burns Anthropic credit, and the inline-bot path is reachable
   // pre-signup — throttle by IP.
   if (!rateLimit(`preview:${clientKey(req)}`, 15, 60_000).allowed) {
@@ -44,7 +45,7 @@ export async function POST(req: Request, { params }: Ctx) {
     // Load a saved bot — requires auth.
     const session = await getSessionUser();
     if (!session) return jsonError("לא מחובר", 401);
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data } = await supabase
       .from("bots")
       .select("*")

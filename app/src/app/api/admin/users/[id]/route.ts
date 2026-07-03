@@ -4,10 +4,11 @@ import { jsonError } from "@/lib/errors";
 import { requireAdmin } from "@/lib/admin-auth";
 import { isPlanId } from "@/lib/plans";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 // GET /api/admin/users/[id] — full detail (profile + bots + usage).
-export async function GET(_req: Request, { params }: Ctx) {
+export async function GET(_req: Request, props: Ctx) {
+  const params = await props.params;
   if (!(await requireAdmin())) return jsonError("אין הרשאת אדמין", 403);
   const db = createAdminClient();
 
@@ -25,7 +26,8 @@ export async function GET(_req: Request, { params }: Ctx) {
 }
 
 // PATCH /api/admin/users/[id] — update plan / status / role / suspend / pack.
-export async function PATCH(req: Request, { params }: Ctx) {
+export async function PATCH(req: Request, props: Ctx) {
+  const params = await props.params;
   if (!(await requireAdmin())) return jsonError("אין הרשאת אדמין", 403);
 
   let body: Record<string, unknown>;

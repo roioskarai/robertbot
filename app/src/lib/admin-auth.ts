@@ -77,7 +77,7 @@ export async function requireAdminPreTotp(): Promise<AdminSession | null> {
 export async function requireAdmin(): Promise<AdminSession | null> {
   const pre = await requireAdminPreTotp();
   if (!pre) return null;
-  const token = cookies().get(ADMIN_COOKIE)?.value;
+  const token = (await cookies()).get(ADMIN_COOKIE)?.value;
   const sub = verifyAdminToken(token);
   if (!sub || sub !== pre.authId) return null;
   return pre;

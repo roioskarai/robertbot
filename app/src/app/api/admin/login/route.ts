@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   const { email, password } = body;
   if (!email || !password) return jsonError("חסר אימייל או סיסמה");
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error || !data.user) return jsonError(hebAuthError(error?.message ?? "שגיאה"));
 

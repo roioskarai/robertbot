@@ -3,14 +3,15 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, unauthorized } from "@/lib/errors";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 // POST /api/conversations/[id]/return — hand the conversation back to the bot
-export async function POST(_req: Request, { params }: Ctx) {
+export async function POST(_req: Request, props: Ctx) {
+  const params = await props.params;
   const session = await getSessionUser();
   if (!session) return unauthorized();
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Ownership via the bot relation — defense-in-depth on top of RLS.
   const { data: conv } = await supabase

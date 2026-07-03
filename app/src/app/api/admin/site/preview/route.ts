@@ -12,9 +12,9 @@ export async function POST(req: NextRequest) {
 
   const exit = new URL(req.url).searchParams.get("exit");
   if (exit) {
-    draftMode().disable();
+    (await draftMode()).disable();
     return NextResponse.json({ ok: true, draft: false });
   }
-  draftMode().enable();
+  (await draftMode()).enable();
   return NextResponse.json({ ok: true, draft: true });
 }

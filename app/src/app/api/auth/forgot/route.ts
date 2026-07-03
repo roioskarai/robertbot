@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") ||
     new URL(req.url).origin;
 
-  const supabase = createClient();
+  const supabase = await createClient();
   try {
     await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${appUrl}/auth/callback?next=/reset-password`,

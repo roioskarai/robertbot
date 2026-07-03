@@ -3,14 +3,15 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, unauthorized } from "@/lib/errors";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 // GET /api/conversations/[id] — conversation + its messages
-export async function GET(_req: Request, { params }: Ctx) {
+export async function GET(_req: Request, props: Ctx) {
+  const params = await props.params;
   const session = await getSessionUser();
   if (!session) return unauthorized();
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: conversation, error } = await supabase
     .from("conversations")
     .select("*, bots!inner(name, bot_name, whatsapp_number, user_id)")

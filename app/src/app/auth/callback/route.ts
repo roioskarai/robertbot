@@ -15,7 +15,7 @@ export async function GET(req: Request) {
   const nextParam = url.searchParams.get("next") || "/dashboard";
   const next = nextParam.startsWith("/") ? nextParam : "/dashboard";
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Flow 1: PKCE authorization code
   if (code) {

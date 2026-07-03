@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   }
 
   const provider = getPaymentProvider();
-  const supabase = createClient();
+  const supabase = await createClient();
 
   try {
     const out = await provider.createCheckout({

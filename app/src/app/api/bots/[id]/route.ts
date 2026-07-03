@@ -7,14 +7,15 @@ import { enforceActiveBotLimit } from "@/lib/bot-limit";
 import { rateLimit } from "@/lib/rate-limit";
 import type { Bot } from "@/lib/types";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 // GET /api/bots/[id]
-export async function GET(_req: Request, { params }: Ctx) {
+export async function GET(_req: Request, props: Ctx) {
+  const params = await props.params;
   const session = await getSessionUser();
   if (!session) return unauthorized();
 
-  const supabase = createClient();
+  const supabase = await createClient();
   // user_id filter = defense-in-depth on top of RLS.
   const { data, error } = await supabase
     .from("bots")
@@ -32,7 +33,8 @@ export async function GET(_req: Request, { params }: Ctx) {
 }
 
 // PUT /api/bots/[id] — update + regenerate system prompt
-export async function PUT(req: Request, { params }: Ctx) {
+export async function PUT(req: Request, props: Ctx) {
+  const params = await props.params;
   const session = await getSessionUser();
   if (!session) return unauthorized();
 
@@ -47,7 +49,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     return jsonError("בקשה לא תקינה");
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: existing, error: fetchErr } = await supabase
     .from("bots")
     .select("*")
@@ -102,7 +104,8 @@ export async function PUT(req: Request, { params }: Ctx) {
 }
 
 // DELETE /api/bots/[id]
-export async function DELETE(_req: Request, { params }: Ctx) {
+export async function DELETE(_req: Request, props: Ctx) {
+  const params = await props.params;
   const session = await getSessionUser();
   if (!session) return unauthorized();
 
@@ -110,7 +113,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     return jsonError("יותר מדי בקשות בזמן קצר. נסה שוב בעוד דקה.", 429);
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from("bots")
     .delete()

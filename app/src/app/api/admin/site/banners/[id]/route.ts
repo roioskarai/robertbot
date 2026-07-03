@@ -6,7 +6,8 @@ import { logAudit } from "@/lib/site/admin";
 import { revalidateSite } from "@/lib/site/content";
 
 // PUT → update banner (name/config/status/schedule); revalidate so live updates.
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await requirePermission("content.write");
   if (!session) return unauthorized();
   const body = await req.json().catch(() => ({}));
@@ -25,7 +26,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await requirePermission("content.write");
   if (!session) return unauthorized();
   const db = createAdminClient();

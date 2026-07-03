@@ -12,7 +12,7 @@ export async function GET(req: Request) {
   const status = url.searchParams.get("status");
   const botId = url.searchParams.get("botId");
 
-  const supabase = createClient();
+  const supabase = await createClient();
   let query = supabase
     .from("conversations")
     .select("*, bots(name, bot_name, whatsapp_number)")

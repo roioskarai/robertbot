@@ -8,11 +8,12 @@ import { isValidPhoneIL } from "@/lib/validation";
 import { rateLimit } from "@/lib/rate-limit";
 import { isDemoMode } from "@/lib/env";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 // POST /api/bots/[id]/connect
 // body: { number, code? }  — no code → send OTP; with code → verify + save number
-export async function POST(req: Request, { params }: Ctx) {
+export async function POST(req: Request, props: Ctx) {
+  const params = await props.params;
   const session = await getSessionUser();
   if (!session) return unauthorized();
 
@@ -31,7 +32,7 @@ export async function POST(req: Request, { params }: Ctx) {
   if (!number) return jsonError("חסר מספר טלפון");
   if (!isValidPhoneIL(number)) return jsonError("מספר הטלפון אינו תקין");
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Verify the bot belongs to the caller before doing any Twilio work
   // (defense-in-depth on top of RLS). Skipped in demo mode — no real DB.

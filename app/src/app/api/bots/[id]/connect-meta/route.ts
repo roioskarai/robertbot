@@ -13,13 +13,14 @@ import {
   fetchWabaPhone,
 } from "@/lib/whatsapp/embedded-signup";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 // POST /api/bots/[id]/connect-meta
 // Completes Meta Embedded Signup: { code, wabaId, phoneNumberId?, businessId?, displayNumber? }
 // Each tenant connects its OWN WABA — the access token is stored encrypted and
 // scoped to this bot only, so tenants stay fully isolated.
-export async function POST(req: Request, { params }: Ctx) {
+export async function POST(req: Request, props: Ctx) {
+  const params = await props.params;
   const session = await getSessionUser();
   if (!session) return unauthorized();
   if (!hasMetaCreds()) return jsonError("חיבור Meta אינו מוגדר עדיין", 503);
@@ -43,7 +44,7 @@ export async function POST(req: Request, { params }: Ctx) {
   }
   if (!body.code || !body.wabaId) return jsonError("חסרים פרטי חיבור (code/wabaId)");
 
-  const supabase = createClient();
+  const supabase = await createClient();
   // Explicit user_id filter = defense-in-depth on top of RLS.
   const { data: ownBot } = await supabase
     .from("bots")

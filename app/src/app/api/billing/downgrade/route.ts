@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   }
   if (!body.plan || !isPlanId(body.plan)) return jsonError("מסלול לא חוקי");
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Fetch current plan to block free upgrades via this endpoint.
   const { data: user } = await supabase

@@ -6,12 +6,13 @@ import { decryptSecret } from "@/lib/crypto";
 import { rateLimit } from "@/lib/rate-limit";
 import { unsubscribeAppFromWaba } from "@/lib/whatsapp/embedded-signup";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 // POST /api/bots/[id]/disconnect — detach WhatsApp, deactivate the bot, and
 // return the customer to their normal WhatsApp. For Meta-connected bots we also
 // unsubscribe our app from the tenant's WABA (best-effort) and wipe the token.
-export async function POST(_req: Request, { params }: Ctx) {
+export async function POST(_req: Request, props: Ctx) {
+  const params = await props.params;
   const session = await getSessionUser();
   if (!session) return unauthorized();
 
@@ -19,7 +20,7 @@ export async function POST(_req: Request, { params }: Ctx) {
     return jsonError("יותר מדי בקשות בזמן קצר. נסה שוב בעוד דקה.", 429);
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Load current connection (user_id filter = defense-in-depth on top of RLS).
   const { data: bot } = await supabase
