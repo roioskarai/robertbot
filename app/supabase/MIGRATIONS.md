@@ -14,8 +14,10 @@
 | `migrations/0004_admin_2fa.sql` | ‏2FA לאדמין (totp_secret/enabled, is_suspended) | ✅ חל |
 | `migrations/0005_launch_hardening.sql` | אינדקס ייחודי למספר וואטסאפ, `payment_events`, ביטול-בתום-תקופה | ✅ חל (payment_events + עמודות אומתו) |
 | `migrations/0006_website_builder.sql` | סכמת ה-CMS‏ (sites, pages, themes, media, banners, …) | ✅ חל |
-| `migrations/0007_admin_email_cleanup.sql` | הסרת האימייל הקשיח מטריגר ההרשמה (bootstrap עובר ל-env‏ `ADMIN_EMAIL`) | ⏳ **ממתין להדבקת הבעלים** — אושר ב-2026-07-03 (`APPROVED - DATABASE`); ‏DDL דורש SQL Editor. ‏`ADMIN_EMAIL` כבר הוגדר ב-Vercel |
-| `migrations/0008_meta_phone_unique.sql` | אינדקס ייחודי חלקי על `meta_phone_number_id` (הקובץ 0006_meta_unique מהזיכרונות מעולם לא נשמר — נוצר מחדש כ-0008) | ⏳ **ממתין להדבקת הבעלים** — אושר ב-2026-07-03; ‏DDL דורש SQL Editor |
+| `migrations/0007_admin_email_cleanup.sql` | הסרת האימייל הקשיח מטריגר ההרשמה (bootstrap עובר ל-env‏ `ADMIN_EMAIL`) | ✅ **חל** — הבעלים הדביק ב-SQL Editor ב-2026-07-03 ("Success. No rows returned") |
+| `migrations/0008_meta_phone_unique.sql` | אינדקס ייחודי חלקי על `meta_phone_number_id` | ✅ **חל** — הבעלים הדביק ב-SQL Editor ב-2026-07-03 (באותו בלוק) |
+
+**🎯 כל המיגרציות חלות בפרודקשן. אין ממתינות.**
 
 ## פעולות DB שבוצעו ב-2026-07-03 (באישור `APPROVED - DATABASE`)
 
