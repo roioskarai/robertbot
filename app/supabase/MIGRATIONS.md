@@ -14,13 +14,15 @@
 | `migrations/0004_admin_2fa.sql` | ‏2FA לאדמין (totp_secret/enabled, is_suspended) | ✅ חל |
 | `migrations/0005_launch_hardening.sql` | אינדקס ייחודי למספר וואטסאפ, `payment_events`, ביטול-בתום-תקופה | ✅ חל (payment_events + עמודות אומתו) |
 | `migrations/0006_website_builder.sql` | סכמת ה-CMS‏ (sites, pages, themes, media, banners, …) | ✅ חל |
-| `migrations/0006_meta_unique.sql` | אינדקס ייחודי חלקי על `meta_phone_number_id` | ⏳ **ממתין** — אינדקס לא ניתן לאימות דרך PostgREST; לפי סריקת ה-QA מ-2026-06-24 נכתב ולא הורץ. דורש `APPROVED - DATABASE` |
-| `migrations/0007_admin_email_cleanup.sql` | הסרת האימייל הקשיח מטריגר ההרשמה (bootstrap עובר ל-env‏ `ADMIN_EMAIL`) | ⏳ **ממתין** — להריץ רק אחרי הגדרת `ADMIN_EMAIL` ב-Vercel. דורש `APPROVED - DATABASE` |
+| `migrations/0007_admin_email_cleanup.sql` | הסרת האימייל הקשיח מטריגר ההרשמה (bootstrap עובר ל-env‏ `ADMIN_EMAIL`) | ⏳ **ממתין להדבקת הבעלים** — אושר ב-2026-07-03 (`APPROVED - DATABASE`); ‏DDL דורש SQL Editor. ‏`ADMIN_EMAIL` כבר הוגדר ב-Vercel |
+| `migrations/0008_meta_phone_unique.sql` | אינדקס ייחודי חלקי על `meta_phone_number_id` (הקובץ 0006_meta_unique מהזיכרונות מעולם לא נשמר — נוצר מחדש כ-0008) | ⏳ **ממתין להדבקת הבעלים** — אושר ב-2026-07-03; ‏DDL דורש SQL Editor |
 
-## פעולות DB ממתינות נוספות (לא מיגרציות)
+## פעולות DB שבוצעו ב-2026-07-03 (באישור `APPROVED - DATABASE`)
 
-- **תיקון רשומת `home` הפגומה** (תוכן `?` במקום עברית): ‏`POST /api/admin/site/seed?force=1` — דורש `APPROVED - DATABASE`.
-- **עדכון רשומת ה-theme לפלטת V2** — יבוצע בגל 10 של תוכנית הטרנספורמציה, דורש `APPROVED - DATABASE`.
+- ✅ **רשומת `home` שוחזרה לברירות המחדל** (title/meta/draft_doc/published_doc) דרך
+  PostgREST עם service-role — שחזור נאמן של `seed?force=1` לעמוד בלבד.
+- ✅ **רשומת ה-theme עודכנה לפלטת V2** ‏(tokens = DEFAULT_THEME) ו-active.
+- ‏`site_settings` **לא נגעו** בכוונה (שימור התאמות הבעלים בפאנל).
 
 ## הערות
 
