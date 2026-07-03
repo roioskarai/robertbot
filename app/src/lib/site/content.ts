@@ -203,5 +203,7 @@ export async function getActiveBanners(): Promise<SiteBanner[]> {
 
 /** Invalidate all cached public content after a publish. */
 export function revalidateSite(): void {
-  revalidateTag(SITE_TAG);
+  // Next 16: revalidateTag requires a cache-life profile; "max" = the old
+  // stale-while-revalidate behavior (entries marked stale, refetched on demand).
+  revalidateTag(SITE_TAG, "max");
 }

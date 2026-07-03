@@ -60,7 +60,6 @@ export default function ThemeStyle({ theme }: { theme: ThemeTokens }) {
   return (
     <>
       {ty.googleFont ? (
-        // eslint-disable-next-line @next/next/no-page-custom-font
         <link
           href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(
             ty.googleFont,

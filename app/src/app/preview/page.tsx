@@ -101,11 +101,6 @@ export default function PreviewPage() {
   const ctx = useRef<{ service?: string; date?: string; time?: string }>({});
 
   useEffect(() => {
-    loadScenario("welcome");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
     bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight });
   }, [messages, typing]);
 
@@ -136,6 +131,11 @@ export default function PreviewPage() {
       }
     }
   }
+
+  useEffect(() => {
+    loadScenario("welcome");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleQr(text: string) {
     add("out", text);

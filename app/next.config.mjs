@@ -1,8 +1,4 @@
 /** @type {import('next').NextConfig} */
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // כותרות אבטחה תקניות לכל הנתיבים. CSP מושאר בכוונה בחוץ (מחמיר מדי לשלב הזה,
 // עלול לשבור סקריפטים/סטיילים של Next.js — נוסיף בנפרד עם בדיקה).
@@ -15,14 +11,12 @@ const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
 ];
 
+// הערה: ה-alias של "@" מוגדר ב-tsconfig.json (paths) — Next פותר אותו נטיבית,
+// גם תחת Turbopack (ברירת המחדל מ-Next 16). אין צורך ב-webpack override.
 const nextConfig = {
   poweredByHeader: false,
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
-  },
-  webpack(config) {
-    config.resolve.alias['@'] = path.join(__dirname, 'src');
-    return config;
   },
 };
 
