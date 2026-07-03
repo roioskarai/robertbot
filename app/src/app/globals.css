@@ -1,61 +1,64 @@
-/* ─────────────────────────────────────
-   Robert — GLOBAL TOKENS + RESET + BASE
-   Canonical app palette (slate + #22c55e green).
-   Pages that need a different shade (e.g. the landing
-   page's #25D366 green) re-declare tokens on their own
-   page-wrapper class inside their CSS module.
-───────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────
+   Robert — GLOBALS: V2 tokens + reset + legacy alias bridge.
+   The V2 token layer (src/styles/tokens.css) is the single
+   source of truth. The bridge below maps the old variable names
+   to V2 tokens so pages that haven't been migrated yet inherit
+   the V2 palette immediately. The bridge is DELETED in wave 10
+   once every page speaks tokens natively.
+───────────────────────────────────────────────────────────── */
+@import "../styles/tokens.css";
+
+/* ---------- LEGACY ALIAS BRIDGE (temporary — remove in wave 10) ---------- */
 :root {
-  --bg:          #f0f6f3;
-  --white:       #ffffff;
-  --sidebar-bg:  #1c1f2e;
-  --sidebar-h:   #252a3d;
-  --sidebar-act: #2d3350;
-  --green:       #22c55e;
-  --green-d:     #16a34a;
-  --green-pale:  #dcfce7;
-  --green-p:     #dcfce7;
-  --green-text:  #15803d;
+  --white:       var(--surface);
+  --sidebar-bg:  var(--sidebar);
+  --sidebar-h:   var(--sidebar-2);
+  --green:       var(--green-500);
+  --green-d:     var(--green-600);
+  --green-pale:  var(--green-100);
+  --green-p:     var(--green-100);
+  --green-text:  var(--green-700);
+  --blue:        var(--info-500);
+  --blue-pale:   var(--info-50);
+  --red:         var(--error-500);
+  --red-pale:    var(--error-50);
+  --amber:       var(--warning-500);
+  --amber-pale:  var(--warning-50);
+  /* purple has no V2 equivalent — kept as-is until its usages are migrated */
   --purple:      #6d28d9;
   --purple-pale: #ede9fe;
   --purple-p:    #ede9fe;
-  --blue:        #2563eb;
-  --blue-pale:   #dbeafe;
-  --red:         #dc2626;
-  --red-pale:    #fee2e2;
-  --amber:       #d97706;
-  --amber-pale:  #fef3c7;
-  --t1:          #0f172a;
-  --t2:          #334155;
-  --t3:          #64748b;
-  --t4:          #94a3b8;
-  --bdr:         #e2e8f0;
-  --bdr2:        #cbd5e1;
-  --shadow-sm:   0 1px 2px rgba(0,0,0,.05);
-  --shadow:      0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.05);
-  --shadow-md:   0 4px 16px rgba(0,0,0,.10);
-  --r:           10px;
-  --r-lg:        14px;
+  --t1:          var(--text);
+  --t2:          var(--text-2);
+  --t3:          var(--text-3);
+  --t4:          var(--text-4);
+  --bdr:         var(--border);
+  --bdr2:        var(--border-2);
+  --shadow:      var(--shadow-md);
+  --r:           var(--radius-md);
+  --r-lg:        var(--radius-lg);
 }
 
+/* ---------- RESET + BASE ---------- */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 html, body { min-height: 100%; }
 
 body {
-  font-family: var(--font-rubik), 'Rubik', sans-serif;
+  font-family: var(--font);
+  font-size: var(--text-md);
+  line-height: 1.6;
   background: var(--bg);
-  color: var(--t1);
+  color: var(--text);
   direction: rtl;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 a { color: inherit; text-decoration: none; }
-
-/* Dark theme: keep the page chrome behind dark-aware pages dark too
-   (prevents a light flash on overscroll). Set by ThemeToggle. */
-html[data-theme="dark"] { --bg: #1e1e1e; }
-html[data-theme="dark"] body { background: #1e1e1e; }
+button { font-family: inherit; cursor: pointer; }
+img, svg { max-width: 100%; }
+:focus-visible { outline: 2px solid var(--green-500); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f172a",
+  themeColor: "#101828",
 };
 
 export default function RootLayout({
@@ -34,11 +34,13 @@ export default function RootLayout({
   return (
     <html lang="he" dir="rtl" className={rubik.variable} suppressHydrationWarning>
       <head>
-        {/* Apply the saved theme before paint to avoid a flash of the wrong mode. */}
+        {/* Apply the saved theme before paint to avoid a flash of the wrong mode.
+            "system" resolves via prefers-color-scheme; no preference = light
+            (dark-by-OS becomes the default only after the wave-10 dark QA pass). */}
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){try{var t=localStorage.getItem('robert-theme');if(t!=='dark'&&t!=='light'){t='light';}document.documentElement.dataset.theme=t;}catch(e){}})();",
+              "(function(){try{var p=localStorage.getItem('robert-theme');var t=p;if(p==='system'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}else if(p!=='dark'&&p!=='light'){t='light';}document.documentElement.dataset.theme=t;}catch(e){}})();",
           }}
         />
       </head>
