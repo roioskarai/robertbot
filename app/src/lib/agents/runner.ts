@@ -20,7 +20,7 @@ import type { AgentMode, AgentName, AgentResult, AgentStatus } from "@/lib/types
 const MODEL =
   process.env.ANTHROPIC_AGENT_MODEL ||
   process.env.ANTHROPIC_MODEL ||
-  "claude-sonnet-4-20250514";
+  "claude-sonnet-5";
 
 export type AdminClient = ReturnType<typeof createAdminClient>;
 

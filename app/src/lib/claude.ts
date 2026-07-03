@@ -1,7 +1,9 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { Bot, WorkingHours, FromType } from "./types";
 
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
+// claude-sonnet-4-20250514 retired 2026-06-15 → replaced per the official
+// migration guide with claude-sonnet-5 (same tier, near-Opus quality).
+const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
 
 const DAY_LABELS_HE: Record<keyof WorkingHours, string> = {
   sun: "ראשון",
