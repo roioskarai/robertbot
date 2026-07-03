@@ -23,3 +23,8 @@ git-push.bat
 .playwright-mcp/
 dash-mobile-overview.png
 registration-form.png
+
+# Playwright (e2e) — local run outputs
+app/e2e/baseline/
+app/test-results/
+app/playwright-report/
