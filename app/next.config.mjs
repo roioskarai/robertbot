@@ -9,6 +9,13 @@ const securityHeaders = [
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
+  // שלב 1 של CSP: דיווח-בלבד (לא חוסם כלום). הפרות נראות ב-DevTools Console.
+  // בגל 8 עוברים לאכיפה מבוססת-nonce דרך proxy.ts אחרי מחזור איסוף.
+  {
+    key: 'Content-Security-Policy-Report-Only',
+    value:
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://connect.facebook.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://graph.facebook.com; frame-src https://www.facebook.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'",
+  },
 ];
 
 // הערה: ה-alias של "@" מוגדר ב-tsconfig.json (paths) — Next פותר אותו נטיבית,
