@@ -9,10 +9,29 @@ const rubik = Rubik({
   display: "swap",
 });
 
+const SITE_DESCRIPTION =
+  "Robert עונה, מסביר וקובע פגישות ללקוחות שלך בוואטסאפ — בשמך, 24/7. הקמה תוך 5 דקות, ללא קוד.";
+
 export const metadata: Metadata = {
-  title: "Robert — הבוט שעובד בשבילך",
-  description:
-    "Robert עונה, מסביר וקובע פגישות ללקוחות שלך בוואטסאפ — בשמך, 24/7. הקמה תוך 5 דקות, ללא קוד.",
+  metadataBase: new URL("https://robertbot.co.il"),
+  title: {
+    default: "Robert — הבוט שעובד בשבילך",
+    template: "%s · Robert",
+  },
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    locale: "he_IL",
+    siteName: "Robert",
+    title: "Robert — בוט וואטסאפ חכם לעסק שלך",
+    description: SITE_DESCRIPTION,
+    url: "/",
+  },
+  twitter: {
+    card: "summary",
+    title: "Robert — בוט וואטסאפ חכם לעסק שלך",
+    description: SITE_DESCRIPTION,
+  },
   // ?v=2 busts cached copies of the old "R" favicon across browsers/CDN.
   icons: {
     icon: [{ url: "/favicon.svg?v=2", type: "image/svg+xml" }],
@@ -20,6 +39,37 @@ export const metadata: Metadata = {
     apple: "/favicon.svg?v=2",
   },
   manifest: "/site.webmanifest",
+};
+
+// Organization + product schema for rich results (Google Israel).
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://robertbot.co.il/#org",
+      name: "Robert",
+      url: "https://robertbot.co.il",
+      logo: "https://robertbot.co.il/favicon.svg",
+      description: SITE_DESCRIPTION,
+    },
+    {
+      "@type": "SoftwareApplication",
+      name: "Robert",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      inLanguage: "he",
+      description: SITE_DESCRIPTION,
+      offers: {
+        "@type": "AggregateOffer",
+        priceCurrency: "ILS",
+        lowPrice: "99",
+        highPrice: "699",
+        offerCount: 4,
+      },
+      provider: { "@id": "https://robertbot.co.il/#org" },
+    },
+  ],
 };
 
 export const viewport: Viewport = {
@@ -44,7 +94,13 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+        />
+      </body>
     </html>
   );
 }

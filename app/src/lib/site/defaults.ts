@@ -18,23 +18,25 @@ import type {
 /** Fixed id used everywhere for "the" site in single-site mode. */
 export const PRIMARY_DOMAIN = "robertbot.co.il";
 
-// ── Default theme (mirrors :root in landing.module.css + globals.css) ──
+// ── Default theme — the V2 palette (mirrors src/styles/tokens.css) ──
+// Premium green (12b76a/039855) + ink-gray scale. WhatsApp green (#25d366)
+// is reserved for "connect WhatsApp" moments only, not the brand accent.
 export const DEFAULT_THEME: ThemeTokens = {
   colors: {
-    bg: "#f0f6f3",
-    bgGrad: "radial-gradient(900px 600px at 50% -6%, #e8faf0, transparent 60%)",
+    bg: "#f7f9f8",
+    bgGrad: "radial-gradient(900px 600px at 50% -6%, #ecfdf3, transparent 60%)",
     white: "#ffffff",
-    green: "#25D366",
-    greenD: "#18a84f",
-    greenPale: "#e8faf0",
+    green: "#12b76a",
+    greenD: "#039855",
+    greenPale: "#d1fadf",
     purple: "#6d28d9",
     purplePale: "#ede9fe",
-    t1: "#111827",
-    t2: "#374151",
-    t3: "#6b7280",
-    t4: "#9ca3af",
-    bdr: "#e5e7eb",
-    bdr2: "#d1d5db",
+    t1: "#101828",
+    t2: "#344054",
+    t3: "#667085",
+    t4: "#98a2b3",
+    bdr: "#eaecf0",
+    bdr2: "#d0d5dd",
   },
   typography: {
     fontFamily: "var(--font-rubik), 'Rubik', sans-serif",
@@ -44,14 +46,14 @@ export const DEFAULT_THEME: ThemeTokens = {
     letterSpacing: 0,
   },
   layout: {
-    radius: 14,
-    radiusLg: 20,
-    shadow: "0 1px 4px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.05)",
-    shadowMd: "0 4px 12px rgba(0,0,0,.08), 0 12px 40px rgba(0,0,0,.08)",
-    containerWidth: 1100,
+    radius: 10,
+    radiusLg: 16,
+    shadow: "0 1px 3px rgba(16,24,40,.10), 0 1px 2px rgba(16,24,40,.06)",
+    shadowMd: "0 4px 8px -2px rgba(16,24,40,.10), 0 2px 4px -2px rgba(16,24,40,.06)",
+    containerWidth: 1160,
     boxed: false,
   },
-  dark: { enabled: true, bg: "#1e1e1e", t1: "#f3f4f6", white: "#2a2a2a" },
+  dark: { enabled: true, bg: "#0b100e", t1: "#f2f4f7", white: "#141a17" },
 };
 
 // ── Home page document (ported from page.tsx) ──
