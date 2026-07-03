@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/auth";
 import { isPlanId, planLabelHe, PLAN_IDS } from "@/lib/plans";
 import { jsonError, unauthorized } from "@/lib/errors";
 import { rateLimit } from "@/lib/rate-limit";
+import { parseBody, downgradeSchema } from "@/lib/schemas";
 import type { PlanId } from "@/lib/plans";
 
 // Numeric rank for each plan (ascending = higher tier).
@@ -21,13 +22,16 @@ export async function POST(req: Request) {
     return jsonError("יותר מדי בקשות בזמן קצר. נסה שוב בעוד דקה.", 429);
   }
 
-  let body: { plan?: string };
+  let raw: unknown;
   try {
-    body = await req.json();
+    raw = await req.json();
   } catch {
     return jsonError("בקשה לא תקינה");
   }
-  if (!body.plan || !isPlanId(body.plan)) return jsonError("מסלול לא חוקי");
+  const input = parseBody(downgradeSchema, raw);
+  if (!input.ok) return jsonError(input.message);
+  const body = input.data;
+  if (!isPlanId(body.plan)) return jsonError("מסלול לא חוקי");
 
   const supabase = await createClient();
 

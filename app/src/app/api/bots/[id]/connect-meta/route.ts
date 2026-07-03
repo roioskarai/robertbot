@@ -5,6 +5,7 @@ import { getSessionUser } from "@/lib/auth";
 import { jsonError, unauthorized } from "@/lib/errors";
 import { enforceActiveBotLimit } from "@/lib/bot-limit";
 import { rateLimit } from "@/lib/rate-limit";
+import { parseBody, connectMetaSchema } from "@/lib/schemas";
 import { encryptSecret } from "@/lib/crypto";
 import { hasMetaCreds } from "@/lib/whatsapp/meta";
 import {
@@ -29,20 +30,15 @@ export async function POST(req: Request, props: Ctx) {
     return jsonError("יותר מדי ניסיונות חיבור. נסה שוב בעוד דקה.", 429);
   }
 
-  let body: {
-    code?: string;
-    wabaId?: string;
-    phoneNumberId?: string;
-    businessId?: string;
-    displayNumber?: string;
-    force?: boolean;
-  };
+  let raw: unknown;
   try {
-    body = await req.json();
+    raw = await req.json();
   } catch {
     return jsonError("בקשה לא תקינה");
   }
-  if (!body.code || !body.wabaId) return jsonError("חסרים פרטי חיבור (code/wabaId)");
+  const parsed = parseBody(connectMetaSchema, raw);
+  if (!parsed.ok) return jsonError(parsed.message);
+  const body = parsed.data;
 
   const supabase = await createClient();
   // Explicit user_id filter = defense-in-depth on top of RLS.

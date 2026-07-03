@@ -5,6 +5,7 @@ import { getPaymentProvider, hasPayment } from "@/lib/payments";
 import { parseProduct } from "@/lib/plans";
 import { jsonError, unauthorized } from "@/lib/errors";
 import { rateLimit } from "@/lib/rate-limit";
+import { parseBody, checkoutSchema } from "@/lib/schemas";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -19,13 +20,16 @@ export async function POST(req: Request) {
 
   if (!hasPayment()) return jsonError("סליקה אינה זמינה כרגע", 503);
 
-  let body: { product?: string };
+  let raw: unknown;
   try {
-    body = await req.json();
+    raw = await req.json();
   } catch {
     return jsonError("בקשה לא תקינה");
   }
-  const parsed = body.product ? parseProduct(body.product) : null;
+  const input = parseBody(checkoutSchema, raw);
+  if (!input.ok) return jsonError(input.message);
+  const product = input.data.product;
+  const parsed = parseProduct(product);
   if (!parsed) return jsonError("מוצר לא חוקי");
 
   // Store access rule: packs are for active subscribers only.
@@ -40,7 +44,7 @@ export async function POST(req: Request) {
     const out = await provider.createCheckout({
       userId: session.authId,
       email: session.email,
-      product: body.product!,
+      product,
       kind: parsed.kind,
       plan: parsed.kind === "plan" ? parsed.plan : undefined,
       cycle: parsed.kind === "plan" ? parsed.cycle : undefined,

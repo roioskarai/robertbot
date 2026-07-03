@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, unauthorized } from "@/lib/errors";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { parseBody, replySchema } from "@/lib/schemas";
 import { getWhatsAppProvider, hasWhatsApp } from "@/lib/whatsapp";
 import type { Bot } from "@/lib/types";
 
@@ -19,15 +20,15 @@ export async function POST(req: Request, props: Ctx) {
     return jsonError("יותר מדי הודעות בזמן קצר. נסה שוב בעוד דקה.", 429);
   }
 
-  let payload: { body?: string };
+  let raw: unknown;
   try {
-    payload = await req.json();
+    raw = await req.json();
   } catch {
     return jsonError("בקשה לא תקינה");
   }
-  const text = (payload.body || "").trim();
-  if (!text) return jsonError("הודעה ריקה");
-  if (text.length > 4000) return jsonError("ההודעה ארוכה מדי");
+  const parsed = parseBody(replySchema, raw);
+  if (!parsed.ok) return jsonError(parsed.message);
+  const text = parsed.data.body;
 
   const supabase = await createClient();
   const { data: conv, error: convErr } = await supabase

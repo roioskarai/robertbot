@@ -6,6 +6,7 @@ import { jsonError, unauthorized } from "@/lib/errors";
 import { hasTwilioCreds, startVerification, checkVerification } from "@/lib/twilio";
 import { isValidPhoneIL } from "@/lib/validation";
 import { rateLimit } from "@/lib/rate-limit";
+import { parseBody, connectSchema } from "@/lib/schemas";
 import { isDemoMode } from "@/lib/env";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -22,14 +23,15 @@ export async function POST(req: Request, props: Ctx) {
     return jsonError("יותר מדי ניסיונות חיבור. נסה שוב בעוד דקה.", 429);
   }
 
-  let body: { number?: string; code?: string };
+  let raw: unknown;
   try {
-    body = await req.json();
+    raw = await req.json();
   } catch {
     return jsonError("בקשה לא תקינה");
   }
-  const { number, code } = body;
-  if (!number) return jsonError("חסר מספר טלפון");
+  const parsed = parseBody(connectSchema, raw);
+  if (!parsed.ok) return jsonError(parsed.message);
+  const { number, code } = parsed.data;
   if (!isValidPhoneIL(number)) return jsonError("מספר הטלפון אינו תקין");
 
   const supabase = await createClient();

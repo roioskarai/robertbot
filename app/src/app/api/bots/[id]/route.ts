@@ -5,6 +5,7 @@ import { buildSystemPrompt } from "@/lib/claude";
 import { jsonError, unauthorized } from "@/lib/errors";
 import { enforceActiveBotLimit } from "@/lib/bot-limit";
 import { rateLimit } from "@/lib/rate-limit";
+import { parseBody, botUpdateSchema } from "@/lib/schemas";
 import type { Bot } from "@/lib/types";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -42,12 +43,15 @@ export async function PUT(req: Request, props: Ctx) {
     return jsonError("יותר מדי בקשות בזמן קצר. נסה שוב בעוד דקה.", 429);
   }
 
-  let body: Partial<Bot>;
+  let raw: unknown;
   try {
-    body = await req.json();
+    raw = await req.json();
   } catch {
     return jsonError("בקשה לא תקינה");
   }
+  const parsed = parseBody(botUpdateSchema, raw);
+  if (!parsed.ok) return jsonError(parsed.message);
+  const body = parsed.data;
 
   const supabase = await createClient();
   const { data: existing, error: fetchErr } = await supabase

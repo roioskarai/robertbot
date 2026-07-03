@@ -4,8 +4,8 @@ import { getSessionUser } from "@/lib/auth";
 import { buildSystemPrompt } from "@/lib/claude";
 import { PLAN_LIMITS } from "@/lib/plans";
 import { jsonError, unauthorized } from "@/lib/errors";
-import { LIMITS } from "@/lib/validation";
 import { rateLimit } from "@/lib/rate-limit";
+import { parseBody, botCreateSchema } from "@/lib/schemas";
 import type { Bot } from "@/lib/types";
 
 // GET /api/bots — list the current user's bots
@@ -37,17 +37,15 @@ export async function POST(req: Request) {
     return jsonError("יותר מדי בקשות בזמן קצר. נסה שוב בעוד דקה.", 429);
   }
 
-  let body: Partial<Bot>;
+  let raw: unknown;
   try {
-    body = await req.json();
+    raw = await req.json();
   } catch {
     return jsonError("בקשה לא תקינה");
   }
-
-  if (!body.name?.trim()) return jsonError("חסר שם עסק");
-  if (body.name.length > LIMITS.name) return jsonError("שם העסק ארוך מדי");
-  if (body.description && body.description.length > LIMITS.description)
-    return jsonError("התיאור ארוך מדי");
+  const parsed = parseBody(botCreateSchema, raw);
+  if (!parsed.ok) return jsonError(parsed.message);
+  const body = parsed.data;
 
   const supabase = await createClient();
 
