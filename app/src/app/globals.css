@@ -13,8 +13,10 @@
   --white:       var(--surface);
   --sidebar-bg:  var(--sidebar);
   --sidebar-h:   var(--sidebar-2);
-  --green:       var(--green-500);
-  --green-d:     var(--green-600);
+  /* Action green deepened to the enterprise tone (green-600/700) — the
+     previous green-500 read as a bright "highlighter". */
+  --green:       var(--green-600);
+  --green-d:     var(--green-700);
   --green-pale:  var(--green-100);
   --green-p:     var(--green-100);
   --green-text:  var(--green-700);
