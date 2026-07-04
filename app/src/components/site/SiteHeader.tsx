@@ -1,6 +1,7 @@
 import styles from "@/app/landing.module.css";
 import { scoped } from "@/lib/cx";
 import ThemeToggle from "@/components/ThemeToggle";
+import HeaderAuth from "@/components/site/HeaderAuth";
 import type { HeaderConfig } from "@/lib/site/types";
 import { SmartLink } from "@/components/sections/shared";
 
@@ -27,20 +28,14 @@ export default function SiteHeader({ header }: { header: HeaderConfig }) {
               <SmartLink href={item.href}>{item.label}</SmartLink>
             </li>
           ))}
-          {header.loginLabel ? (
-            <li>
-              <SmartLink href={header.loginHref ?? "/login"} className={c("nav-login")}>
-                {header.loginLabel}
-              </SmartLink>
-            </li>
-          ) : null}
-          {header.ctaLabel ? (
-            <li>
-              <SmartLink href={header.ctaHref ?? "/onboarding"} className={c("nav-cta")}>
-                {header.ctaLabel}
-              </SmartLink>
-            </li>
-          ) : null}
+          <HeaderAuth
+            loginLabel={header.loginLabel ?? "כניסה"}
+            loginHref={header.loginHref ?? "/login"}
+            ctaLabel={header.ctaLabel ?? "הרשמה חינם"}
+            ctaHref={header.ctaHref ?? "/onboarding"}
+            loginClass={c("nav-login")}
+            ctaClass={c("nav-cta")}
+          />
         </ul>
         <ThemeToggle className={c("nav-theme")} />
       </div>
