@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomInt } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hasResendKey, sendEmail, otpEmail } from "@/lib/resend";
 import { hebAuthError, jsonError } from "@/lib/errors";
@@ -6,7 +7,8 @@ import { isValidEmail, LIMITS } from "@/lib/validation";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 function generateOtp(): string {
-  return String(Math.floor(100000 + Math.random() * 900000));
+  // CSPRNG — OTPs must not be predictable.
+  return String(randomInt(100000, 1000000));
 }
 
 export async function POST(req: Request) {
@@ -31,6 +33,12 @@ export async function POST(req: Request) {
   const { email, password } = body;
   if (!email || !password) return jsonError("חסר אימייל או סיסמה");
   if (!isValidEmail(email)) return jsonError("כתובת מייל לא תקינה");
+
+  // Per-email throttle on top of the per-IP one — this is also the resend
+  // path (resend = re-POST of signup), so it caps OTP emails per address.
+  if (!rateLimit(`signup-email:${email.trim().toLowerCase()}`, 3, 10 * 60_000).allowed) {
+    return jsonError("נשלחו יותר מדי קודים לכתובת זו. נסה שוב בעוד 10 דקות.", 429);
+  }
   if (password.length < 8) return jsonError("הסיסמה חייבת להכיל לפחות 8 תווים");
   if (password.length > LIMITS.password) return jsonError("הסיסמה ארוכה מדי");
 

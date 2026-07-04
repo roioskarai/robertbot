@@ -216,9 +216,8 @@ function OnboardingInner() {
         setScreen("ob");
       } else {
         // Tell the user the truth about whether the code email actually went out.
-        if (d?.emailSent === false) {
-          toast("החשבון נוצר, אך שליחת קוד האימות נכשלה. לחץ 'שלח קוד חדש' בעוד רגע.");
-        } else if (d?.resent) {
+        setEmailFailed(d?.emailSent === false);
+        if (d?.resent && d?.emailSent !== false) {
           toast("קוד אימות חדש נשלח לתיבת הדואר שלך.");
         }
         setScreen("verify");
@@ -232,6 +231,9 @@ function OnboardingInner() {
 
   // #3 — resend OTP: re-call the signup endpoint which regenerates + resends.
   const [resending, setResending] = useState(false);
+  // True when the server reported the OTP email did NOT go out — drives a
+  // blocking error card on the verify screen (not just a transient toast).
+  const [emailFailed, setEmailFailed] = useState(false);
   async function resendVerification() {
     if (resending) return;
     setResending(true);
@@ -242,9 +244,14 @@ function OnboardingInner() {
         body: JSON.stringify({ email: su.email.trim(), password: su.password, first_name: su.first_name.trim(), last_name: su.last_name.trim(), phone: su.phone.trim() }),
       });
       const d = await res.json().catch(() => ({}));
-      if (!res.ok) toast(d.error || "שליחה נכשלה — נסה שוב.");
-      else if (d?.emailSent === false) toast("שליחת המייל נכשלה כרגע. נסה שוב בעוד רגע.");
-      else toast("קוד אימות חדש נשלח לתיבת הדואר שלך.");
+      if (!res.ok) {
+        toast(d.error || "שליחה נכשלה — נסה שוב.");
+      } else if (d?.emailSent === false) {
+        setEmailFailed(true);
+      } else {
+        setEmailFailed(false);
+        toast("קוד אימות חדש נשלח לתיבת הדואר שלך.");
+      }
     } catch {
       toast("שליחה נכשלה — נסה שוב.");
     } finally {
@@ -551,10 +558,31 @@ function OnboardingInner() {
               </div>
             </div>
             <div className={c("signup-title")}>אמת את כתובת המייל</div>
-            <div className={c("signup-sub")}>
-              שלחנו קוד אימות בן 6 ספרות אל <strong>{su.email || "המייל שלך"}</strong>.<br />
-              הזן אותו כאן כדי להמשיך.
-            </div>
+            {emailFailed ? (
+              <div
+                role="alert"
+                style={{
+                  background: "var(--error-50)",
+                  border: "1px solid var(--error-500)",
+                  borderRadius: "var(--radius-md)",
+                  padding: "12px 14px",
+                  fontSize: 13.5,
+                  lineHeight: 1.7,
+                  color: "var(--error-700)",
+                  marginBottom: 14,
+                }}
+              >
+                <strong>שליחת מייל האימות נכשלה.</strong>
+                <br />
+                החשבון שלך נוצר, אבל הקוד לא יצא. לחץ על &quot;שלח קוד חדש&quot; כדי לנסות שוב —
+                ואם זה חוזר, פנה אלינו בתמיכה.
+              </div>
+            ) : (
+              <div className={c("signup-sub")}>
+                שלחנו קוד אימות בן 6 ספרות אל <strong>{su.email || "המייל שלך"}</strong>.<br />
+                הזן אותו כאן כדי להמשיך.
+              </div>
+            )}
 
             {/* OTP code input — styled as big digit display */}
             <div style={{ margin: "20px 0" }}>

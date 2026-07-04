@@ -62,6 +62,15 @@ export function isPlanId(value: string): value is PlanId {
   return value === "basic" || value === "pro" || value === "business" || value === "enterprise";
 }
 
+/**
+ * The ONE fallback for unknown/missing plan values, used by every display
+ * surface. Falling back to different plans in different places produced
+ * contradictory "current plan" labels on the same screen — never again.
+ */
+export function resolvePlanId(value: unknown): PlanId {
+  return typeof value === "string" && isPlanId(value) ? value : "basic";
+}
+
 export function planLabelHe(plan: PlanId): string {
   return HE_LABELS[plan];
 }

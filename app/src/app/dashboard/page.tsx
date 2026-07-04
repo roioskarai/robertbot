@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import PricingPlans from "@/components/PricingPlans";
 import ConnectWhatsApp from "@/components/ConnectWhatsApp";
 import type { Bot } from "@/lib/types";
-import { isPlanId, planLabelHe, PRICING, type PlanId } from "@/lib/plans";
+import { resolvePlanId, planLabelHe, PRICING, PLAN_LIMITS, type PlanId } from "@/lib/plans";
 import { isValidPhoneIL } from "@/lib/validation";
 import type { BillingInfo } from "@/lib/payments/types";
 
@@ -504,7 +504,19 @@ export default function DashboardPage() {
   const weeklyMax = Math.max(...analytics.weekly, 1);
   const monthlyMax = Math.max(...analytics.monthly.map((m) => m.count), 1);
 
-  const currentPlan: PlanId = isPlanId(analytics.plan) ? analytics.plan : "pro";
+  const currentPlan: PlanId = resolvePlanId(analytics.plan);
+
+  // ONE renewal/status label shared by the Billing and Store tabs — these two
+  // used to disagree (the store header was fully hardcoded).
+  function planRenewLabel(): string {
+    if (analytics.subscriptionStatus === "cancelled") return "אין מנוי פעיל";
+    if (analytics.subscriptionStatus === "trial") return "תקופת ניסיון חינם";
+    if (analytics.subscriptionEndsAt) {
+      const date = new Date(analytics.subscriptionEndsAt).toLocaleDateString("he-IL");
+      return `${analytics.cancelAtPeriodEnd ? "מסתיים בתאריך" : "חידוש אוטומטי"} · ${date}`;
+    }
+    return "מנוי פעיל";
+  }
   function selectPlan(id: PlanId) {
     checkout(`${id}_${planAnnual ? "annual" : "monthly"}`);
   }
@@ -585,7 +597,7 @@ export default function DashboardPage() {
             <div className={c("sb-av")}>{(user.name || user.email || "?")[0].toUpperCase()}</div>
             <div>
               <div className={c("sb-uname")}>{user.name || user.email || "המשתמש"}</div>
-              <div className={c("sb-uplan")}>{isPlanId(analytics.plan) ? planLabelHe(analytics.plan) : "בסיסי"} · התנתק</div>
+              <div className={c("sb-uplan")}>{planLabelHe(resolvePlanId(analytics.plan))} · התנתק</div>
             </div>
           </div>
         </div>
@@ -696,7 +708,7 @@ export default function DashboardPage() {
             </div>
             <div className={c("divd")}></div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 13, color: "var(--t3)" }}>{isPlanId(analytics.plan) ? planLabelHe(analytics.plan) : analytics.plan || "בסיסי"}</span>
+              <span style={{ fontSize: 13, color: "var(--t3)" }}>{planLabelHe(resolvePlanId(analytics.plan))}</span>
               <button className={c("btn btn-outline btn-xs")} onClick={() => goPage("billing")}>שדרג</button>
             </div>
           </div>
@@ -1045,14 +1057,10 @@ export default function DashboardPage() {
   }
 
   function renderBilling() {
-    const planId = (isPlanId(analytics.plan) ? analytics.plan : "basic") as PlanId;
+    const planId = resolvePlanId(analytics.plan);
     const cycle: "monthly" | "annual" = analytics.billingCycle === "annual" ? "annual" : "monthly";
     const price = PRICING[planId][cycle];
-    const renewLabel =
-      analytics.subscriptionStatus === "trial" ? "תקופת ניסיון חינם"
-        : analytics.subscriptionEndsAt
-          ? `${analytics.cancelAtPeriodEnd ? "מסתיים בתאריך" : "חידוש אוטומטי"} · ${new Date(analytics.subscriptionEndsAt).toLocaleDateString("he-IL")}`
-          : "מנוי פעיל";
+    const renewLabel = planRenewLabel();
     const cardBrandHe = (b: string) =>
       b === "visa" ? "ויזה" : b === "mastercard" ? "מאסטרקארד" : b === "amex" ? "אמקס" : b;
     const invStatusHe = (s: string) =>
@@ -1161,6 +1169,11 @@ export default function DashboardPage() {
   }
 
   function renderStore() {
+    // Same data source as the Billing tab — the two tabs must never disagree.
+    const planId = resolvePlanId(analytics.plan);
+    const cycle: "monthly" | "annual" = analytics.billingCycle === "annual" ? "annual" : "monthly";
+    const limits = PLAN_LIMITS[planId];
+    const noSubscription = analytics.subscriptionStatus === "cancelled";
     return (
       <div className={pageCls("store")}>
         <div className={c("ph")}><div><div className={c("ph-title")}>מחירון וחנות</div><div className={c("ph-sub")}>מסלולים, Packs ושדרוגים</div></div></div>
@@ -1174,8 +1187,21 @@ export default function DashboardPage() {
             <div style={{ background: "linear-gradient(135deg,#1c1f2e,#2d3350)", borderRadius: "var(--r-lg)", padding: "16px 20px", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
               <div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,.4)", fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>המסלול שלך</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "#fff" }}>מקצועי — ₪199/חודש</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,.4)", marginTop: 2 }}>1,000 הודעות · 2 בוטים · חידוש 1.7.26</div>
+                {noSubscription ? (
+                  <>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: "#fff" }}>אין מנוי פעיל</div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,.4)", marginTop: 2 }}>בחר מסלול כדי להפעיל את הבוט שלך</div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: "#fff" }}>
+                      {planLabelHe(planId)} — ₪{PRICING[planId][cycle]}/חודש
+                    </div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,.4)", marginTop: 2 }}>
+                      {limits.messages.toLocaleString()} הודעות · {limits.bots === 1 ? "בוט אחד" : `${limits.bots} בוטים`} · {planRenewLabel()}
+                    </div>
+                  </>
+                )}
               </div>
               <button className={c("btn btn-outline btn-sm")} style={{ color: "#fff", borderColor: "rgba(255,255,255,.3)" }} onClick={() => setPlanAnnual((v) => !v)}>
                 {planAnnual ? "הצג חיוב חודשי" : "הצג חיוב שנתי (−20%)"}

@@ -11,7 +11,23 @@ function getResend(): Resend {
   return new Resend(process.env.RESEND_API_KEY);
 }
 
-const FROM = process.env.RESEND_FROM || "Robert <onboarding@resend.dev>";
+/**
+ * Sender address, resolved at CALL time (not import time) so env changes and
+ * tests behave predictably. Fail-closed in production: the sandbox fallback
+ * (onboarding@resend.dev) can only deliver to the Resend account owner, which
+ * silently breaks OTP delivery for real users — exactly the bug class we hit.
+ */
+function resolveFrom(): string {
+  const from = process.env.RESEND_FROM;
+  if (from) return from;
+  if (process.env.VERCEL_ENV === "production") {
+    throw new Error(
+      "RESEND_FROM חסר בפרודקשן — כתובת ה-sandbox של Resend אינה שולחת ללקוחות אמיתיים",
+    );
+  }
+  return "Robert <onboarding@resend.dev>"; // dev/demo only
+}
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 /** Shared email shell — inline styles for max email-client compatibility. */
@@ -171,13 +187,14 @@ export function dailyOwnerReportEmail(opts: {
 
 export async function sendEmail(to: string, subject: string, html: string) {
   const resend = getResend();
+  const from = resolveFrom(); // throws in prod when RESEND_FROM is missing
   // The Resend SDK does NOT throw on API errors (e.g. unverified domain) —
   // it returns { data, error }. We surface the error so callers' try/catch
   // works and the failure is visible in logs instead of vanishing silently.
-  const { data, error } = await resend.emails.send({ from: FROM, to, subject, html });
+  const { data, error } = await resend.emails.send({ from, to, subject, html });
   if (error) {
     const msg = typeof error === "string" ? error : (error.message || JSON.stringify(error));
-    console.error("[resend] send failed:", { to, subject, from: FROM, error });
+    console.error("[resend] send failed:", { to, subject, from, error });
     throw new Error(msg);
   }
   return data;
