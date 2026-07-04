@@ -4,7 +4,6 @@
 ───────────────────────────────────── */
 .preview {
   --bg:#f4f5f9; --white:#fff;
-  --green:#22c55e; --green-d:#16a34a; --green-p:#dcfce7;
   --t1:#0f172a; --t2:#334155; --t3:#64748b; --t4:#94a3b8;
   --bdr:#e2e8f0; --bdr2:#cbd5e1;
   --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);

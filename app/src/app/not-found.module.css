@@ -1,7 +1,6 @@
 /* 404 — verbatim from robert-404.html (:root → .nf) */
 .nf {
   --bg:#f4f5f9; --white:#ffffff;
-  --green:#22c55e; --green-d:#16a34a; --green-p:#dcfce7;
   --t1:#0f172a; --t2:#334155; --t3:#64748b; --t4:#94a3b8; --bdr:#e2e8f0;
 
   background:var(--bg); color:var(--t1);

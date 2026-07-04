@@ -3,35 +3,10 @@
    robert-dashboard.html; :root → .dash)
 ───────────────────────────────────── */
 .dash {
-  --bg:          #f4f5f9;
-  --white:       #ffffff;
-  --sidebar-bg:  #1c1f2e;
-  --sidebar-h:   #252a3d;
-  --sidebar-act: #2d3350;
-  --green:       #22c55e;
-  --green-d:     #16a34a;
-  --green-pale:  #dcfce7;
-  --green-text:  #15803d;
-  --purple:      #6d28d9;
-  --purple-pale: #ede9fe;
-  --blue:        #2563eb;
-  --blue-pale:   #dbeafe;
-  --red:         #dc2626;
-  --red-pale:    #fee2e2;
-  --amber:       #d97706;
-  --amber-pale:  #fef3c7;
-  --t1:          #0f172a;
-  --t2:          #334155;
-  --t3:          #64748b;
-  --t4:          #94a3b8;
-  --bdr:         #e2e8f0;
-  --bdr2:        #cbd5e1;
-  --shadow-sm:   0 1px 2px rgba(0,0,0,.05);
-  --shadow:      0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.05);
-  --shadow-md:   0 4px 16px rgba(0,0,0,.10);
-  --r:           10px;
-  --r-lg:        14px;
-  --sw:          232px;
+  /* Palette comes from the global V2 bridge (globals.css) + tokens.css, so
+     the dashboard follows the V2 light/dark themes automatically. Only the
+     dashboard-specific layout var stays local. */
+  --sw: 232px;
 
   background:var(--bg); color:var(--t1); min-height:100vh;
 }
@@ -60,7 +35,7 @@
 }
 .sb-logo-mark {
   width:28px; height:28px; border-radius:7px;
-  background:linear-gradient(135deg,#22c55e,#16a34a);
+  background:linear-gradient(135deg,var(--green),var(--green-d));
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
 .sb-logo-mark svg { width:16px; height:16px; }
@@ -196,7 +171,7 @@
 .hamburger-btn { width:34px; height:34px; border-radius:8px; border:1px solid var(--bdr); background:var(--white); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--t2); transition:all .15s; flex-shrink:0; }
 .hamburger-btn:hover { background:var(--bg); border-color:var(--bdr2); }
 .tb-logo { display:flex; align-items:center; gap:7px; }
-.tb-logo-mark { width:24px; height:24px; border-radius:6px; background:linear-gradient(135deg,#22c55e,#16a34a); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.tb-logo-mark { width:24px; height:24px; border-radius:6px; background:linear-gradient(135deg,var(--green),var(--green-d)); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .tb-logo-mark svg { width:13px; height:13px; }
 .tb-logo-name { font-size:16px; font-weight:800; color:var(--t1); letter-spacing:-.3px; }
 .tb-logo-name em { font-style:normal; color:var(--green-d); }
@@ -221,7 +196,7 @@
 .tog { position:relative; width:36px; height:20px; flex-shrink:0; }
 .tog input { opacity:0; width:0; height:0; }
 .tog-sl { position:absolute; inset:0; border-radius:100px; background:var(--bdr2); cursor:pointer; transition:background .2s; }
-.tog-sl::before { content:''; position:absolute; width:14px; height:14px; border-radius:50%; background:#fff; top:3px; right:3px; transition:transform .2s; box-shadow:0 1px 2px rgba(0,0,0,.15); }
+.tog-sl::before { content:''; position:absolute; width:14px; height:14px; border-radius:50%; background:var(--surface); top:3px; right:3px; transition:transform .2s; box-shadow:0 1px 2px rgba(0,0,0,.15); }
 .tog input:checked + .tog-sl { background:var(--green); }
 .tog input:checked + .tog-sl::before { transform:translateX(-16px); }
 
@@ -350,10 +325,10 @@
 
 .chat-wrap { background:var(--white); border:1px solid var(--bdr); border-radius:var(--r-lg); display:flex; flex-direction:column; overflow:hidden; box-shadow:var(--shadow); }
 .chat-hdr { padding:12px 18px; border-bottom:1px solid var(--bdr); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
-.chat-msgs { flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:8px; background:#f8f9fc; }
+.chat-msgs { flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:8px; background:var(--surface-2); }
 .bubble { max-width:72%; padding:9px 12px; border-radius:11px; font-size:13px; line-height:1.55; }
-.bin { background:#fff; color:var(--t1); align-self:flex-start; border-bottom-right-radius:2px; box-shadow:0 1px 2px rgba(0,0,0,.06); }
-.bout { background:#dcf8c6; color:var(--t1); align-self:flex-end; border-bottom-left-radius:2px; }
+.bin { background:var(--surface); color:var(--t1); align-self:flex-start; border-bottom-right-radius:2px; box-shadow:0 1px 2px rgba(0,0,0,.06); }
+.bout { background:var(--green-100); color:var(--t1); align-self:flex-end; border-bottom-left-radius:2px; }
 .bagent { background:var(--purple-pale); color:#4c1d95; align-self:flex-end; border-bottom-left-radius:2px; font-style:italic; }
 .bt { font-size:10px; color:var(--t4); margin-top:3px; }
 .chat-input { padding:11px 14px; border-top:1px solid var(--bdr); display:flex; gap:9px; align-items:center; flex-shrink:0; }

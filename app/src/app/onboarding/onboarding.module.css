@@ -3,24 +3,8 @@
    robert-onboarding.html; :root → .ob)
 ───────────────────────────────────── */
 .ob {
-  --bg:       #f4f5f9;
-  --white:    #ffffff;
-  --green:    #22c55e;
-  --green-d:  #16a34a;
-  --green-p:  #dcfce7;
-  --purple:   #6d28d9;
-  --purple-p: #ede9fe;
-  --t1:       #0f172a;
-  --t2:       #334155;
-  --t3:       #64748b;
-  --t4:       #94a3b8;
-  --bdr:      #e2e8f0;
-  --bdr2:     #cbd5e1;
-  --shadow:   0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.05);
-  --shadow-md:0 4px 20px rgba(0,0,0,.10);
-  --r:        10px;
-  --r-lg:     16px;
-
+  /* Palette comes from the global V2 bridge + tokens.css — follows the V2
+     light/dark themes automatically. No local color redeclarations. */
   background:var(--bg); color:var(--t1); min-height:100vh;
 }
 
@@ -44,7 +28,7 @@
 .signup-logo { display:flex; align-items:center; gap:9px; margin-bottom:28px; }
 .signup-logo-mark {
   width:32px; height:32px; border-radius:8px;
-  background:linear-gradient(135deg,#22c55e,#16a34a);
+  background:linear-gradient(135deg,var(--green),var(--green-d));
   display:flex; align-items:center; justify-content:center;
 }
 .signup-logo-mark svg { width:17px; height:17px; }
@@ -92,7 +76,7 @@
 .ob-logo { display:flex; align-items:center; gap:8px; }
 .ob-logo-mark {
   width:26px; height:26px; border-radius:7px;
-  background:linear-gradient(135deg,#22c55e,#16a34a);
+  background:linear-gradient(135deg,var(--green),var(--green-d));
   display:flex; align-items:center; justify-content:center;
 }
 .ob-logo-mark svg { width:14px; height:14px; }
@@ -229,8 +213,8 @@
 .style-card-badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:100px; margin-bottom:7px; }
 .sb-g { background:var(--green-p); color:var(--green-d); }
 .sb-p { background:var(--purple-p); color:var(--purple); }
-.sb-b { background:#dbeafe; color:#1d4ed8; }
-.sb-y { background:#fef3c7; color:#b45309; }
+.sb-b { background:var(--info-50); color:var(--info-700); }
+.sb-y { background:var(--warning-50); color:var(--warning-700); }
 
 /* connect */
 .connect-steps-list { display:flex; flex-direction:column; gap:10px; margin:16px 0; }

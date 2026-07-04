@@ -9,6 +9,7 @@ import { useToast } from "@/components/Toast";
 import { createClient } from "@/lib/supabase/client";
 import PricingPlans from "@/components/PricingPlans";
 import ConnectWhatsApp from "@/components/ConnectWhatsApp";
+import ThemeToggle from "@/components/ThemeToggle";
 import type { Bot } from "@/lib/types";
 import { resolvePlanId, planLabelHe, PRICING, PLAN_LIMITS, type PlanId } from "@/lib/plans";
 import { isValidPhoneIL } from "@/lib/validation";
@@ -618,6 +619,7 @@ export default function DashboardPage() {
           </div>
           <div className={c("tb-right")}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <ThemeToggle />
               <div className={c("tb-notif")} onClick={() => toast("אין התראות חדשות")}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
                 <div className={c("tb-notif-dot")}></div>
@@ -1214,7 +1216,7 @@ export default function DashboardPage() {
 
         {storeTab === "packs" && (
           <div>
-            <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: "var(--r)", padding: "12px 14px", marginBottom: 16, fontSize: 13, color: "#92400e", lineHeight: 1.7 }}>
+            <div style={{ background: "var(--warning-50)", border: "1px solid var(--warning-500)", borderRadius: "var(--r)", padding: "12px 14px", marginBottom: 16, fontSize: 13, color: "var(--warning-700)", lineHeight: 1.7 }}>
               <strong>כיצד Pack עובד:</strong> מכסת המנוי <strong>מנוצלת קודם</strong> בכל חודש. רק לאחר שנגמרה — הבוט צורך מה-Pack. ה-Pack <strong>לא פוקע</strong> ועובר לחודש הבא.
             </div>
             {!hasActiveSubscription && (

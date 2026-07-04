@@ -1,33 +1,19 @@
 /* Shared 4-tier pricing plans — from robert-pricing.html.
    Tokens scoped to .plansRoot so it can embed anywhere. */
 .plansRoot {
-  --ink:       #0a0f1e;
-  --ink2:      #1e2740;
-  --muted:     #64748b;
-  --faint:     #94a3b8;
-  --border:    #e2e8f0;
-  --surface:   #ffffff;
-  --green:     #16a34a;
-  --green-l:   #22c55e;
-  --green-pale:#dcfce7;
+  /* Sourced from the V2 tokens (globals bridge + tokens.css) so the plan grid
+     follows light/dark automatically — in the landing AND the dashboard.
+     --border / --surface inherit directly from tokens.css. */
+  --ink:       var(--text);
+  --ink2:      var(--text-2);
+  --muted:     var(--text-3);
+  --faint:     var(--text-4);
+  --green:     var(--green-600);
+  --green-l:   var(--green-500);
+  --green-pale:var(--green-100);
   --r:         14px;
   --r-xl:      20px;
 }
-
-/* Dark mode — only inside a marketing surface (landing page) so the same
-   component stays light inside the dashboard. Tokens cascade from the page. */
-:global(html[data-theme="dark"] [data-marketing]) .plansRoot {
-  --ink:       #f1f5f9;
-  --ink2:      #cbd5e1;
-  --muted:     #94a3b8;
-  --faint:     #8595ad;
-  --border:    #2a3550;
-  --surface:   #141c2e;
-  --green:     #25c264;
-  --green-l:   #34d77e;
-  --green-pale:#10261a;
-}
-:global(html[data-theme="dark"] [data-marketing]) .chip-blue { background:#16243f; color:#7cb0ff; }
 
 .plans { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:16px; }
 
@@ -120,7 +106,7 @@
 .stat-chips { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:14px; }
 .chip { font-size:11px; font-weight:700; padding:3px 9px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; }
 .chip-green { background:var(--green-pale); color:var(--green); }
-.chip-blue { background:#dbeafe; color:#1d4ed8; }
+.chip-blue { background:var(--info-50); color:var(--info-700); }
 .chip-purple { background:rgba(196,132,252,.15); color:#c084fc; }
 .plan.agency .stat-chips .chip { background:rgba(255,255,255,.1); color:rgba(255,255,255,.8); }
 

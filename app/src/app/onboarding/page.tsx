@@ -6,6 +6,7 @@ import styles from "./onboarding.module.css";
 import { scoped } from "@/lib/cx";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/Toast";
+import ThemeToggle from "@/components/ThemeToggle";
 import {
   MAIN_CATEGORIES,
   SUB_CATS,
@@ -603,11 +604,11 @@ function OnboardingInner() {
                   letterSpacing: 14,
                   textAlign: "center",
                   fontFamily: "'Courier New', monospace",
-                  border: "2px solid #e2e8f0",
+                  border: "2px solid var(--bdr2)",
                   borderRadius: 14,
                   padding: "18px 12px",
-                  background: "#f8fafc",
-                  color: "#0f172a",
+                  background: "var(--surface-2)",
+                  color: "var(--t1)",
                   outline: "none",
                   direction: "ltr",
                 }}
@@ -651,7 +652,10 @@ function OnboardingInner() {
               Robert<span>.</span>
             </div>
           </div>
-          <div className={c("ob-step-label")}>שלב {curStep} מתוך {totalSteps}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div className={c("ob-step-label")}>שלב {curStep} מתוך {totalSteps}</div>
+            <ThemeToggle />
+          </div>
         </div>
 
         <div className={c("ob-progress")}>
