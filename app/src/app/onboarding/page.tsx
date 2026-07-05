@@ -1115,7 +1115,7 @@ function OnboardingInner() {
               ].map(([title, sub], i) => (
                 <div className={c("cstep")} key={i}>
                   <div className={c("cstep-num")}>{i + 1}</div>
-                  <div>
+                  <div className={c("cstep-body")}>
                     <div className={c("cstep-title")}>{title}</div>
                     <div className={c("cstep-sub")}>{sub}</div>
                   </div>
