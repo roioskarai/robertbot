@@ -280,8 +280,8 @@ export default function TemplatesPage() {
       <div className={c("topnav")}>
         <h1>תבניות שיחה — Robert</h1>
         <p>3 גרסאות לכל קטגוריה · הבוט מוביל, הלקוח בוחר</p>
-        <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, padding: "10px 14px", marginTop: 8, fontSize: 12.5, color: "#15803d", lineHeight: 1.6 }}>
-          💡 <strong>שם הבוט:</strong> במקום &quot;Robert&quot; יופיע השם שבחרת בהגדרות — <code style={{ background: "#dcfce7", padding: "1px 5px", borderRadius: 4 }}>{"{{שם_בוט}}"}</code>. כל לקוח שלך בוחר שם אחר לבוט שלו.
+        <div style={{ background: "var(--green-50)", border: "1px solid var(--green-200)", borderRadius: 10, padding: "10px 14px", marginTop: 8, fontSize: 12.5, color: "var(--green-text)", lineHeight: 1.6 }}>
+          💡 <strong>שם הבוט:</strong> במקום &quot;Robert&quot; יופיע השם שבחרת בהגדרות — <code style={{ background: "var(--green-p)", padding: "1px 5px", borderRadius: 4 }}>{"{{שם_בוט}}"}</code>. כל לקוח שלך בוחר שם אחר לבוט שלו.
         </div>
       </div>
 

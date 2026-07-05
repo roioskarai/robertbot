@@ -36,13 +36,13 @@ function shell(tagline: string, bodyHtml: string): string {
 <body style="margin:0;padding:24px 16px;background:#f0f2f8;font-family:'Rubik',Arial,sans-serif;direction:rtl;">
   <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.09);border:1px solid #e2e8f0;">
     <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:28px 32px 24px;text-align:center;">
-      <div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:-.3px;">Robert<span style="color:#22c55e;">.</span></div>
+      <div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:-.3px;">Robert<span style="color:#039855;">.</span></div>
       <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px;">${tagline}</div>
     </div>
     <div style="padding:32px;">${bodyHtml}</div>
     <div style="background:#f8fafc;padding:20px 32px;border-top:1px solid #e2e8f0;text-align:center;">
       <p style="font-size:11.5px;color:#94a3b8;line-height:1.8;margin:0;">
-        Robert · <a href="mailto:support@robertbot.co.il" style="color:#22c55e;text-decoration:none;font-weight:600;">support@robertbot.co.il</a>
+        Robert · <a href="mailto:support@robertbot.co.il" style="color:#039855;text-decoration:none;font-weight:600;">support@robertbot.co.il</a>
       </p>
     </div>
   </div>
@@ -50,7 +50,7 @@ function shell(tagline: string, bodyHtml: string): string {
 }
 
 const btn = (href: string, label: string) =>
-  `<div style="text-align:center;margin:24px 0;"><a href="${href}" style="display:inline-block;padding:14px 36px;border-radius:10px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:15px;font-weight:700;text-decoration:none;">${label}</a></div>`;
+  `<div style="text-align:center;margin:24px 0;"><a href="${href}" style="display:inline-block;padding:14px 36px;border-radius:10px;background:linear-gradient(135deg,#039855,#027a48);color:#fff;font-size:15px;font-weight:700;text-decoration:none;">${label}</a></div>`;
 
 const hi = (t: string) =>
   `<div style="font-size:22px;font-weight:800;color:#0f172a;margin-bottom:10px;">${t}</div>`;
@@ -59,10 +59,10 @@ const text = (t: string) =>
   `<div style="font-size:14.5px;color:#475569;line-height:1.75;margin-bottom:20px;">${t}</div>`;
 
 const infoRow = (k: string, v: string) =>
-  `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #dcfce7;"><span style="font-size:13px;color:#64748b;">${k}</span><span style="font-size:13px;font-weight:700;color:#0f172a;">${v}</span></div>`;
+  `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #d1fadf;"><span style="font-size:13px;color:#64748b;">${k}</span><span style="font-size:13px;font-weight:700;color:#0f172a;">${v}</span></div>`;
 
 const infoBox = (rows: string) =>
-  `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 16px;margin:16px 0;">${rows}</div>`;
+  `<div style="background:#ecfdf3;border:1px solid #a6f4c5;border-radius:10px;padding:14px 16px;margin:16px 0;">${rows}</div>`;
 
 // ── Templates ─────────────────────────────────────────────
 

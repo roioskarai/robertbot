@@ -5,6 +5,7 @@ import Link from "next/link";
 import styles from "./pricing.module.css";
 import { scoped } from "@/lib/cx";
 import PricingPlans from "@/components/PricingPlans";
+import HeaderAuth from "@/components/site/HeaderAuth";
 
 const c = scoped(styles);
 
@@ -50,8 +51,15 @@ export default function PricingPage() {
             <div className={c("logo-name")}>Robert<em>.</em></div>
           </Link>
           <div className={c("nav-btns")}>
-            <Link href="/login" className={c("btn-nav-login")}>כניסה</Link>
-            <Link href="/onboarding" className={c("btn-nav-signup")}>הרשמה חינם</Link>
+            <HeaderAuth
+              as="div"
+              loginLabel="כניסה"
+              loginHref="/login"
+              ctaLabel="הרשמה חינם"
+              ctaHref="/onboarding"
+              loginClass={c("btn-nav-login")}
+              ctaClass={c("btn-nav-signup")}
+            />
           </div>
         </div>
       </nav>

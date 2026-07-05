@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────
    LOGIN — page-scoped tokens + styles
-   Matches Robert brand (green #25D366). Dark-mode aware
+   Matches Robert brand green (#039855). Dark-mode aware
    via html[data-theme="dark"] (set by ThemeToggle).
 ───────────────────────────────────── */
 .login {
@@ -19,7 +19,7 @@
 
   min-height: 100vh;
   background:
-    radial-gradient(900px 500px at 85% -10%, rgba(37,211,102,.10), transparent 60%),
+    radial-gradient(900px 500px at 85% -10%, rgba(3,152,85,.10), transparent 60%),
     radial-gradient(700px 500px at 0% 110%, rgba(109,40,217,.07), transparent 55%),
     var(--bg);
   color: var(--t1);
@@ -75,7 +75,7 @@
   width: 36px; height: 36px; border-radius: 10px;
   background: linear-gradient(135deg, var(--green), var(--green-d));
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 3px 10px rgba(37,211,102,.4);
+  box-shadow: 0 3px 10px rgba(3,152,85,.4);
 }
 .lg-logo-mark svg { width: 21px; height: 21px; }
 .lg-logo-name { font-size: 22px; font-weight: 900; letter-spacing: -.5px; color: var(--t1); }
@@ -102,7 +102,7 @@
   outline: none;
   border-color: var(--green);
   background: var(--white);
-  box-shadow: 0 0 0 3px rgba(37,211,102,.15);
+  box-shadow: 0 0 0 3px rgba(3,152,85,.15);
 }
 
 .fi-pw { position: relative; }
@@ -133,10 +133,10 @@
 .btn:disabled { opacity: .65; cursor: default; }
 .btn-primary {
   background: var(--green); color: #fff;
-  box-shadow: 0 3px 14px rgba(37,211,102,.35);
+  box-shadow: 0 3px 14px rgba(3,152,85,.35);
   margin-top: 6px;
 }
-.btn-primary:hover:not(:disabled) { background: var(--green-d); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,211,102,.4); }
+.btn-primary:hover:not(:disabled) { background: var(--green-d); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(3,152,85,.4); }
 .btn-outline {
   background: var(--white); color: var(--t1);
   border: 1.5px solid var(--bdr2);

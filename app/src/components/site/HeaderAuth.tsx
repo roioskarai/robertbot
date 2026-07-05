@@ -20,6 +20,7 @@ export default function HeaderAuth({
   ctaHref,
   loginClass,
   ctaClass,
+  as = "li",
 }: {
   loginLabel: string;
   loginHref: string;
@@ -27,7 +28,10 @@ export default function HeaderAuth({
   ctaHref: string;
   loginClass: string;
   ctaClass: string;
+  /** Wrapper element for each item — "li" for <ul> navs (default), "div" for flex-div navs. */
+  as?: "li" | "div";
 }) {
+  const Item = as;
   const [state, setState] = useState<"unknown" | "out" | "in">("unknown");
 
   useEffect(() => {
@@ -72,16 +76,16 @@ export default function HeaderAuth({
   if (state === "in") {
     return (
       <>
-        <li>
+        <Item>
           <button type="button" onClick={logout} className={loginClass}>
             התנתק
           </button>
-        </li>
-        <li>
+        </Item>
+        <Item>
           <Link href="/dashboard" className={ctaClass}>
             האזור האישי
           </Link>
-        </li>
+        </Item>
       </>
     );
   }
@@ -90,16 +94,16 @@ export default function HeaderAuth({
   const hidden = state === "unknown" ? { visibility: "hidden" as const } : undefined;
   return (
     <>
-      <li style={hidden}>
+      <Item style={hidden}>
         <Link href={loginHref} className={loginClass}>
           {loginLabel}
         </Link>
-      </li>
-      <li style={hidden}>
+      </Item>
+      <Item style={hidden}>
         <Link href={ctaHref} className={ctaClass}>
           {ctaLabel}
         </Link>
-      </li>
+      </Item>
     </>
   );
 }

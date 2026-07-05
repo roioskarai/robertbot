@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Search, RefreshCw, ShieldOff, ShieldCheck, Filter } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
+import { PLAN_IDS, planLabelHe, resolvePlanId } from "@/lib/plans";
 
 interface User {
   id: string; email: string; full_name: string | null;
@@ -12,8 +13,6 @@ interface User {
   bots: { total: number; active: number };
 }
 
-const PLANS = ["basic","pro","business","enterprise"];
-const PLAN_HE: Record<string,string> = { basic:"בסיסי", pro:"מקצועי", business:"עסקים", enterprise:"ארגוני" };
 const STATUS_HE: Record<string,string> = { trial:"ניסיון", active:"פעיל", cancelled:"בוטל", paused:"מושהה" };
 
 
@@ -143,8 +142,8 @@ export default function AdminUsers() {
                       className={`${styles.input} ${styles.inputSm} ${styles.select}`}
                       style={{ width: "auto", minWidth: 110 }}
                       value={u.plan}
-                      onChange={e => patch(u.id, { plan: e.target.value }, `מסלול עודכן ל-${PLAN_HE[e.target.value]}`)}>
-                      {PLANS.map(p => <option key={p} value={p}>{PLAN_HE[p]}</option>)}
+                      onChange={e => patch(u.id, { plan: e.target.value }, `מסלול עודכן ל-${planLabelHe(resolvePlanId(e.target.value))}`)}>
+                      {PLAN_IDS.map(p => <option key={p} value={p}>{planLabelHe(p)}</option>)}
                     </select>
                   </td>
                   <td>

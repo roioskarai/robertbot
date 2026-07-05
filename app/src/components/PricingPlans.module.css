@@ -27,13 +27,13 @@
 
 .plan.popular {
   border-color:var(--green);
-  box-shadow:0 0 0 1px var(--green), 0 8px 24px rgba(34,197,94,.12);
+  box-shadow:0 0 0 1px var(--green), 0 8px 24px rgba(3,152,85,.12);
 }
 .pop-badge {
   position:absolute; top:-13px; left:50%; transform:translateX(-50%);
   background:var(--green); color:#fff; font-size:11px; font-weight:800;
   padding:3px 14px; border-radius:100px; white-space:nowrap;
-  box-shadow:0 2px 8px rgba(34,197,94,.4);
+  box-shadow:0 2px 8px rgba(3,152,85,.4);
 }
 
 .plan.agency {
@@ -44,7 +44,7 @@
 .plan.agency .plan-price { color:#fff; }
 .plan.agency .plan-period { color:rgba(255,255,255,.4); }
 .plan.agency .feat-item { color:rgba(255,255,255,.82); }
-.plan.agency .feat-icon { color:#22c55e; }
+.plan.agency .feat-icon { color:var(--green); }
 .plan.agency .divider { background:rgba(255,255,255,.08); }
 
 .plan-label {
@@ -96,8 +96,8 @@
 }
 .cta-outline { background:transparent; border:1.5px solid var(--border); color:var(--ink2); }
 .cta-outline:hover { border-color:var(--ink); color:var(--ink); }
-.cta-green { background:var(--green); color:#fff; box-shadow:0 2px 12px rgba(34,197,94,.3); }
-.cta-green:hover { background:#15803d; transform:translateY(-1px); box-shadow:0 4px 16px rgba(34,197,94,.4); }
+.cta-green { background:var(--green); color:#fff; box-shadow:0 2px 12px rgba(3,152,85,.3); }
+.cta-green:hover { background:var(--green-d); transform:translateY(-1px); box-shadow:0 4px 16px rgba(2,122,72,.4); }
 .cta-purple {
   background:rgba(255,255,255,.12); color:#fff; border:1.5px solid rgba(255,255,255,.2);
 }

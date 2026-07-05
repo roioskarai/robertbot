@@ -63,7 +63,7 @@ export default function AnalyticsPage() {
               <XAxis dataKey="date" stroke="#8b93a7" fontSize={11} reversed />
               <YAxis stroke="#8b93a7" fontSize={11} />
               <Tooltip contentStyle={{ background: "#161922", border: "1px solid #232733", borderRadius: 8, color: "#f2f4f8" }} />
-              <Line type="monotone" dataKey="pageviews" name="צפיות" stroke="#22c55e" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="pageviews" name="צפיות" stroke="#039855" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="conversions" name="המרות" stroke="#60a5fa" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
@@ -82,7 +82,7 @@ export default function AnalyticsPage() {
                   <XAxis type="number" stroke="#8b93a7" fontSize={11} />
                   <YAxis type="category" dataKey="path" stroke="#8b93a7" fontSize={11} width={90} />
                   <Tooltip contentStyle={{ background: "#161922", border: "1px solid #232733", borderRadius: 8, color: "#f2f4f8" }} />
-                  <Bar dataKey="count" name="צפיות" fill="#22c55e" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="count" name="צפיות" fill="#039855" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

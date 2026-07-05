@@ -813,7 +813,7 @@ export default function DashboardPage() {
                     <div className={c("fg")}>
                       <label className={c("fl")}>תצוגה מקדימה</label>
                       <div style={{ background: "#075e54", borderRadius: 10, padding: "9px 12px", display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
-                        <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,#22c55e,#16a34a)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{(editBot.bot_name || "ב").charAt(0)}</div>
+                        <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,var(--green),var(--green-d))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{(editBot.bot_name || "ב").charAt(0)}</div>
                         <div style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>{editBot.bot_name || "הבוט"}</div>
                       </div>
                     </div>
@@ -1201,7 +1201,7 @@ export default function DashboardPage() {
               <p style={{ fontSize: 13, color: "var(--t3)", marginBottom: 14, lineHeight: 1.6 }}>נגמרו ההודעות שלך? קנה Pack — לא פוקע, עובר מחודש לחודש. המנוי מתנצל קודם, ה-Pack רק אחריו.</p>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 10, marginBottom: 14 }}>
                 {[["Starter", "200 הודעות", "₪19", "pack_starter", false], ["Regular", "500 הודעות", "₪39", "pack_regular", true], ["Large", "1,000 הודעות", "₪69", "pack_large", false], ["XL", "3,000 הודעות", "₪179", "pack_xl", false]].map((p, i) => (
-                  <div key={i} style={{ background: p[4] ? "#f0fdf4" : "var(--bg)", border: p[4] ? "1.5px solid var(--green)" : "1px solid var(--bdr)", borderRadius: 10, padding: 12, textAlign: "center", position: "relative" }}>
+                  <div key={i} style={{ background: p[4] ? "var(--green-50)" : "var(--bg)", border: p[4] ? "1.5px solid var(--green)" : "1px solid var(--bdr)", borderRadius: 10, padding: 12, textAlign: "center", position: "relative" }}>
                     {p[4] === true && <div style={{ position: "absolute", top: -9, left: "50%", transform: "translateX(-50%)", background: "var(--green)", color: "#fff", fontSize: 10, fontWeight: 800, padding: "2px 10px", borderRadius: 100, whiteSpace: "nowrap" }}>הכי נמכר</div>}
                     <div style={{ fontSize: 11, fontWeight: 700, color: "var(--t4)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>{p[0]}</div>
                     <div style={{ fontSize: 15, fontWeight: 800, color: "var(--t1)" }}>{p[1]}</div>
@@ -1295,7 +1295,7 @@ export default function DashboardPage() {
             )}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12 }}>
               {[["Starter", "200 הודעות", "₪19", "₪0.095 להודעה", "pack_starter", false], ["Regular", "500 הודעות", "₪39", "₪0.078 להודעה", "pack_regular", true], ["Large", "1,000 הודעות", "₪69", "₪0.069 להודעה", "pack_large", false], ["XL", "3,000 הודעות", "₪179", "₪0.060 להודעה", "pack_xl", false]].map((p, i) => (
-                <div key={i} style={{ background: p[5] ? "#f0fdf4" : "var(--bg)", border: p[5] ? "2px solid var(--green)" : "1px solid var(--bdr)", borderRadius: "var(--r-lg)", padding: 16, textAlign: "center", position: "relative" }}>
+                <div key={i} style={{ background: p[5] ? "var(--green-50)" : "var(--bg)", border: p[5] ? "2px solid var(--green)" : "1px solid var(--bdr)", borderRadius: "var(--r-lg)", padding: 16, textAlign: "center", position: "relative" }}>
                   {p[5] === true && <div style={{ position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)", background: "var(--green)", color: "#fff", fontSize: 10, fontWeight: 800, padding: "2px 10px", borderRadius: 100, whiteSpace: "nowrap" }}>הכי נמכר</div>}
                   <div style={{ fontSize: 10, fontWeight: 700, color: "var(--t4)", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6 }}>{p[0]}</div>
                   <div style={{ fontSize: 17, fontWeight: 800, color: "var(--t1)", marginBottom: 3 }}>{p[1]}</div>

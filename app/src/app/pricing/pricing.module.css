@@ -32,7 +32,7 @@
 /* HERO */
 .hero { text-align:center; padding:72px 0 48px; animation:fadeUp .6s ease both; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-.hero-badge { display:inline-flex; align-items:center; gap:6px; background:var(--green-pale); color:var(--green); border:1px solid #bbf7d0; font-size:12px; font-weight:700; padding:5px 14px; border-radius:100px; margin-bottom:20px; letter-spacing:.3px; }
+.hero-badge { display:inline-flex; align-items:center; gap:6px; background:var(--green-pale); color:var(--green); border:1px solid var(--green-200); font-size:12px; font-weight:700; padding:5px 14px; border-radius:100px; margin-bottom:20px; letter-spacing:.3px; }
 .hero-badge-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
 .hero h1 { font-size:clamp(32px,5vw,52px); font-weight:900; letter-spacing:-2px; color:var(--ink); line-height:1.1; margin-bottom:16px; }
@@ -66,7 +66,7 @@
 .td-dark { background:var(--bg) !important; color:var(--ink2) !important; font-weight:600; }
 .td-purple { background:linear-gradient(180deg,#1a2035,#1e1a30) !important; color:rgba(255,255,255,.82) !important; }
 .check { color:var(--green); font-size:16px; }
-.check-purple { color:#22c55e; font-size:16px; }
+.check-purple { color:var(--green); font-size:16px; }
 .cross { color:#cbd5e1; font-size:14px; }
 .cross-dark { color:rgba(255,255,255,.2); font-size:14px; }
 .row-label { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--faint); padding:10px 16px 4px !important; text-align:right !important; }

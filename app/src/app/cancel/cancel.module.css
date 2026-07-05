@@ -15,7 +15,7 @@
 
 .nav{position:fixed;top:0;inset-inline:0;height:54px;background:var(--white);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:10;}
 .nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
-.nlm{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;}
+.nlm{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,var(--green),var(--green-d));display:flex;align-items:center;justify-content:center;}
 .nlm svg{width:13px;height:13px;}
 .nln{font-size:15px;font-weight:800;color:var(--t1);}
 .nln em{font-style:normal;color:var(--green-d);}
@@ -47,7 +47,7 @@
 .reason.sel .reason-radio::after{content:'';width:7px;height:7px;border-radius:50%;background:#fff;}
 .reason-text{font-size:13.5px;font-weight:500;color:var(--t2);}
 
-.offer-card{background:linear-gradient(135deg,var(--green-p),#f0fdf4);border:1.5px solid #86efac;border-radius:14px;padding:18px 16px;margin-bottom:16px;}
+.offer-card{background:linear-gradient(135deg,var(--green-p),var(--green-50));border:1.5px solid var(--green-300);border-radius:14px;padding:18px 16px;margin-bottom:16px;}
 .offer-badge{display:inline-block;font-size:11px;font-weight:700;background:var(--green-d);color:#fff;padding:3px 10px;border-radius:100px;margin-bottom:10px;}
 .offer-sub{font-size:13px;color:var(--t2);line-height:1.6;}
 
@@ -60,7 +60,7 @@
 .down-sub{font-size:13px;color:#075985;line-height:1.6;}
 
 .btn{padding:12px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .18s;font-family:'Rubik',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-bottom:8px;}
-.btn-primary{background:var(--green);color:#fff;box-shadow:0 2px 10px rgba(34,197,94,.25);}
+.btn-primary{background:var(--green);color:#fff;box-shadow:0 2px 10px rgba(3,152,85,.25);}
 .btn-primary:hover{background:var(--green-d);transform:translateY(-1px);}
 .btn-dark{background:var(--t1);color:#fff;}
 .btn-dark:hover{background:#1e293b;}

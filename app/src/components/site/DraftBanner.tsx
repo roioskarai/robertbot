@@ -29,7 +29,7 @@ export default function DraftBanner() {
       <button
         onClick={exit}
         style={{
-          background: "#22c55e",
+          background: "var(--green)",
           color: "#0d0f14",
           border: 0,
           borderRadius: 7,

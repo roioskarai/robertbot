@@ -120,7 +120,7 @@ export default function CancelPage() {
             חזור
           </button>
           <div className={c("card-icon")} style={{ background: "var(--green-p)" }}>
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--green-d)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
           </div>
           <div className={c("card-title")}>{reason ? OFFER_TITLES[reason] : ""}</div>
           <div className={c("card-sub")}>ספציפית בשבילך, הכנו הצעה שלא תרצה לפספס.</div>
@@ -130,8 +130,8 @@ export default function CancelPage() {
               <div className={c("offer-card")} style={{ background: "#f8fafc", borderColor: "#e2e8f0" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #e2e8f0" }}><span style={{ fontSize: 13, color: "#334155" }}>נציג שירות לקוחות</span><span style={{ fontSize: 15, fontWeight: 800, color: "#dc2626" }}>₪5,000+/חודש</span></div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #e2e8f0" }}><span style={{ fontSize: 13, color: "#334155" }}>Robert — מסלול מתקדם</span><span style={{ fontSize: 15, fontWeight: 800, color: "#16a34a" }}>₪199/חודש</span></div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0" }}><span style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>החיסכון שלך</span><span style={{ fontSize: 18, fontWeight: 900, color: "#16a34a" }}>₪4,801/חודש</span></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #e2e8f0" }}><span style={{ fontSize: 13, color: "#334155" }}>Robert — מסלול מתקדם</span><span style={{ fontSize: 15, fontWeight: 800, color: "var(--green-d)" }}>₪199/חודש</span></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0" }}><span style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>החיסכון שלך</span><span style={{ fontSize: 18, fontWeight: 900, color: "var(--green-d)" }}>₪4,801/חודש</span></div>
                 </div>
               </div>
               <div className={c("down-card")} style={{ marginTop: 10 }}>
@@ -203,7 +203,7 @@ export default function CancelPage() {
       <div className={c("screen") + (screen === "s4" ? " " + styles.act : "")}>
         <div className={c("card")} style={{ textAlign: "center" }}>
           <div className={c("success-icon")}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green-d)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
           </div>
           <div className={c("card-title")}>המנוי בוטל</div>
           <div className={c("card-sub")}>המנוי שלך בוטל בהצלחה. הבוט ימשיך לפעול עד <strong>1.7.2026</strong>.<br /><br />תמיד תוכל לחזור — ההגדרות שלך שמורות.</div>
@@ -216,7 +216,7 @@ export default function CancelPage() {
       <div className={c("screen") + (screen === "s5" ? " " + styles.act : "")}>
         <div className={c("card")} style={{ textAlign: "center" }}>
           <div className={c("success-icon")}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green-d)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
           </div>
           <div className={c("card-title")}>{reason ? ACCEPTED_TITLES[reason] : "תודה!"}</div>
           <div className={c("card-sub")}>{reason ? ACCEPTED_SUBS[reason] : ""}</div>

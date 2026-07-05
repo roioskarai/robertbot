@@ -66,8 +66,8 @@ function passwordStrength(pw: string): { score: number; label: string; color: st
     { label: "", color: "#e2e8f0" },
     { label: "חלשה", color: "#ef4444" },
     { label: "סבירה", color: "#f59e0b" },
-    { label: "טובה", color: "#22c55e" },
-    { label: "חזקה", color: "#16a34a" },
+    { label: "טובה", color: "var(--green)" },
+    { label: "חזקה", color: "var(--green-d)" },
   ];
   return { score: s, ...map[s] };
 }

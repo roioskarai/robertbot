@@ -36,6 +36,13 @@ test("עמוד התמחור מציג מחירים בשקלים", async ({ page }
   await page.screenshot(shot("pricing"));
 });
 
+test("נאב עמוד התמחור מציג כניסה+הרשמה במצב מנותק (auth-aware)", async ({ page }) => {
+  await page.goto("/pricing");
+  // demo/CI has no real auth backend — HeaderAuth resolves straight to "out"
+  await expect(page.locator('nav a[href="/login"]')).toBeVisible();
+  await expect(page.locator('nav a[href="/onboarding"]')).toBeVisible();
+});
+
 test("כניסת אדמין מציגה טופס מאובטח", async ({ page }) => {
   await page.goto("/admin/login");
   await expect(page.locator('input[type="email"]').first()).toBeVisible();
