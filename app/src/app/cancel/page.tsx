@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./cancel.module.css";
@@ -49,6 +49,26 @@ export default function CancelPage() {
   const router = useRouter();
   const [screen, setScreen] = useState<ScreenId>("s1");
   const [reason, setReason] = useState<Reason | null>(null);
+  // Real subscription end date (from /api/analytics) — never a hardcoded date.
+  const [endDate, setEndDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/analytics")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (cancelled || !d?.subscriptionEndsAt) return;
+        setEndDate(new Date(d.subscriptionEndsAt).toLocaleDateString("he-IL"));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Grammatical Hebrew for both the real-date and the no-date fallback.
+  const stopText = endDate ? `ב-${endDate}` : "בסוף תקופת החיוב הנוכחית";
+  const untilText = endDate ?? "סוף תקופת החיוב הנוכחית";
 
   function next() {
     if (!reason) {
@@ -189,7 +209,7 @@ export default function CancelPage() {
           <div className={c("card-sub")}>ברגע שמבטלים — <strong>הבוט שלך מפסיק לענות ללקוחות</strong> בסוף תקופת החיוב הנוכחית.</div>
           <div style={{ background: "#fff8f8", border: "1px solid #fecaca", borderRadius: 12, padding: "14px 16px", marginBottom: 20 }}>
             <div style={{ fontSize: 13, color: "#991b1b", lineHeight: 1.8 }}>
-              ❌ הבוט יפסיק לענות ב-<strong>1.7.2026</strong><br />
+              ❌ הבוט יפסיק לענות <strong>{stopText}</strong><br />
               ❌ כל ההגדרות שלך יישמרו 30 יום<br />
               ❌ לאחר מכן יימחקו לצמיתות
             </div>
@@ -206,7 +226,7 @@ export default function CancelPage() {
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green-d)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
           </div>
           <div className={c("card-title")}>המנוי בוטל</div>
-          <div className={c("card-sub")}>המנוי שלך בוטל בהצלחה. הבוט ימשיך לפעול עד <strong>1.7.2026</strong>.<br /><br />תמיד תוכל לחזור — ההגדרות שלך שמורות.</div>
+          <div className={c("card-sub")}>המנוי שלך בוטל בהצלחה. הבוט ימשיך לפעול עד <strong>{untilText}</strong>.<br /><br />תמיד תוכל לחזור — ההגדרות שלך שמורות.</div>
           <button className={c("btn btn-primary")} onClick={() => router.push("/")} style={{ marginTop: 8 }}>חזור לדף הבית</button>
           <button className={c("btn btn-ghost")} onClick={() => router.push("/dashboard")}>התחרטתי — הפעל מחדש</button>
         </div>
