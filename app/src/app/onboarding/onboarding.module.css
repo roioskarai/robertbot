@@ -44,7 +44,8 @@
   font-size:14px; color:var(--t1); font-family:'Rubik',sans-serif;
   outline:none; transition:border-color .18s; background:var(--white);
 }
-.fi:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(34,197,94,.1); }
+.fi:focus { border-color:var(--green); box-shadow:0 0 0 3px var(--green-100); }
+.field-err { font-size:11.5px; color:var(--error-700); margin-top:5px; }
 
 .divd { display:flex; align-items:center; gap:10px; margin:16px 0; }
 .divd::before,.divd::after { content:''; flex:1; height:1px; background:var(--bdr); }
@@ -173,6 +174,13 @@
 .tog input:checked + .tog-sl { background:var(--green); }
 .tog input:checked + .tog-sl::before { transform:translateX(-15px); }
 
+/* toggle + visible open/closed label — a bare switch didn't tell users which
+   state they were in without hovering; this makes it readable at a glance. */
+.tog-row { display:flex; align-items:center; gap:8px; cursor:pointer; padding:4px 0; }
+.tog-state { font-size:12px; font-weight:700; min-width:32px; }
+.tog-state-on { color:var(--green-d); }
+.tog-state-off { color:var(--t4); }
+
 /* services list */
 .service-item {
   display:flex; align-items:center; gap:10px;
@@ -250,6 +258,32 @@
 .add-custom-card { border-style:dashed !important; border-color:var(--green) !important; }
 .add-custom-card:hover { background:var(--green-p) !important; }
 .fs { padding:9px 12px; border:1.5px solid var(--bdr2); border-radius:8px; font-size:14px; color:var(--t1); font-family:'Rubik',sans-serif; background:var(--white); outline:none; width:100%; transition:border-color .18s; }
-.fs:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(34,197,94,.1); }
+.fs:focus { border-color:var(--green); box-shadow:0 0 0 3px var(--green-100); }
 .fta { padding:9px 12px; border:1.5px solid var(--bdr2); border-radius:8px; font-size:13.5px; color:var(--t1); font-family:'Rubik',sans-serif; background:var(--white); outline:none; width:100%; resize:vertical; min-height:80px; line-height:1.6; transition:border-color .18s; }
-.fta:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(34,197,94,.1); }
+.fta:focus { border-color:var(--green); box-shadow:0 0 0 3px var(--green-100); }
+
+/* ── responsive (#5/#6) — the wizard had zero media queries; 3-col grids and
+   side-by-side forms overflowed on phones. Breakpoints: tablet / small phone. ── */
+@media (max-width: 760px) {
+  .btype-grid { grid-template-columns:repeat(2,1fr); }
+  .form-2 { grid-template-columns:1fr; }
+  .ob-content { padding:16px 12px 100px; }
+  .signup-card { padding:28px 22px; }
+}
+
+@media (max-width: 480px) {
+  .btype-grid { grid-template-columns:1fr; }
+  .style-grid { grid-template-columns:1fr; }
+  .ob-header { padding:10px 14px; }
+  .ob-step-name { display:none; }
+  .ob-step-circle { width:22px; height:22px; font-size:10px; }
+  .ob-progress { padding:12px 14px 0; }
+  .section-card { padding:13px; }
+  .hours-table th, .hours-table td { padding:7px 5px; }
+  .time-input { width:74px; padding:5px 6px; font-size:12px; }
+  .tog-state { min-width:28px; font-size:11px; }
+  .signup-wrap { padding:16px 10px; }
+  .signup-card { padding:24px 16px; border-radius:16px; }
+  .success-card { padding:28px 20px; }
+  .ob-footer { padding:10px 12px; }
+}

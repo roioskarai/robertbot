@@ -14,6 +14,7 @@ import {
   DAY_KEYS,
   SERVICES_BY_CATEGORY,
   GENERIC_SERVICES,
+  examplesFor,
 } from "./subcats";
 import type { BotStyle, Service, FaqItem, WorkingHours } from "@/lib/types";
 import { isValidEmail, isValidPhoneIL } from "@/lib/validation";
@@ -142,16 +143,14 @@ function OnboardingInner() {
     })),
   );
 
-  // step 3 — services + faq
-  const [services, setServices] = useState<Service[]>([
-    { name: "תספורת נשים", price: "₪120" },
-    { name: "תספורת בנות", price: "₪80" },
-    { name: "צביעה שלמה", price: "₪250" },
-  ]);
-  const [faqs, setFaqs] = useState<FaqItem[]>([
-    { question: "מה שעות הפעילות?", answer: "א'-ו' 9:00-19:00, שבת סגור" },
-    { question: "איך קובעים תור?", answer: "דרך הוואטסאפ הזה או בטלפון שלנו" },
-  ]);
+  // step 3 — services + faq. Neutral defaults; openSub() replaces both with
+  // category-appropriate examples the moment a business type is chosen (#10).
+  const [services, setServices] = useState<Service[]>(
+    GENERIC_SERVICES.map((x) => ({ ...x })),
+  );
+  const [faqs, setFaqs] = useState<FaqItem[]>(
+    examplesFor(null).faq.map((x) => ({ ...x })),
+  );
 
   // step 4 — style
   const [styleIdx, setStyleIdx] = useState(0);
@@ -171,22 +170,42 @@ function OnboardingInner() {
   const [signingUp, setSigningUp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [verifyingOtp, setVerifyingOtp] = useState(false);
+  // Per-field inline errors (#4/#7) — replaces toast-only validation so the
+  // signup card points at exactly what needs fixing.
+  const [suErrors, setSuErrors] = useState<Record<string, string>>({});
+
+  function validateSignup(): Record<string, string> {
+    const errors: Record<string, string> = {};
+    const first = su.first_name.trim();
+    const last = su.last_name.trim();
+    const email = su.email.trim();
+    const phone = su.phone.trim();
+    if (!first) errors.first_name = "נא להזין שם פרטי";
+    if (!last) errors.last_name = "נא להזין שם משפחה";
+    if (!isValidEmail(email)) errors.email = "נא להזין כתובת מייל תקינה";
+    if (!isValidPhoneIL(phone)) errors.phone = "נא להזין מספר טלפון ישראלי תקין";
+    if (su.password.length < 8) errors.password = "הסיסמה חייבת להכיל לפחות 8 תווים";
+    if (su.password !== su.confirm) errors.confirm = "הסיסמאות אינן תואמות";
+    if (!su.terms) errors.terms = "יש לאשר את תנאי השימוש ומדיניות הפרטיות";
+    return errors;
+  }
+
+  function suField<K extends keyof typeof su>(key: K, value: (typeof su)[K]) {
+    setSu((prev) => ({ ...prev, [key]: value }));
+    setSuErrors((prev) => (prev[key as string] ? { ...prev, [key as string]: "" } : prev));
+  }
+
   async function doSignup() {
     if (signingUp) return; // guard against double-submit
 
     // ── client-side validation (runs in demo + real so the UX is consistent
     //    and the user can't advance with empty/invalid/mismatched data) ──
-    const first = su.first_name.trim();
-    const last = su.last_name.trim();
-    const email = su.email.trim();
-    const phone = su.phone.trim();
-    if (!first) { toast("נא להזין שם פרטי"); return; }
-    if (!last) { toast("נא להזין שם משפחה"); return; }
-    if (!isValidEmail(email)) { toast("נא להזין כתובת מייל תקינה"); return; }
-    if (!isValidPhoneIL(phone)) { toast("נא להזין מספר טלפון ישראלי תקין"); return; }
-    if (su.password.length < 8) { toast("הסיסמה חייבת להכיל לפחות 8 תווים"); return; }
-    if (su.password !== su.confirm) { toast("הסיסמאות אינן תואמות"); return; }
-    if (!su.terms) { toast("יש לאשר את תנאי השימוש ומדיניות הפרטיות"); return; }
+    const errors = validateSignup();
+    setSuErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      toast(Object.values(errors)[0]);
+      return;
+    }
 
     // In demo mode there's no real backend — keep the original "always
     // advance" UX so the wizard is fully explorable offline.
@@ -200,7 +219,7 @@ function OnboardingInner() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ first_name: first, last_name: last, phone, email, password: su.password }),
+        body: JSON.stringify({ first_name: su.first_name.trim(), last_name: su.last_name.trim(), phone: su.phone.trim(), email: su.email.trim(), password: su.password }),
       });
       if (!res.ok) {
         // Real failure (weak password / duplicate email / rate-limit):
@@ -312,12 +331,28 @@ function OnboardingInner() {
     setCatView("sub");
     setCustomOpen(false);
     setCustomVal("");
-    // #4 — load services that fit the chosen business type (step 3 defaults).
+    // #4 + #10 — load services AND example FAQs that fit the chosen business
+    // type, so nothing shows the hair-salon defaults once a category is picked.
     setServices((SERVICES_BY_CATEGORY[catKey] ?? GENERIC_SERVICES).map((x) => ({ ...x })));
+    setFaqs(examplesFor(catKey).faq.map((x) => ({ ...x })));
+  }
+  // Advance off a delayed timeout without calling nextStep()/stepValid()
+  // directly: those close over the pre-selection render's stale bizSubtype
+  // (still null at the moment the timeout is scheduled), which — once
+  // nextStep() started gating on stepValid() (#6) — made the delayed call
+  // spuriously fail validation and flip showStepError back on after the
+  // step had already advanced. The functional setCurStep update always
+  // reads live state, and the s===1 guard no-ops if the user already left
+  // step 1 (e.g. via a manual "המשך" click) before the timeout fires.
+  function autoAdvanceFromStep1(delayMs: number) {
+    setShowStepError(false);
+    setTimeout(() => {
+      setCurStep((s) => (s === 1 ? Math.min(totalSteps, s + 1) : s));
+    }, delayMs);
   }
   function selSub(name: string) {
     setBizSubtype(name);
-    setTimeout(() => nextStep(), 350);
+    autoAdvanceFromStep1(350);
   }
   function confirmCustom() {
     if (!customVal.trim()) {
@@ -325,11 +360,37 @@ function OnboardingInner() {
       return;
     }
     setBizSubtype(customVal.trim());
-    setTimeout(() => nextStep(), 200);
+    autoAdvanceFromStep1(200);
+  }
+
+  // ── step validation (#6) — blocks advancing on empty required fields,
+  // with an inline hint at the offending field instead of a silent skip.
+  const [showStepError, setShowStepError] = useState(false);
+  function stepValid(step: number): boolean {
+    switch (step) {
+      case 1: return !!bizSubtype;
+      case 2: return details.name.trim().length > 0;
+      case 3: return services.some((s) => s.name.trim().length > 0);
+      default: return true;
+    }
+  }
+  function stepInvalidHint(step: number): string {
+    switch (step) {
+      case 1: return "בחר את סוג העסק שלך כדי להמשיך";
+      case 2: return "נא להזין את שם העסק";
+      case 3: return "הוסף לפחות שירות אחד עם שם";
+      default: return "";
+    }
   }
 
   // ── navigation
   function nextStep() {
+    if (!stepValid(curStep)) {
+      setShowStepError(true);
+      toast(stepInvalidHint(curStep));
+      return;
+    }
+    setShowStepError(false);
     // On the last step, submit instead of advancing. finish() is called
     // directly (never inside a state updater) so it runs exactly once.
     if (curStep === totalSteps) {
@@ -339,9 +400,11 @@ function OnboardingInner() {
     setCurStep((s) => Math.min(totalSteps, s + 1));
   }
   function prevStep() {
+    setShowStepError(false);
     setCurStep((s) => Math.max(1, s - 1));
   }
   function jumpStep(n: number) {
+    setShowStepError(false);
     setCurStep((s) => (n <= s ? n : s));
   }
 
@@ -421,8 +484,9 @@ function OnboardingInner() {
                   placeholder="ישראל"
                   autoComplete="given-name"
                   value={su.first_name}
-                  onChange={(e) => setSu({ ...su, first_name: e.target.value })}
+                  onChange={(e) => suField("first_name", e.target.value)}
                 />
+                {suErrors.first_name && <div className={c("field-err")}>{suErrors.first_name}</div>}
               </div>
               <div className={c("fg")} style={{ flex: 1 }}>
                 <label className={c("fl")}>שם משפחה</label>
@@ -431,8 +495,9 @@ function OnboardingInner() {
                   placeholder="ישראלי"
                   autoComplete="family-name"
                   value={su.last_name}
-                  onChange={(e) => setSu({ ...su, last_name: e.target.value })}
+                  onChange={(e) => suField("last_name", e.target.value)}
                 />
+                {suErrors.last_name && <div className={c("field-err")}>{suErrors.last_name}</div>}
               </div>
             </div>
             <div className={c("fg")}>
@@ -443,8 +508,9 @@ function OnboardingInner() {
                 placeholder="israel@gmail.com"
                 autoComplete="email"
                 value={su.email}
-                onChange={(e) => setSu({ ...su, email: e.target.value })}
+                onChange={(e) => suField("email", e.target.value)}
               />
+              {suErrors.email && <div className={c("field-err")}>{suErrors.email}</div>}
             </div>
             <div className={c("fg")}>
               <label className={c("fl")}>טלפון אישי</label>
@@ -455,11 +521,15 @@ function OnboardingInner() {
                 placeholder="050-1234567"
                 autoComplete="tel"
                 value={su.phone}
-                onChange={(e) => setSu({ ...su, phone: e.target.value })}
+                onChange={(e) => suField("phone", e.target.value)}
               />
-              <div style={{ fontSize: 11.5, color: "var(--t4)", marginTop: 5 }}>
-                לעדכונים ואבטחה — זה לא המספר העסקי לבוט (אותו תחבר בהמשך)
-              </div>
+              {suErrors.phone ? (
+                <div className={c("field-err")}>{suErrors.phone}</div>
+              ) : (
+                <div style={{ fontSize: 11.5, color: "var(--t4)", marginTop: 5 }}>
+                  לעדכונים ואבטחה — זה לא המספר העסקי לבוט (אותו תחבר בהמשך)
+                </div>
+              )}
             </div>
             <div className={c("fg")}>
               <label className={c("fl")}>סיסמה</label>
@@ -470,7 +540,7 @@ function OnboardingInner() {
                   placeholder="לפחות 8 תווים"
                   autoComplete="new-password"
                   value={su.password}
-                  onChange={(e) => setSu({ ...su, password: e.target.value })}
+                  onChange={(e) => suField("password", e.target.value)}
                   style={{ paddingInlineStart: 40 }}
                 />
                 <button type="button" aria-label="הצג סיסמה" onClick={() => setShowPw(s => !s)} style={{ position: "absolute", insetInlineStart: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--t3)", padding: 4, display: "flex" }}>
@@ -479,7 +549,7 @@ function OnboardingInner() {
                     : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
                 </button>
               </div>
-              {su.password && (() => {
+              {su.password ? (() => {
                 const st = passwordStrength(su.password);
                 return (
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
@@ -489,7 +559,9 @@ function OnboardingInner() {
                     <span style={{ fontSize: 11.5, color: st.color, fontWeight: 600, minWidth: 38, textAlign: "left" }}>{st.label}</span>
                   </div>
                 );
-              })()}
+              })() : suErrors.password && (
+                <div className={c("field-err")}>{suErrors.password}</div>
+              )}
             </div>
             <div className={c("fg")}>
               <label className={c("fl")}>אימות סיסמה</label>
@@ -500,7 +572,7 @@ function OnboardingInner() {
                   placeholder="הקלד שוב את הסיסמה"
                   autoComplete="new-password"
                   value={su.confirm}
-                  onChange={(e) => setSu({ ...su, confirm: e.target.value })}
+                  onChange={(e) => suField("confirm", e.target.value)}
                   style={{ paddingInlineStart: 40 }}
                 />
                 <button type="button" aria-label="הצג סיסמה" onClick={() => setShowConfirm(s => !s)} style={{ position: "absolute", insetInlineStart: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--t3)", padding: 4, display: "flex" }}>
@@ -513,17 +585,19 @@ function OnboardingInner() {
                 <div style={{ fontSize: 11.5, color: "#ef4444", marginTop: 5 }}>הסיסמאות אינן תואמות</div>
               )}
             </div>
-            <label style={{ display: "flex", alignItems: "flex-start", gap: 8, margin: "4px 0 16px", cursor: "pointer", fontSize: 12.5, color: "var(--t2)", lineHeight: 1.5 }}>
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 8, margin: "4px 0 4px", cursor: "pointer", fontSize: 12.5, color: "var(--t2)", lineHeight: 1.5 }}>
               <input
                 type="checkbox"
                 checked={su.terms}
-                onChange={(e) => setSu({ ...su, terms: e.target.checked })}
+                onChange={(e) => suField("terms", e.target.checked)}
                 style={{ marginTop: 2, width: 16, height: 16, accentColor: "var(--green)", flexShrink: 0, cursor: "pointer" }}
               />
               <span>
                 קראתי ואני מסכים ל<a href="/legal" target="_blank" style={{ color: "var(--green)", fontWeight: 600 }}>תנאי השימוש</a> ול<a href="/legal" target="_blank" style={{ color: "var(--green)", fontWeight: 600 }}>מדיניות הפרטיות</a>
               </span>
             </label>
+            {suErrors.terms && <div className={c("field-err")} style={{ marginBottom: 12 }}>{suErrors.terms}</div>}
+            <div style={{ marginBottom: suErrors.terms ? 0 : 16 }} />
             <button className={c("btn btn-primary")} onClick={doSignup} disabled={signingUp}>
               {signingUp ? "יוצר חשבון..." : "יצירת חשבון בחינם"}
             </button>
@@ -688,6 +762,9 @@ function OnboardingInner() {
         <div className={c("ob-content")}>
           {/* STEP 1 */}
           <div className={c("ob-pane") + (curStep === 1 ? " " + styles.act : "")}>
+            {showStepError && !bizSubtype && (
+              <div className={c("field-err")} style={{ marginBottom: 12 }} role="alert">בחר את סוג העסק שלך כדי להמשיך</div>
+            )}
             {catView === "main" ? (
               <div>
                 <div className={c("pane-title")}>מה תחום העסק?</div>
@@ -766,11 +843,12 @@ function OnboardingInner() {
               <div className={c("section-card-title")}>מידע בסיסי</div>
               <div className={c("fg")}>
                 <label className={c("fl")}>שם העסק</label>
-                <input className={c("fi")} placeholder="מספרת מיטל" value={details.name} onChange={(e) => setDetails({ ...details, name: e.target.value })} />
+                <input className={c("fi")} placeholder={examplesFor(bizType).namePh} value={details.name} onChange={(e) => setDetails({ ...details, name: e.target.value })} />
+                {showStepError && !details.name.trim() && <div className={c("field-err")}>נא להזין את שם העסק</div>}
               </div>
               <div className={c("fg")}>
                 <label className={c("fl")}>תיאור קצר</label>
-                <textarea className={c("fta")} placeholder="ספר על העסק שלך — מה אתה מציע, מה מיוחד בך..." value={details.description} onChange={(e) => setDetails({ ...details, description: e.target.value })} />
+                <textarea className={c("fta")} placeholder={examplesFor(bizType).descPh} value={details.description} onChange={(e) => setDetails({ ...details, description: e.target.value })} />
                 <span className={c("fhint")}>Robert ישתמש בזה כדי לענות על שאלות כלליות</span>
               </div>
               <div className={c("form-2")}>
@@ -794,6 +872,7 @@ function OnboardingInner() {
                 שעות פעילות
                 <span className={c("badge badge-green")}>ניתן לעריכה בכל עת</span>
               </div>
+              <div style={{ overflowX: "auto" }}>
               <table className={c("hours-table")}>
                 <thead>
                   <tr>
@@ -810,17 +889,23 @@ function OnboardingInner() {
                         <span className={c("day-name")}>{d}&apos;</span>
                       </td>
                       <td>
-                        <label className={c("tog")}>
-                          <input
-                            type="checkbox"
-                            checked={!hours[i].closed}
-                            onChange={(e) => {
-                              const next = [...hours];
-                              next[i] = { ...next[i], closed: !e.target.checked };
-                              setHours(next);
-                            }}
-                          />
-                          <span className={c("tog-sl")}></span>
+                        <label className={c("tog-row")}>
+                          <span className={c("tog")}>
+                            <input
+                              type="checkbox"
+                              checked={!hours[i].closed}
+                              aria-label={`${d} — ${hours[i].closed ? "סגור" : "פתוח"}`}
+                              onChange={(e) => {
+                                const next = [...hours];
+                                next[i] = { ...next[i], closed: !e.target.checked };
+                                setHours(next);
+                              }}
+                            />
+                            <span className={c("tog-sl")}></span>
+                          </span>
+                          <span className={c("tog-state") + (hours[i].closed ? " " + styles["tog-state-off"] : " " + styles["tog-state-on"])}>
+                            {hours[i].closed ? "סגור" : "פתוח"}
+                          </span>
                         </label>
                       </td>
                       <td>
@@ -853,6 +938,7 @@ function OnboardingInner() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
 
@@ -860,6 +946,9 @@ function OnboardingInner() {
           <div className={c("ob-pane") + (curStep === 3 ? " " + styles.act : "")}>
             <div className={c("pane-title")}>השירותים שלך</div>
             <div className={c("pane-sub")}>הוסף את השירותים והמחירים שלך — Robert ידע לענות עליהם. ניתן לערוך ולהוסיף בכל עת.</div>
+            {showStepError && !services.some((s) => s.name.trim()) && (
+              <div className={c("field-err")} style={{ marginBottom: 12 }} role="alert">הוסף לפחות שירות אחד עם שם</div>
+            )}
 
             <div className={c("section-card")}>
               <div className={c("section-card-title")}>
@@ -967,6 +1056,15 @@ function OnboardingInner() {
                 </div>
               ))}
             </div>
+
+            {examplesFor(bizType).styleExample && (
+              <div className={c("section-card")} style={{ marginBottom: 16 }}>
+                <div className={c("section-card-title")}>כך זה יכול להישמע אצלך</div>
+                <div style={{ fontSize: 13.5, color: "var(--t2)", lineHeight: 1.6 }}>
+                  {examplesFor(bizType).styleExample}
+                </div>
+              </div>
+            )}
 
             <div className={c("section-card")}>
               <div className={c("section-card-title")}>הגדרות נוספות</div>
