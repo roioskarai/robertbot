@@ -1,2 +1,2 @@
 robertbot build marker
-owner-e2e-findings release (batches 1-6, 12 items) 2026-07-07 commit d708384
+onboarding responsive fix + activate TWILIO_VERIFY_SERVICE_SID 2026-07-07
