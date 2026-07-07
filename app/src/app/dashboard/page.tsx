@@ -134,6 +134,20 @@ const DEMO_CONVS: ConvRow[] = [
   { id: "d3", customer_name: "שרה אברהם", customer_phone: "054-3333333", status: "human", preview: "כמה עולה צביעה שלמה?", time: "אתמול", bots: { name: "מספרת מיטל" } },
 ];
 
+interface ConvMessage {
+  id: string;
+  from_type: "customer" | "bot" | "human";
+  body: string;
+  created_at: string;
+}
+
+// Demo-mode chat thread — the same two bubbles the inbox mock used to
+// hardcode, now properly gated on DEMO_MODE (real users never see them).
+const demoThread = (convId: string): ConvMessage[] => [
+  { id: convId + "-m1", from_type: "customer", body: "יש לך מקום פנוי ביום שישי בבוקר?", created_at: new Date().toISOString() },
+  { id: convId + "-m2", from_type: "bot", body: "היי! ביום שישי יש מקומות ב-09:00 וב-11:00. מה מתאים לך?", created_at: new Date().toISOString() },
+];
+
 const DEMO_HISTORY: ConvRow[] = [
   { id: "h1", customer_name: "רחל לוי", customer_phone: "052-1234567", status: "human", last_message_at: new Date().toISOString(), bots: { name: "מספרת מיטל" } },
   { id: "h2", customer_name: "יוסי גולן", customer_phone: "050-7654321", status: "closed", last_message_at: new Date(Date.now() - 3600e3).toISOString(), bots: { name: "גריל הבשרים" } },
@@ -178,8 +192,20 @@ export default function DashboardPage() {
   const [manualStep, setManualStep] = useState<"idle" | "sent" | "success">("idle");
   const [manualBusy, setManualBusy] = useState(false);
   const [manualError, setManualError] = useState<string | null>(null);
+  // Whether the server can actually run the manual OTP flow (Twilio Verify
+  // configured). Demo mode is always "available" — the connect route pretends.
+  const [manualAvailable, setManualAvailable] = useState(true);
   // Reset the manual-connect flow whenever the edited bot changes / editor closes.
   useEffect(() => { setManualStep("idle"); setManualPhone(""); setManualCode(""); setManualError(null); }, [editBot?.id]);
+  // Pre-detect a half-configured Twilio (creds without a Verify service) so we
+  // show a friendly note instead of letting "שלח קוד" hit a 503.
+  useEffect(() => {
+    if (DEMO_MODE || editorTab !== "connect" || !editBot?.id) return;
+    fetch("/api/whatsapp/config")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setManualAvailable(d.manualEnabled ?? true); })
+      .catch(() => {}); // fail-open — the route itself returns a friendly 503
+  }, [editorTab, editBot?.id]);
 
   // Lazily load real card + invoices the first time the billing tab is opened.
   useEffect(() => {
@@ -206,6 +232,32 @@ export default function DashboardPage() {
   const [planAnnual, setPlanAnnual] = useState(false);
   const [activeConvId, setActiveConvId] = useState<string | null>(DEMO_MODE ? DEMO_CONVS[0].id : null);
   const [histFilter, setHistFilter] = useState("הכל");
+
+  // Real per-conversation message thread (was a hardcoded mock — bug: demo
+  // bubbles leaked to real users). Cached per conversation id.
+  const [convMessages, setConvMessages] = useState<Record<string, ConvMessage[]>>({});
+  const [convLoading, setConvLoading] = useState(false);
+  const [convError, setConvError] = useState<string | null>(null);
+
+  const loadConvThread = useCallback((id: string, force = false) => {
+    if (DEMO_MODE) {
+      setConvMessages((m) => (m[id] ? m : { ...m, [id]: demoThread(id) }));
+      return;
+    }
+    if (convMessages[id] && !force) return; // cached
+    setConvLoading(true);
+    setConvError(null);
+    fetch(`/api/conversations/${id}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("load failed"))))
+      .then((d) => setConvMessages((m) => ({ ...m, [id]: (d.messages ?? []) as ConvMessage[] })))
+      .catch(() => setConvError("טעינת השיחה נכשלה — נסה שוב"))
+      .finally(() => setConvLoading(false));
+  }, [convMessages]);
+
+  useEffect(() => {
+    if (activeConvId) loadConvThread(activeConvId);
+    else setConvError(null);
+  }, [activeConvId, loadConvThread]);
 
   const loadData = useCallback(async () => {
     try {
@@ -861,7 +913,12 @@ export default function DashboardPage() {
                       />
                     </div>
                   )}
-                  {(!editBot.whatsapp_number || manualStep === "success") && editBot.id && (
+                  {(!editBot.whatsapp_number || manualStep === "success") && editBot.id && !manualAvailable && (
+                    <div style={{ marginTop: 16, fontSize: 12.5, color: "var(--t3)", lineHeight: 1.7 }}>
+                      חיבור ידני יופעל בקרוב — בינתיים אפשר להתחבר דרך החיבור האוטומטי או לפנות לתמיכה.
+                    </div>
+                  )}
+                  {(!editBot.whatsapp_number || manualStep === "success") && editBot.id && manualAvailable && (
                     <div style={{ marginTop: 16 }}>
                       {manualStep !== "success" && (
                         <p style={{ fontSize: 13, fontWeight: 600, color: "var(--t2)", marginBottom: 10 }}>חיבור מספר ידני</p>
@@ -991,19 +1048,44 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className={c("chat-wrap")}>
-            <div className={c("chat-hdr")}>
-              <div><div style={{ fontSize: 14, fontWeight: 700 }}>{activeConv?.customer_name ?? "—"}</div><div style={{ fontSize: 12, color: "var(--t3)", marginTop: 1 }}>{activeConv?.bots?.name ?? "מספרת מיטל"} · {activeConv?.customer_phone ?? ""}</div></div>
-              <span className={c("badge badge-amber")}>מענה אנושי</span>
-            </div>
-            <div className={c("chat-msgs")}>
-              <div className={c("bubble bin")}>{activeConv?.preview ?? "יש לך מקום פנוי ביום שישי בבוקר?"}<div className={c("bt")}>09:38</div></div>
-              <div className={c("bubble bagent")}>היי! ביום שישי יש מקומות ב-09:00 וב-11:00. מה מתאים לך?<div className={c("bt")}>09:38 · Robert</div></div>
-            </div>
-            <div className={c("chat-input")}>
-              <input placeholder="כתוב תגובה..." id="reply-input" onKeyDown={(e) => { if (e.key === "Enter") sendReply(); }} />
-              <button className={c("btn btn-primary btn-sm")} onClick={sendReply}>שלח</button>
-              <button className={c("btn btn-outline btn-sm")} onClick={returnToBot}>החזר ל-Robert</button>
-            </div>
+            {!activeConv ? (
+              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13.5, color: "var(--t4)", padding: 24 }}>
+                בחר שיחה מהרשימה
+              </div>
+            ) : (
+              <>
+                <div className={c("chat-hdr")}>
+                  <div><div style={{ fontSize: 14, fontWeight: 700 }}>{activeConv.customer_name ?? "—"}</div><div style={{ fontSize: 12, color: "var(--t3)", marginTop: 1 }}>{activeConv.bots?.name ?? (DEMO_MODE ? "מספרת מיטל" : "")} · {activeConv.customer_phone ?? ""}</div></div>
+                  <span className={c("badge badge-amber")}>מענה אנושי</span>
+                </div>
+                <div className={c("chat-msgs")}>
+                  {convLoading && <div style={{ fontSize: 12.5, color: "var(--t4)" }}>טוען שיחה...</div>}
+                  {convError && !convLoading && (
+                    <div style={{ fontSize: 12.5, color: "var(--t3)", display: "flex", alignItems: "center", gap: 8 }}>
+                      {convError}
+                      <button className={c("btn btn-ghost btn-xs")} onClick={() => loadConvThread(activeConv.id, true)}>נסה שוב</button>
+                    </div>
+                  )}
+                  {!convLoading && !convError && (convMessages[activeConv.id]?.length ?? 0) === 0 && (
+                    <div style={{ fontSize: 12.5, color: "var(--t4)" }}>אין הודעות בשיחה זו עדיין</div>
+                  )}
+                  {(convMessages[activeConv.id] ?? []).map((m) => (
+                    <div key={m.id} className={c(m.from_type === "customer" ? "bubble bin" : "bubble bagent")}>
+                      {m.body}
+                      <div className={c("bt")}>
+                        {new Date(m.created_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
+                        {m.from_type === "bot" ? " · Robert" : m.from_type === "human" ? " · נציג" : ""}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className={c("chat-input")}>
+                  <input placeholder="כתוב תגובה..." id="reply-input" onKeyDown={(e) => { if (e.key === "Enter") sendReply(); }} />
+                  <button className={c("btn btn-primary btn-sm")} onClick={sendReply}>שלח</button>
+                  <button className={c("btn btn-outline btn-sm")} onClick={returnToBot}>החזר ל-Robert</button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -1421,6 +1503,10 @@ export default function DashboardPage() {
     if (!text || !activeConvId) return;
     if (DEMO_MODE) {
       if (input) input.value = "";
+      setConvMessages((m) => ({
+        ...m,
+        [activeConvId]: [...(m[activeConvId] ?? []), { id: `demo-${Date.now()}`, from_type: "human", body: text, created_at: new Date().toISOString() }],
+      }));
       toast("התגובה נשלחה");
       return;
     }
@@ -1430,12 +1516,16 @@ export default function DashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ body: text }),
       });
+      const d = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
         toast(d.error || "שליחת התגובה נכשלה — נסה שוב");
         return; // keep the text so the user can retry
       }
       if (input) input.value = "";
+      // Append the persisted message to the open thread immediately.
+      if (d?.message) {
+        setConvMessages((m) => ({ ...m, [activeConvId]: [...(m[activeConvId] ?? []), d.message as ConvMessage] }));
+      }
       toast("התגובה נשלחה");
     } catch {
       toast("אין חיבור לשרת — התגובה לא נשלחה");
@@ -1447,7 +1537,14 @@ export default function DashboardPage() {
     if (!DEMO_MODE) {
       await fetch(`/api/conversations/${activeConvId}/return`, { method: "POST" }).catch(() => {});
     }
+    // Drop the thread cache so reopening (if it re-enters "human") refetches.
+    setConvMessages((m) => {
+      const next = { ...m };
+      delete next[activeConvId];
+      return next;
+    });
     setConvs((cs) => cs.filter((cv) => cv.id !== activeConvId));
+    setActiveConvId(null);
     toast("השיחה הוחזרה ל-Robert");
   }
 

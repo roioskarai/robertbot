@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./onboarding.module.css";
 import { scoped } from "@/lib/cx";
@@ -417,9 +418,11 @@ function OnboardingInner() {
   }
 
   const [finishing, setFinishing] = useState(false);
+  const [finishError, setFinishError] = useState<string | null>(null);
   async function finish() {
     if (finishing) return; // guard against a double POST → duplicate bot
     setFinishing(true);
+    setFinishError(null);
 
     const botName = details.name || "הבוט שלי";
     setSuccessInfo({ botName, wa: waNumber || "---" });
@@ -438,9 +441,17 @@ function OnboardingInner() {
       style: STYLE_OPTIONS[styleIdx].value,
     };
 
+    // Demo mode — no real backend; complete the wizard deterministically.
+    if (DEMO_MODE) {
+      setScreen("success");
+      return;
+    }
+
     // Create the bot as a draft. WhatsApp connection (with real SMS/Meta
     // verification) is completed afterwards from the Dashboard — we never
     // attach a number here without verifying ownership.
+    // A server rejection (plan limit, expired session, 500) must surface to
+    // the user and keep them on the wizard — never a fake success screen.
     try {
       const res = await fetch("/api/bots", {
         method: "POST",
@@ -448,13 +459,26 @@ function OnboardingInner() {
         body: JSON.stringify(payload),
       });
       const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json?.bot?.id) {
+        const msg =
+          res.status === 401
+            ? "ההתחברות פגה — התחבר מחדש כדי לסיים את ההקמה"
+            : (typeof json?.error === "string" && json.error) || "יצירת הבוט נכשלה. נסה שוב.";
+        setFinishError(msg);
+        toast(msg);
+        setFinishing(false);
+        return;
+      }
       // Capture the new bot id so the success CTA can open its WhatsApp
       // connect step directly (#14).
-      if (json?.bot?.id) setNewBotId(json.bot.id as string);
+      setNewBotId(json.bot.id as string);
+      setScreen("success");
     } catch {
-      /* demo mode / offline — still show success so the wizard completes */
+      const msg = "אין חיבור לשרת — בדוק את החיבור ונסה שוב.";
+      setFinishError(msg);
+      toast(msg);
+      setFinishing(false);
     }
-    setScreen("success");
   }
 
   // ── render
@@ -1137,6 +1161,19 @@ function OnboardingInner() {
             </div>
           </div>
         </div>
+
+        {/* creation failure — real error, wizard stays open (never fake success) */}
+        {finishError && (
+          <div className={c("field-err")} role="alert" style={{ margin: "0 auto 10px", maxWidth: 560, fontSize: 13, textAlign: "center" }}>
+            {finishError}
+            {finishError.includes("התחבר מחדש") && (
+              <>
+                {" "}
+                <Link href="/login" style={{ color: "inherit", fontWeight: 700, textDecoration: "underline" }}>לכניסה</Link>
+              </>
+            )}
+          </div>
+        )}
 
         {/* footer nav */}
         <div className={c("ob-footer")}>

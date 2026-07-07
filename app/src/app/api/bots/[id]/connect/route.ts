@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, unauthorized } from "@/lib/errors";
-import { hasTwilioCreds, startVerification, checkVerification } from "@/lib/twilio";
+import { hasTwilioCreds, hasVerifyCreds, startVerification, checkVerification } from "@/lib/twilio";
 import { isValidPhoneIL } from "@/lib/validation";
 import { rateLimit } from "@/lib/rate-limit";
 import { parseBody, connectSchema } from "@/lib/schemas";
@@ -48,6 +48,16 @@ export async function POST(req: Request, props: Ctx) {
     if (!ownBot) return jsonError("הבוט לא נמצא", 404);
   }
 
+  // Half-configured Twilio (creds without a Verify service) would throw a raw
+  // env-var error from startVerification — return a friendly, non-leaky 503.
+  const verifyMisconfigured = hasTwilioCreds() && !hasVerifyCreds();
+  if (verifyMisconfigured) {
+    return jsonError(
+      "חיבור וואטסאפ ידני עדיין לא זמין במערכת. נסה שוב בקרוב או פנה לתמיכה.",
+      503,
+    );
+  }
+
   // Step 1: send verification code
   if (!code) {
     if (!hasTwilioCreds()) {
@@ -58,7 +68,9 @@ export async function POST(req: Request, props: Ctx) {
       await startVerification(number);
       return NextResponse.json({ sent: true });
     } catch (e) {
-      return jsonError(e instanceof Error ? e.message : "שליחת הקוד נכשלה", 502);
+      // Never surface internal error strings (env names, Twilio SDK text).
+      console.error("[connect] startVerification failed:", e instanceof Error ? e.message : e);
+      return jsonError("שליחת הקוד נכשלה. נסה שוב בעוד רגע.", 502);
     }
   }
 
@@ -68,7 +80,8 @@ export async function POST(req: Request, props: Ctx) {
       const res = await checkVerification(number, code);
       if (res.status !== "approved") return jsonError("הקוד שגוי או פג תוקף");
     } catch (e) {
-      return jsonError(e instanceof Error ? e.message : "אימות הקוד נכשל", 502);
+      console.error("[connect] checkVerification failed:", e instanceof Error ? e.message : e);
+      return jsonError("אימות הקוד נכשל. נסה שוב.", 502);
     }
   }
   // (demo mode: accept any code)

@@ -8,6 +8,16 @@ export function hasTwilioCreds(): boolean {
   );
 }
 
+/**
+ * True only when manual OTP connect can actually work end-to-end:
+ * account creds AND a Verify service. Twilio creds alone are not enough —
+ * startVerification/checkVerification throw without the Verify SID, which
+ * is exactly the raw error users saw in production.
+ */
+export function hasVerifyCreds(): boolean {
+  return hasTwilioCreds() && Boolean(process.env.TWILIO_VERIFY_SERVICE_SID);
+}
+
 export function getTwilio(): twilio.Twilio {
   if (!hasTwilioCreds()) {
     throw new Error("חיבור Twilio אינו מוגדר — חסרים SID/Token");
