@@ -5,9 +5,9 @@ import { TrendingUp, DollarSign, Users, XCircle, RefreshCw } from "lucide-react"
 import styles from "@/app/admin/admin.module.css";
 
 interface Billing {
-  summary: { mrr: number; arr: number; payingCustomers: number; trials: number; cancelled: number; currency: string };
+  summary: { mrr: number; arr: number; payingCustomers: number; compCustomers?: number; trials: number; cancelled: number; currency: string };
   byPlan: Record<string, { count: number; mrr: number; label: string }>;
-  customers: { id: string; email: string; plan: string; cycle: string; provider: string|null; since: string }[];
+  customers: { id: string; email: string; plan: string; cycle: string; provider: string|null; since: string; isComp?: boolean; endsAt?: string|null }[];
 }
 
 export default function AdminBilling() {
@@ -38,7 +38,7 @@ export default function AdminBilling() {
         {[
           { icon:<DollarSign size={18} strokeWidth={2}/>, label:"MRR", value: loading?"…":`${c}${b?.summary.mrr.toLocaleString()}` },
           { icon:<TrendingUp size={18} strokeWidth={2}/>, label:"ARR (שנתי)", value: loading?"…":`${c}${b?.summary.arr.toLocaleString()}` },
-          { icon:<Users size={18} strokeWidth={2}/>, label:"משלמים", value: loading?"…":b?.summary.payingCustomers },
+          { icon:<Users size={18} strokeWidth={2}/>, label:"משלמים", value: loading?"…":`${b?.summary.payingCustomers}${b?.summary.compCustomers ? ` (+${b.summary.compCustomers} חינם)` : ""}` },
           { icon:<XCircle size={18} strokeWidth={2}/>, label:"ביטולים", value: loading?"…":b?.summary.cancelled, type:"danger" },
         ].map((s,i)=>(
           <div key={i} className={styles.statCard}>
@@ -104,8 +104,11 @@ export default function AdminBilling() {
                   : b?.customers.map(cu=>(
                       <tr key={cu.id}>
                         <td className={styles.strong} style={{fontSize:13}}>{cu.email}</td>
-                        <td><span className={`${styles.badge} ${styles.badgeGreen}`}>{cu.plan}</span></td>
-                        <td className={styles.muted}>{cu.cycle==="annual"?"שנתי":"חודשי"}</td>
+                        <td>
+                          <span className={`${styles.badge} ${styles.badgeGreen}`}>{cu.plan}</span>
+                          {cu.isComp && <span className={`${styles.badge} ${styles.badgeAdmin}`} style={{marginRight:5}}>חינם</span>}
+                        </td>
+                        <td className={styles.muted}>{cu.isComp && cu.endsAt ? `עד ${new Date(cu.endsAt).toLocaleDateString("he-IL")}` : cu.cycle==="annual"?"שנתי":"חודשי"}</td>
                         <td className={styles.muted}>{cu.provider??"—"}</td>
                       </tr>
                     ))

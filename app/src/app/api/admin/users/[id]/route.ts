@@ -37,6 +37,13 @@ export async function PATCH(req: Request, props: Ctx) {
     return jsonError("בקשה לא תקינה");
   }
 
+  // ISO date string (or null to clear) → validated value for a timestamptz column.
+  const parseDate = (v: unknown): string | null | undefined => {
+    if (v === null) return null;
+    if (typeof v === "string" && !Number.isNaN(Date.parse(v))) return new Date(v).toISOString();
+    return undefined; // invalid → ignored
+  };
+
   const patch: Record<string, unknown> = {};
   if (typeof body.plan === "string" && isPlanId(body.plan)) patch.plan = body.plan;
   if (typeof body.subscription_status === "string" &&
@@ -45,6 +52,20 @@ export async function PATCH(req: Request, props: Ctx) {
   if (typeof body.role === "string" && ["admin", "tenant"].includes(body.role)) patch.role = body.role;
   if (typeof body.is_suspended === "boolean") patch.is_suspended = body.is_suspended;
   if (typeof body.pack_balance === "number" && body.pack_balance >= 0) patch.pack_balance = Math.floor(body.pack_balance);
+
+  // Comp-plan grants (admin item #9): entitlement window + comp flag + note.
+  if ("subscription_ends_at" in body) {
+    const d = parseDate(body.subscription_ends_at);
+    if (d !== undefined) patch.subscription_ends_at = d;
+  }
+  if ("trial_ends_at" in body) {
+    const d = parseDate(body.trial_ends_at);
+    if (d !== undefined) patch.trial_ends_at = d;
+  }
+  if (typeof body.cancel_at_period_end === "boolean") patch.cancel_at_period_end = body.cancel_at_period_end;
+  if (typeof body.is_comp === "boolean") patch.is_comp = body.is_comp;
+  if (body.comp_note === null) patch.comp_note = null;
+  else if (typeof body.comp_note === "string") patch.comp_note = body.comp_note.slice(0, 300);
 
   if (!Object.keys(patch).length) return jsonError("אין שדות תקינים לעדכון");
 

@@ -9,7 +9,10 @@ export const dynamic = "force-dynamic";
 // for trials that have ended without payment.
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const secret = url.searchParams.get("secret") || req.headers.get("x-cron-secret");
+  // Vercel Cron authenticates with `Authorization: Bearer <CRON_SECRET>`
+  // (same convention as /api/agents/run/*); manual runs may pass ?secret=.
+  const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  const secret = url.searchParams.get("secret") || req.headers.get("x-cron-secret") || bearer;
   // Fail-closed: require CRON_SECRET in non-demo deployments.
   const cronSecret = process.env.CRON_SECRET;
   const isDemoMode = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").includes("placeholder");
@@ -67,7 +70,10 @@ export async function GET(req: Request) {
   }
 
   // Cancel-at-period-end: subscriptions whose paid period has now passed →
-  // revoke service (status cancelled + deactivate bots).
+  // revoke service (status cancelled + deactivate bots). Admin comp grants
+  // ride this same block (they are stored as active + cancel_at_period_end
+  // + subscription_ends_at) — clearing is_comp here ends the grant; the
+  // dashboard then shows the standard renew CTA (comp_note kept as audit).
   const { data: endedSubs } = await supabase
     .from("users")
     .select("id")
@@ -78,7 +84,7 @@ export async function GET(req: Request) {
   for (const u of endedSubs ?? []) {
     await supabase
       .from("users")
-      .update({ subscription_status: "cancelled", cancel_at_period_end: false })
+      .update({ subscription_status: "cancelled", cancel_at_period_end: false, is_comp: false })
       .eq("id", u.id);
     const { count } = await supabase
       .from("bots")

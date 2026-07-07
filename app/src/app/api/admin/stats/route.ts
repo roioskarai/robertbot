@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { jsonError } from "@/lib/errors";
 import { requireAdmin } from "@/lib/admin-auth";
-import { PRICING, type PlanId, type BillingCycle } from "@/lib/plans";
+import { payingMetrics } from "@/lib/admin-metrics";
 
 // GET /api/admin/stats — system-wide metrics for the admin overview.
 export async function GET() {
@@ -10,7 +10,7 @@ export async function GET() {
   const db = createAdminClient();
 
   const [{ data: users }, { data: bots }, { data: convs }, { data: runs }] = await Promise.all([
-    db.from("users").select("id, plan, billing_cycle, subscription_status, created_at, is_suspended"),
+    db.from("users").select("id, plan, billing_cycle, subscription_status, created_at, is_suspended, is_comp"),
     db.from("bots").select("id, active, wa_provider"),
     db.from("conversations").select("id, status, last_message_at"),
     db.from("agent_runs").select("id, status, created_at").order("created_at", { ascending: false }).limit(50),
@@ -20,18 +20,8 @@ export async function GET() {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  // MRR — sum of active subscriptions' monthly-equivalent price.
-  let mrr = 0;
-  const planMix: Record<string, number> = {};
-  for (const row of u) {
-    if (row.subscription_status === "active") {
-      const plan = row.plan as PlanId;
-      const cycle = (row.billing_cycle as BillingCycle) ?? "monthly";
-      const price = PRICING[plan]?.[cycle] ?? 0;
-      mrr += price; // annual price is already per-month in PRICING
-      planMix[plan] = (planMix[plan] ?? 0) + 1;
-    }
-  }
+  // MRR — paying subscribers only; admin comp grants are excluded.
+  const { mrr, planMix, paying, comps } = payingMetrics(u);
 
   const statusCount = (s: string) => u.filter((x) => x.subscription_status === s).length;
 
@@ -39,6 +29,8 @@ export async function GET() {
     users: {
       total: u.length,
       active: statusCount("active"),
+      paying,
+      comp: comps,
       trial: statusCount("trial"),
       cancelled: statusCount("cancelled"),
       paused: statusCount("paused"),

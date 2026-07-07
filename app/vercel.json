@@ -3,6 +3,10 @@
     {
       "path": "/api/agents/run/orchestrator?mode=live",
       "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/trial",
+      "schedule": "0 4 * * *"
     }
   ]
 }

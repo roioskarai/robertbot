@@ -68,6 +68,8 @@ export async function applyPaymentEvent(ev: PaymentEvent): Promise<void> {
           subscription_ends_at: periodEnd(ev.cycle),
           payment_subscription_id: ev.subscriptionId ?? undefined,
           payment_customer_id: ev.customerId ?? undefined,
+          // A real charge ends any admin comp grant — the user is now paying.
+          is_comp: false,
         })
         .eq("id", ev.userId);
       break;

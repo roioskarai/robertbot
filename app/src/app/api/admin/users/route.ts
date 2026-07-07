@@ -13,7 +13,7 @@ export async function GET(req: Request) {
 
   let query = db
     .from("users")
-    .select("id, email, full_name, role, plan, billing_cycle, subscription_status, pack_balance, is_suspended, totp_enabled, trial_ends_at, last_login_at, created_at")
+    .select("id, email, full_name, role, plan, billing_cycle, subscription_status, pack_balance, is_suspended, totp_enabled, trial_ends_at, last_login_at, created_at, subscription_ends_at, cancel_at_period_end, is_comp, comp_note")
     .order("created_at", { ascending: false })
     .limit(500);
 

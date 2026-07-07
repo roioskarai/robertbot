@@ -8,7 +8,7 @@ import {
 import styles from "@/app/admin/admin.module.css";
 
 interface Stats {
-  users: { total: number; active: number; trial: number; cancelled: number; paused: number; suspended: number; newThisMonth: number };
+  users: { total: number; active: number; paying: number; comp: number; trial: number; cancelled: number; paused: number; suspended: number; newThisMonth: number };
   revenue: { mrr: number; arr: number; currency: string };
   planMix: Record<string, number>;
   bots: { total: number; active: number; meta: number };
@@ -87,8 +87,8 @@ export default function AdminOverview() {
           <StatCard
             icon={<Users size={18} strokeWidth={2} />}
             label="לקוחות משלמים"
-            value={s.users.active}
-            hint={`${s.users.trial} בניסיון חינם`}
+            value={s.users.paying ?? s.users.active}
+            hint={`${s.users.trial} בניסיון חינם · ${s.users.comp ?? 0} מנויי חינם`}
             className={`${styles.fadeIn} ${styles.fadeIn1}`}
           />
           <StatCard
