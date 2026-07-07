@@ -96,9 +96,10 @@ export async function POST(req: Request, props: Ctx) {
     .maybeSingle();
   if (taken) return jsonError("מספר זה כבר מחובר לבוט אחר במערכת");
 
+  // active:true set server-side (was client-only — asymmetry vs connect-meta).
   const { data, error } = await supabase
     .from("bots")
-    .update({ whatsapp_number: number })
+    .update({ whatsapp_number: number, active: true })
     .eq("id", params.id)
     .eq("user_id", session.authId)
     .select("*")

@@ -54,6 +54,11 @@ const botEditable = z.object({
 /** POST /api/bots — name is required, everything else optional. */
 export const botCreateSchema = botEditable.partial().extend({
   name: botEditable.shape.name,
+  // Optional verified WhatsApp number from onboarding step 5. The route
+  // rejects a number that isn't accompanied by a valid wa_verify_token
+  // bound to the same user+number (see lib/wa-verify-token.ts).
+  whatsapp_number: z.string().trim().max(30, "מספר הטלפון ארוך מדי").optional(),
+  wa_verify_token: z.string().max(600).optional(),
 });
 
 /** PUT /api/bots/[id] — partial merge onto the existing row. */

@@ -22,6 +22,10 @@ const securityHeaders = [
 // גם תחת Turbopack (ברירת המחדל מ-Next 16). אין צורך ב-webpack override.
 const nextConfig = {
   poweredByHeader: false,
+  // כפתור ה-DevTools הצף של Next (dev בלבד) יושב בפינה השמאלית-תחתונה וחוסם
+  // קליקים על כפתורי footer ב-RTL — גם בבדיקות Playwright שרצות מול next dev.
+  // אין לו שום השפעה על פרודקשן.
+  devIndicators: false,
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },

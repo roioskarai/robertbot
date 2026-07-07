@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
 import { buildSystemPrompt } from "@/lib/claude";
 import { PLAN_LIMITS } from "@/lib/plans";
 import { jsonError, unauthorized } from "@/lib/errors";
 import { rateLimit } from "@/lib/rate-limit";
 import { parseBody, botCreateSchema } from "@/lib/schemas";
+import { verifyWaVerifyToken } from "@/lib/wa-verify-token";
+import { isValidPhoneIL } from "@/lib/validation";
 import type { Bot } from "@/lib/types";
 
 // GET /api/bots — list the current user's bots
@@ -63,6 +66,30 @@ export async function POST(req: Request) {
     );
   }
 
+  // Optional verified WhatsApp number (onboarding step 5). Fail-closed: a
+  // number without a valid, unexpired token bound to this user+number is
+  // rejected — we never attach an unproven number at creation.
+  let connectNumber: string | null = null;
+  if (body.whatsapp_number) {
+    const num = body.whatsapp_number.trim();
+    if (!isValidPhoneIL(num)) return jsonError("מספר הטלפון אינו תקין");
+    if (!verifyWaVerifyToken(body.wa_verify_token, session.authId, num)) {
+      return jsonError(
+        "אימות המספר פג תוקף — אמת שוב או דלג וחבר מאוחר יותר מה-Dashboard",
+        403,
+      );
+    }
+    // Cross-tenant uniqueness (same guard as the connect route).
+    const admin = createAdminClient();
+    const { data: taken } = await admin
+      .from("bots")
+      .select("id")
+      .eq("whatsapp_number", num)
+      .maybeSingle();
+    if (taken) return jsonError("מספר זה כבר מחובר לבוט אחר במערכת", 409);
+    connectNumber = num;
+  }
+
   const draft: Partial<Bot> = {
     user_id: session.authId,
     name: body.name,
@@ -78,6 +105,11 @@ export async function POST(req: Request) {
     faq: body.faq ?? [],
     active: false,
   };
+  if (connectNumber) {
+    // Verified at onboarding — the bot is born connected and live.
+    draft.whatsapp_number = connectNumber;
+    draft.active = true;
+  }
 
   // Generate the system prompt from the config
   draft.system_prompt = buildSystemPrompt(draft as Bot);
@@ -89,6 +121,10 @@ export async function POST(req: Request) {
     .single();
 
   if (error) {
+    // 23505 = unique index on whatsapp_number lost a race to another tenant.
+    if (error.code === "23505") {
+      return jsonError("מספר זה כבר מחובר לבוט אחר במערכת", 409);
+    }
     console.error("[bots POST] db error:", error.message);
     return jsonError("יצירת הבוט נכשלה. נסה שוב.", 500);
   }

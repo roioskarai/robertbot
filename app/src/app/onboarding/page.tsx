@@ -8,6 +8,7 @@ import { scoped } from "@/lib/cx";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/Toast";
 import ThemeToggle from "@/components/ThemeToggle";
+import ManualConnectWizard from "@/components/ManualConnectWizard";
 import {
   MAIN_CATEGORIES,
   SUB_CATS,
@@ -157,10 +158,18 @@ function OnboardingInner() {
   const [styleIdx, setStyleIdx] = useState(0);
 
   // step 5 — whatsapp
-  const [waNumber, setWaNumber] = useState("");
+  // step 5 — real manual-connect wizard (number → OTP → verified token).
+  // The token is consumed by POST /api/bots so the bot is created connected.
+  const [waPhone, setWaPhone] = useState("");
+  const [waCode, setWaCode] = useState("");
+  const [waStep, setWaStep] = useState<"idle" | "sent" | "success">("idle");
+  const [waBusy, setWaBusy] = useState(false);
+  const [waError, setWaError] = useState<string | null>(null);
+  const [waVerified, setWaVerified] = useState<{ number: string; token: string } | null>(null);
+  const [waManualEnabled, setWaManualEnabled] = useState(true);
 
   // success
-  const [successInfo, setSuccessInfo] = useState({ botName: "", wa: "" });
+  const [successInfo, setSuccessInfo] = useState({ botName: "", wa: "", connected: false });
   const [newBotId, setNewBotId] = useState<string | null>(null);
 
   const totalSteps = 5;
@@ -417,15 +426,104 @@ function OnboardingInner() {
     return wh;
   }
 
+  // ── step 5 wizard handlers (bot-agnostic verify via /api/whatsapp/verify)
+  // Pre-detect a half-configured Twilio so the wizard shows a friendly note
+  // instead of a 503 on "שלח קוד".
+  useEffect(() => {
+    if (DEMO_MODE || curStep !== 5 || screen !== "ob") return;
+    fetch("/api/whatsapp/config")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setWaManualEnabled(d.manualEnabled ?? true); })
+      .catch(() => {}); // fail-open — the verify route returns a friendly 503
+  }, [curStep, screen]);
+
+  async function waSendCode() {
+    const num = waPhone.trim();
+    if (!isValidPhoneIL(num)) {
+      setWaError("מספר טלפון לא תקין — הזן מספר וואטסאפ ישראלי תקין");
+      return;
+    }
+    setWaError(null);
+    if (DEMO_MODE) {
+      setWaStep("sent");
+      toast("מצב הדגמה — הזן קוד כלשהו");
+      return;
+    }
+    setWaBusy(true);
+    try {
+      const res = await fetch("/api/whatsapp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ number: num }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setWaError(d.error || "שליחת הקוד נכשלה. נסה שוב.");
+        return;
+      }
+      setWaStep("sent");
+      if (d.demo) toast("סביבת פיתוח — הזן קוד כלשהו");
+    } catch {
+      setWaError("אין חיבור לשרת — נסה שוב.");
+    } finally {
+      setWaBusy(false);
+    }
+  }
+
+  async function waVerifyCode() {
+    const num = waPhone.trim();
+    if (waCode.trim().length < 4) {
+      setWaError("הזן את הקוד שקיבלת");
+      return;
+    }
+    setWaError(null);
+    if (DEMO_MODE) {
+      setWaVerified({ number: num, token: "demo" });
+      setWaStep("success");
+      return;
+    }
+    setWaBusy(true);
+    try {
+      const res = await fetch("/api/whatsapp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ number: num, code: waCode.trim() }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok || !d.token) {
+        setWaError(d.error || "אימות הקוד נכשל. נסה שוב.");
+        return;
+      }
+      setWaVerified({ number: (d.number as string) ?? num, token: d.token as string });
+      setWaStep("success");
+    } catch {
+      setWaError("אין חיבור לשרת — נסה שוב.");
+    } finally {
+      setWaBusy(false);
+    }
+  }
+
+  function waChangeNumber() {
+    setWaStep("idle");
+    setWaCode("");
+    setWaError(null);
+    setWaVerified(null);
+  }
+
   const [finishing, setFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
-  async function finish() {
+  /**
+   * waOverride: undefined = use the wizard's verified state;
+   * null = explicit skip (create without a number).
+   */
+  async function finish(waOverride?: { number: string; token: string } | null) {
     if (finishing) return; // guard against a double POST → duplicate bot
     setFinishing(true);
     setFinishError(null);
 
+    const wa = waOverride === undefined ? waVerified : waOverride;
     const botName = details.name || "הבוט שלי";
-    setSuccessInfo({ botName, wa: waNumber || "---" });
+    setSuccessInfo({ botName, wa: wa?.number || "---", connected: !!wa });
 
     const payload = {
       name: details.name || botName,
@@ -439,6 +537,9 @@ function OnboardingInner() {
       faq: faqs,
       working_hours: buildWorkingHours(),
       style: STYLE_OPTIONS[styleIdx].value,
+      // Verified at step 5 → the server validates the token and creates the
+      // bot already connected (whatsapp_number + active).
+      ...(wa ? { whatsapp_number: wa.number, wa_verify_token: wa.token } : {}),
     };
 
     // Demo mode — no real backend; complete the wizard deterministically.
@@ -1113,38 +1214,48 @@ function OnboardingInner() {
             </div>
           </div>
 
-          {/* STEP 5 */}
+          {/* STEP 5 — real guided connect wizard (1 מספר → 2 קוד → 3 הצלחה) */}
           <div className={c("ob-pane") + (curStep === 5 ? " " + styles.act : "")}>
             <div className={c("pane-title")}>חיבור לוואטסאפ</div>
-            <div className={c("pane-sub")}>חבר את המספר העסקי שלך — Robert יתחיל לענות מיד</div>
+            <div className={c("pane-sub")}>חבר ואמת את המספר העסקי שלך — Robert יתחיל לענות מיד</div>
 
             <div className={c("section-card")}>
               <div className={c("section-card-title")}>המספר העסקי שלך</div>
-              <div className={c("fg")}>
-                <label className={c("fl")}>מספר וואטסאפ</label>
-                <input className={c("fi")} placeholder="050-0000000" maxLength={20} value={waNumber} onChange={(e) => setWaNumber(e.target.value)} />
-                <span className={c("fhint")}>המספר שעליו הלקוחות שלך כותבים לך</span>
-              </div>
-              <div style={{ fontSize: 12.5, color: "var(--t3)", lineHeight: 1.6, marginTop: 4 }}>
-                בסיום ההקמה נחבר ונאמת את המספר מתוך ה-Dashboard — באמצעות קוד אימות ב-SMS
-                או חיבור מאובטח דרך Meta. כך אנחנו מוודאים שהמספר באמת שלך.
-              </div>
-            </div>
-
-            <div className={c("connect-steps-list")}>
-              {[
-                ["הכנס את המספר העסקי", "המספר שעליו הלקוחות כותבים לך כיום"],
-                ["קבל קוד אימות ב-SMS", "תוך כ-30 שניות תקבל SMS עם קוד 6 ספרות"],
-                ["Robert פעיל מיד", "הבוט שלך יתחיל לענות ללקוחות תוך דקות"],
-              ].map(([title, sub], i) => (
-                <div className={c("cstep")} key={i}>
-                  <div className={c("cstep-num")}>{i + 1}</div>
-                  <div className={c("cstep-body")}>
-                    <div className={c("cstep-title")}>{title}</div>
-                    <div className={c("cstep-sub")}>{sub}</div>
-                  </div>
+              {!waManualEnabled ? (
+                <div style={{ fontSize: 12.5, color: "var(--t3)", lineHeight: 1.7 }}>
+                  חיבור ידני יופעל בקרוב — אפשר לדלג ולחבר מאוחר יותר מה-Dashboard.
                 </div>
-              ))}
+              ) : (
+                <ManualConnectWizard
+                  classes={c}
+                  step={waStep}
+                  phone={waPhone}
+                  code={waCode}
+                  busy={waBusy}
+                  error={waError}
+                  onPhoneChange={(v) => { setWaPhone(v); setWaError(null); }}
+                  onCodeChange={(v) => { setWaCode(v.replace(/\D/g, "")); setWaError(null); }}
+                  onSendCode={waSendCode}
+                  onVerify={waVerifyCode}
+                  onResend={waSendCode}
+                  onChangeNumber={waChangeNumber}
+                  success={{
+                    title: "המספר אומת בהצלחה!",
+                    sub: "המספר יחובר לבוט שלך אוטומטית בסיום ההקמה.",
+                  }}
+                />
+              )}
+              {waStep !== "success" && (
+                <button
+                  type="button"
+                  className={c("btn btn-ghost btn-xs")}
+                  style={{ marginTop: 10, padding: 0 }}
+                  onClick={() => { setWaVerified(null); finish(null); }}
+                  disabled={finishing}
+                >
+                  דלג לעכשיו — אחבר מאוחר יותר מה-Dashboard
+                </button>
+              )}
             </div>
 
             <div className={c("section-card")} style={{ background: "#fffbeb", borderColor: "#fde68a" }}>
@@ -1196,9 +1307,11 @@ function OnboardingInner() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
-            <div className={c("success-title")}>הבוט שלך מוכן!</div>
+            <div className={c("success-title")}>{successInfo.connected ? "הבוט שלך מוכן!" : "הבוט שלך כמעט מוכן!"}</div>
             <div className={c("success-sub")}>
-              הגדרת הבוט הושלמה. נותר רק לחבר את הוואטסאפ מה-Dashboard — וזהו, Robert יתחיל לענות ללקוחות.
+              {successInfo.connected
+                ? "הבוט מחובר לוואטסאפ ומתחיל לענות ללקוחות שכותבים למספר."
+                : "הגדרת הבוט הושלמה. נותר רק לחבר את הוואטסאפ מה-Dashboard — וזהו, Robert יתחיל לענות ללקוחות."}
             </div>
             <div className={c("success-details")}>
               <div className={c("sd-row")}>
@@ -1211,26 +1324,36 @@ function OnboardingInner() {
               </div>
               <div className={c("sd-row")}>
                 <span className={c("sd-label")}>סטטוס</span>
-                <span className={c("sd-val")} style={{ color: "var(--amber, #d97706)" }}>ממתין לחיבור וואטסאפ</span>
+                {successInfo.connected ? (
+                  <span className={c("sd-val")} style={{ color: "var(--green-d)" }}>מחובר לוואטסאפ</span>
+                ) : (
+                  <span className={c("sd-val")} style={{ color: "var(--amber, #d97706)" }}>ממתין לחיבור וואטסאפ</span>
+                )}
               </div>
             </div>
-            <button
-              className={c("btn btn-primary")}
-              onClick={() => {
-                // #14 — hand off the new bot so the Dashboard opens straight on
-                // its WhatsApp connect step (verify + activate from there).
-                if (newBotId) {
-                  try {
-                    sessionStorage.setItem("rb_open_bot", JSON.stringify({ id: newBotId, tab: "connect" }));
-                  } catch {
-                    /* ignore storage errors */
+            {successInfo.connected ? (
+              <button className={c("btn btn-primary")} onClick={() => router.push("/dashboard")}>
+                כניסה ל-Dashboard
+              </button>
+            ) : (
+              <button
+                className={c("btn btn-primary")}
+                onClick={() => {
+                  // #14 — hand off the new bot so the Dashboard opens straight on
+                  // its WhatsApp connect step (verify + activate from there).
+                  if (newBotId) {
+                    try {
+                      sessionStorage.setItem("rb_open_bot", JSON.stringify({ id: newBotId, tab: "connect" }));
+                    } catch {
+                      /* ignore storage errors */
+                    }
                   }
-                }
-                router.push("/dashboard");
-              }}
-            >
-              חבר וואטסאפ ב-Dashboard
-            </button>
+                  router.push("/dashboard");
+                }}
+              >
+                חבר וואטסאפ ב-Dashboard
+              </button>
+            )}
           </div>
         </div>
       </div>
