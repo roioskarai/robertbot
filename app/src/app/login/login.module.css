@@ -71,13 +71,6 @@
   display: flex; align-items: center; justify-content: center; gap: 9px;
   margin-bottom: 22px;
 }
-.lg-logo-mark {
-  width: 36px; height: 36px; border-radius: 10px;
-  background: linear-gradient(135deg, var(--green), var(--green-d));
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 3px 10px rgba(3,152,85,.4);
-}
-.lg-logo-mark svg { width: 21px; height: 21px; }
 .lg-logo-name { font-size: 22px; font-weight: 900; letter-spacing: -.5px; color: var(--t1); }
 .lg-logo-name span { color: var(--green-d); }
 

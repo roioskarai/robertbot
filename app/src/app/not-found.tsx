@@ -9,9 +9,6 @@ export default function NotFound() {
     <div className={styles.nf}>
       <nav className={c("nav")}>
         <Link href="/" className={c("nav-logo")}>
-          <div className={c("nav-logo-mark")}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M8 12h8M12 8l4 4-4 4" /></svg>
-          </div>
           <div className={c("nav-logo-name")}>Robert<em>.</em></div>
         </Link>
         <div className={c("nav-links")}>

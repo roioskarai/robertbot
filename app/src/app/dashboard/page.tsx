@@ -25,13 +25,6 @@ const DEMO_MODE =
   !process.env.NEXT_PUBLIC_SUPABASE_URL ||
   process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder");
 
-const LogoMark = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <path d="M8 12h8M12 8l4 4-4 4" />
-  </svg>
-);
-
 // ── demo fallback data (used when not signed in / no Supabase) ──
 const DEMO_BOTS: Partial<Bot>[] = [
   {
@@ -613,10 +606,9 @@ export default function DashboardPage() {
 
       {/* SIDEBAR */}
       <aside className={c("sb") + (sbOpen ? " " + styles.open : "")}>
-        <div className={c("sb-logo")}>
-          <div className={c("sb-logo-mark")}><LogoMark /></div>
+        <Link href="/" className={c("sb-logo")} style={{ textDecoration: "none" }}>
           <div className={c("sb-logo-name")}>Robert<span>.</span></div>
-        </div>
+        </Link>
         <div className={c("sb-scroll")}>
           <div className={c("sb-group")}>
             <div className={c("sb-item")} style={{ marginBottom: 4 }} onClick={() => router.push("/")}>
@@ -695,10 +687,9 @@ export default function DashboardPage() {
             <button className={c("hamburger-btn")} onClick={() => setSbOpen((o) => !o)}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
             </button>
-            <div className={c("tb-logo")}>
-              <div className={c("tb-logo-mark")}><LogoMark /></div>
+            <Link href="/" className={c("tb-logo")} style={{ textDecoration: "none" }}>
               <span className={c("tb-logo-name")}>Robert<em>.</em></span>
-            </div>
+            </Link>
           </div>
           <div className={c("tb-right")}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

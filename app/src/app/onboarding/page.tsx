@@ -30,13 +30,6 @@ const DEMO_MODE =
   !process.env.NEXT_PUBLIC_SUPABASE_URL ||
   process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder");
 
-const LogoMark = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <path d="M8 12h8M12 8l4 4-4 4" />
-  </svg>
-);
-
 const STYLE_OPTIONS: { badge: string; badgeClass: string; name: string; ex: string; value: BotStyle }[] = [
   { badge: "מומלץ", badgeClass: "sb-g", name: "חברותי ונעים", ex: '"היי! תודה שפנית 😊 שמחים לעזור לך..."', value: "friendly" },
   { badge: "מקצועי", badgeClass: "sb-b", name: "רשמי ומקצועי", ex: '"שלום, תודה על פנייתך. נשמח לסייע..."', value: "professional" },
@@ -591,14 +584,11 @@ function OnboardingInner() {
       <div className={c("screen") + (screen === "signup" ? " " + styles.act : "")}>
         <div className={c("signup-wrap")}>
           <div className={c("signup-card")}>
-            <div className={c("signup-logo")}>
-              <div className={c("signup-logo-mark")}>
-                <LogoMark />
-              </div>
+            <Link href="/" className={c("signup-logo")} style={{ textDecoration: "none" }}>
               <div className={c("signup-logo-name")}>
                 Robert<span>.</span>
               </div>
-            </div>
+            </Link>
             <div className={c("signup-title")}>התחל 7 ימים חינם</div>
             <div className={c("signup-sub")}>ללא כרטיס אשראי. מבטל מתי שרוצה.</div>
             <div style={{ display: "flex", gap: 10 }}>
@@ -749,14 +739,11 @@ function OnboardingInner() {
       <div className={c("screen") + (screen === "verify" ? " " + styles.act : "")}>
         <div className={c("signup-wrap")}>
           <div className={c("signup-card")}>
-            <div className={c("signup-logo")}>
-              <div className={c("signup-logo-mark")}>
-                <LogoMark />
-              </div>
+            <Link href="/" className={c("signup-logo")} style={{ textDecoration: "none" }}>
               <div className={c("signup-logo-name")}>
                 Robert<span>.</span>
               </div>
-            </div>
+            </Link>
             <div className={c("signup-title")}>אמת את כתובת המייל</div>
             {emailFailed ? (
               <div
@@ -843,14 +830,11 @@ function OnboardingInner() {
       {/* SCREEN 2: ONBOARDING */}
       <div className={c("screen") + (screen === "ob" ? " " + styles.act : "")}>
         <div className={c("ob-header")}>
-          <div className={c("ob-logo")}>
-            <div className={c("ob-logo-mark")}>
-              <LogoMark />
-            </div>
+          <Link href="/" className={c("ob-logo")} style={{ textDecoration: "none" }}>
             <div className={c("ob-logo-name")}>
               Robert<span>.</span>
             </div>
-          </div>
+          </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div className={c("ob-step-label")}>שלב {curStep} מתוך {totalSteps}</div>
             <ThemeToggle />

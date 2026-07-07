@@ -41,26 +41,36 @@ export default function HeaderAuth({
       return;
     }
     let cancelled = false;
-    try {
-      const supabase = createClient();
-      supabase.auth
-        .getUser()
-        .then(({ data }) => {
-          if (!cancelled) setState(data.user ? "in" : "out");
+
+    // Server-truth probe: /api/auth/me reads the session from cookies on the
+    // server, so it stays correct even when the browser-side Supabase client
+    // can't hydrate a session (the bug that hid "האזור האישי" from logged-in
+    // users). The auth-state subscription just re-probes on changes.
+    const probe = () => {
+      fetch("/api/auth/me", { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (!cancelled) setState(d?.authenticated ? "in" : "out");
         })
         .catch(() => {
           if (!cancelled) setState("out");
         });
-      const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (!cancelled) setState(session?.user ? "in" : "out");
+    };
+    probe();
+
+    try {
+      const supabase = createClient();
+      const { data: sub } = supabase.auth.onAuthStateChange(() => {
+        if (!cancelled) probe();
       });
       return () => {
         cancelled = true;
         sub.subscription.unsubscribe();
       };
     } catch {
-      setState("out");
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
   }, []);
 

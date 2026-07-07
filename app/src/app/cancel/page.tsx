@@ -95,7 +95,6 @@ export default function CancelPage() {
   const Nav = (
     <nav className={c("nav")}>
       <Link href="/" className={c("nav-logo")}>
-        <div className={c("nlm")}><svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M8 12h8M12 8l4 4-4 4" /></svg></div>
         <div className={c("nln")}>Robert<em>.</em></div>
       </Link>
       <Link href="/dashboard" style={{ fontSize: 13, color: "#64748b", textDecoration: "none" }}>חזור ל-Dashboard</Link>

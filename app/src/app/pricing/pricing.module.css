@@ -19,8 +19,6 @@
 }
 .nav-inner { display:flex; align-items:center; justify-content:space-between; }
 .nav-logo { display:flex; align-items:center; gap:9px; text-decoration:none; }
-.logo-mark { width:28px; height:28px; border-radius:7px; background:linear-gradient(135deg,var(--green-l),var(--green)); display:flex; align-items:center; justify-content:center; }
-.logo-mark svg { width:15px; height:15px; }
 .logo-name { font-size:17px; font-weight:800; color:var(--ink); letter-spacing:-.4px; }
 .logo-name em { font-style:normal; color:var(--green); }
 .nav-btns { display:flex; gap:8px; }

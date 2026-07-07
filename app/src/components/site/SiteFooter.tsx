@@ -1,3 +1,4 @@
+import Link from "next/link";
 import styles from "@/app/landing.module.css";
 import { scoped } from "@/lib/cx";
 import type { FooterConfig } from "@/lib/site/types";
@@ -8,10 +9,10 @@ const c = scoped(styles);
 export default function SiteFooter({ footer }: { footer: FooterConfig }) {
   return (
     <footer className={c("footer")}>
-      <div className={c("footer-logo")}>
+      <Link href="/" className={c("footer-logo")} style={{ textDecoration: "none" }}>
         {footer.logoText ?? "Robert"}
         <em>.</em>
-      </div>
+      </Link>
       {footer.copyright ? <div className={c("footer-copy")}>{footer.copyright}</div> : null}
       <div className={c("footer-links")}>
         {(footer.links ?? []).map((l, i) => (

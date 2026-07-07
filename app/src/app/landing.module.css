@@ -33,6 +33,9 @@
 
 .nav-right { display:flex; align-items:center; gap:16px; }
 .nav-theme { color:var(--t2); background:var(--white); border-color:var(--bdr2); }
+/* auth buttons — sibling of .nav-links so they stay visible on mobile too */
+.nav-auth { display:flex; align-items:center; gap:10px; }
+.nav-auth a, .nav-auth button { cursor:pointer; font-family:inherit; }
 
 .nav-links { display:flex; gap:24px; list-style:none; align-items:center; }
 .nav-links a {
@@ -574,6 +577,10 @@
 @media(max-width:860px){
   .nav { padding:0 18px; height:52px; }
   .nav-links { display:none; }
+  /* auth buttons stay visible — compact them for narrow screens */
+  .nav-right { gap:8px; }
+  .nav-auth { gap:6px; }
+  .nav-auth .nav-login, .nav-auth .nav-cta { padding:7px 12px; font-size:12.5px; }
 
   .hero {
     grid-template-columns:1fr;

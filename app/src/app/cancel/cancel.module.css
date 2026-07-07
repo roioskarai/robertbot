@@ -15,8 +15,6 @@
 
 .nav{position:fixed;top:0;inset-inline:0;height:54px;background:var(--white);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:10;}
 .nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
-.nlm{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,var(--green),var(--green-d));display:flex;align-items:center;justify-content:center;}
-.nlm svg{width:13px;height:13px;}
 .nln{font-size:15px;font-weight:800;color:var(--t1);}
 .nln em{font-style:normal;color:var(--green-d);}
 .back-btn{display:flex;align-items:center;gap:6px;background:transparent;border:none;color:var(--t3);font-size:13px;font-weight:600;cursor:pointer;font-family:'Rubik',sans-serif;padding:0;margin-bottom:20px;transition:color .15s;}

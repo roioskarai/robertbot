@@ -1,3 +1,4 @@
+import Link from "next/link";
 import styles from "@/app/landing.module.css";
 import { scoped } from "@/lib/cx";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -10,7 +11,8 @@ const c = scoped(styles);
 export default function SiteHeader({ header }: { header: HeaderConfig }) {
   return (
     <nav className={c("nav")}>
-      <div className={c("logo")}>
+      {/* logo always navigates home */}
+      <Link href="/" className={c("logo")} style={{ textDecoration: "none" }}>
         {header.logoImage ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img src={header.logoImage} alt={header.logoText ?? "logo"} style={{ height: 28 }} />
@@ -20,7 +22,7 @@ export default function SiteHeader({ header }: { header: HeaderConfig }) {
             <em>.</em>
           </>
         )}
-      </div>
+      </Link>
       <div className={c("nav-right")}>
         <ul className={c("nav-links")}>
           {(header.navItems ?? []).map((item, i) => (
@@ -28,7 +30,13 @@ export default function SiteHeader({ header }: { header: HeaderConfig }) {
               <SmartLink href={item.href}>{item.label}</SmartLink>
             </li>
           ))}
+        </ul>
+        {/* auth buttons live OUTSIDE .nav-links so the mobile media query
+            (which hides the links) never hides them — always visible,
+            auth-aware, on every viewport (owner item #10) */}
+        <div className={c("nav-auth")}>
           <HeaderAuth
+            as="div"
             loginLabel={header.loginLabel ?? "כניסה"}
             loginHref={header.loginHref ?? "/login"}
             ctaLabel={header.ctaLabel ?? "הרשמה חינם"}
@@ -36,7 +44,7 @@ export default function SiteHeader({ header }: { header: HeaderConfig }) {
             loginClass={c("nav-login")}
             ctaClass={c("nav-cta")}
           />
-        </ul>
+        </div>
         <ThemeToggle className={c("nav-theme")} />
       </div>
     </nav>

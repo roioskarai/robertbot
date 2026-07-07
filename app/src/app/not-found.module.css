@@ -16,8 +16,6 @@
   padding:0 24px; z-index:10;
 }
 .nav-logo { display:flex; align-items:center; gap:8px; text-decoration:none; }
-.nav-logo-mark { width:26px; height:26px; border-radius:7px; background:linear-gradient(135deg,var(--green),var(--green-d)); display:flex; align-items:center; justify-content:center; }
-.nav-logo-mark svg { width:14px; height:14px; }
 .nav-logo-name { font-size:16px; font-weight:800; color:var(--t1); }
 .nav-logo-name em { font-style:normal; color:var(--green-d); }
 .nav-links { display:flex; gap:10px; }

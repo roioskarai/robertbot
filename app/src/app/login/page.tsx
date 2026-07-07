@@ -11,13 +11,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 
 const c = scoped(styles);
 
-const LogoMark = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <path d="M8 12h8M12 8l4 4-4 4" />
-  </svg>
-);
-
 export default function LoginPage() {
   return (
     <Suspense fallback={null}>
@@ -112,14 +105,11 @@ function LoginInner() {
 
       <div className={c("lg-wrap")}>
         <form className={c("lg-card")} onSubmit={doLogin}>
-          <div className={c("lg-logo")}>
-            <div className={c("lg-logo-mark")}>
-              <LogoMark />
-            </div>
+          <Link href="/" className={c("lg-logo")} style={{ textDecoration: "none" }}>
             <div className={c("lg-logo-name")}>
               Robert<span>.</span>
             </div>
-          </div>
+          </Link>
 
           <div className={c("lg-title")}>ברוך שובך 👋</div>
           <div className={c("lg-sub")}>התחבר לאזור האישי שלך</div>
