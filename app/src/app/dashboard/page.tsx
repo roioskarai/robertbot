@@ -9,6 +9,7 @@ import { useToast } from "@/components/Toast";
 import { createClient } from "@/lib/supabase/client";
 import PricingPlans from "@/components/PricingPlans";
 import ConnectWhatsApp from "@/components/ConnectWhatsApp";
+import ManualConnectWizard from "@/components/ManualConnectWizard";
 import ThemeToggle from "@/components/ThemeToggle";
 import type { Bot } from "@/lib/types";
 import { resolvePlanId, planLabelHe, PRICING, PLAN_LIMITS, type PlanId } from "@/lib/plans";
@@ -924,81 +925,26 @@ export default function DashboardPage() {
                         <p style={{ fontSize: 13, fontWeight: 600, color: "var(--t2)", marginBottom: 10 }}>חיבור מספר ידני</p>
                       )}
 
-                      {/* step badges: 1 מספר → 2 קוד → 3 הצלחה (#12) */}
-                      <div className={c("wa-steps")}>
-                        <div className={c("wa-step") + " " + (manualStep === "idle" ? c("active") : c("done"))}>
-                          <span className={c("wa-step-num")}>{manualStep === "idle" ? "1" : "✓"}</span>
-                          <span className={c("wa-step-label")}>מספר</span>
-                        </div>
-                        <div className={c("wa-step-line") + (manualStep !== "idle" ? " " + c("done") : "")} />
-                        <div className={c("wa-step") + " " + (manualStep === "sent" ? c("active") : manualStep === "success" ? c("done") : "")}>
-                          <span className={c("wa-step-num")}>{manualStep === "success" ? "✓" : "2"}</span>
-                          <span className={c("wa-step-label")}>קוד</span>
-                        </div>
-                        <div className={c("wa-step-line") + (manualStep === "success" ? " " + c("done") : "")} />
-                        <div className={c("wa-step") + " " + (manualStep === "success" ? c("active") : "")}>
-                          <span className={c("wa-step-num")}>3</span>
-                          <span className={c("wa-step-label")}>הצלחה</span>
-                        </div>
-                      </div>
-
-                      {manualStep === "idle" && (
-                        <div>
-                          <div style={{ display: "flex", gap: 8 }}>
-                            <input
-                              className={c("fi")}
-                              placeholder="05X-XXXXXXX"
-                              type="tel"
-                              inputMode="tel"
-                              style={{ flex: 1 }}
-                              value={manualPhone}
-                              onChange={(e) => { setManualPhone(e.target.value); setManualError(null); }}
-                              onKeyDown={(e) => { if (e.key === "Enter") sendManualCode(); }}
-                            />
-                            <button className={c("btn btn-primary btn-sm")} onClick={sendManualCode} disabled={manualBusy}>
-                              {manualBusy ? "שולח..." : "שלח קוד"}
-                            </button>
-                          </div>
-                          {manualError && <div className={c("field-err")} role="alert">{manualError}</div>}
-                        </div>
-                      )}
-
-                      {manualStep === "sent" && (
-                        <div>
-                          <div style={{ fontSize: 12, color: "var(--t3)", marginBottom: 8 }}>שלחנו קוד אימות אל {manualPhone}. הזן אותו כאן:</div>
-                          <div style={{ display: "flex", gap: 8 }}>
-                            <input
-                              className={c("fi")}
-                              placeholder="קוד אימות"
-                              inputMode="numeric"
-                              style={{ flex: 1 }}
-                              value={manualCode}
-                              onChange={(e) => { setManualCode(e.target.value.replace(/\D/g, "")); setManualError(null); }}
-                              onKeyDown={(e) => { if (e.key === "Enter") verifyManualCode(); }}
-                            />
-                            <button className={c("btn btn-primary btn-sm")} onClick={verifyManualCode} disabled={manualBusy}>
-                              {manualBusy ? "מאמת..." : "אמת וחבר"}
-                            </button>
-                          </div>
-                          {manualError && <div className={c("field-err")} role="alert">{manualError}</div>}
-                          <div style={{ display: "flex", gap: 14, marginTop: 8 }}>
-                            <button className={c("btn btn-ghost btn-xs")} onClick={resendManualCode} disabled={manualBusy}>שלח קוד שוב</button>
-                            <button className={c("btn btn-ghost btn-xs")} onClick={changeManualNumber} disabled={manualBusy}>החלף מספר</button>
-                          </div>
-                        </div>
-                      )}
-
-                      {manualStep === "success" && (
-                        <div className={c("wa-success")}>
-                          <div className={c("wa-success-icon")}>
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--green-d)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                          </div>
-                          <div className={c("wa-success-title")}>המספר חובר בהצלחה!</div>
-                          <div className={c("wa-success-num")}>{manualPhone}</div>
-                          <div className={c("wa-success-sub")}>הבוט פעיל ומתחיל לענות ללקוחות שכותבים למספר הזה.</div>
-                          <button className={c("btn btn-primary btn-sm")} onClick={closeManualSuccess}>סגור</button>
-                        </div>
-                      )}
+                      <ManualConnectWizard
+                        classes={c}
+                        step={manualStep}
+                        phone={manualPhone}
+                        code={manualCode}
+                        busy={manualBusy}
+                        error={manualError}
+                        onPhoneChange={(v) => { setManualPhone(v); setManualError(null); }}
+                        onCodeChange={(v) => { setManualCode(v.replace(/\D/g, "")); setManualError(null); }}
+                        onSendCode={sendManualCode}
+                        onVerify={verifyManualCode}
+                        onResend={resendManualCode}
+                        onChangeNumber={changeManualNumber}
+                        success={{
+                          title: "המספר חובר בהצלחה!",
+                          sub: "הבוט פעיל ומתחיל לענות ללקוחות שכותבים למספר הזה.",
+                          ctaLabel: "סגור",
+                          onCta: closeManualSuccess,
+                        }}
+                      />
                     </div>
                   )}
                   {!editBot.id && (
