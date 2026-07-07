@@ -1,2 +1,2 @@
 robertbot build marker
-redeploy for corrected RESEND_FROM env 2026-07-05
+owner-e2e-findings release (batches 1-6, 12 items) 2026-07-07 commit d708384
