@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Search, RefreshCw, ShieldOff, ShieldCheck, Filter, Gift, X } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
 import { PLAN_IDS, planLabelHe, resolvePlanId, type PlanId } from "@/lib/plans";
+import DataTable, { type Column } from "@/components/admin/DataTable";
 
 interface User {
   id: string; email: string; full_name: string | null;
@@ -19,8 +20,6 @@ interface User {
 
 const STATUS_HE: Record<string,string> = { trial:"ניסיון", active:"פעיל", cancelled:"בוטל", paused:"מושהה" };
 
-// ISO → local datetime-local input value (same pattern as site/banners).
-const toLocalInput = (iso: string | null) => (iso ? new Date(iso).toISOString().slice(0, 16) : "");
 const fmtDate = (iso: string | null) =>
   iso ? new Date(iso).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric" }) : null;
 
@@ -32,16 +31,6 @@ const modalBox: React.CSSProperties = {
   background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14,
   padding: 22, width: "100%", maxWidth: 440,
 };
-
-function SkRow() {
-  return (
-    <tr>
-      {[200,120,100,90,70,50,50,110].map((w,i) => (
-        <td key={i}><div className={`${styles.skeleton} ${styles.skBlock}`} style={{ width: w }} /></td>
-      ))}
-    </tr>
-  );
-}
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
@@ -106,7 +95,6 @@ export default function AdminUsers() {
   async function submitGrant() {
     if (!grantFor) return;
     const until = grantUntil ? new Date(grantUntil) : null;
-    // eslint-disable-next-line react-hooks/purity -- click handler, not render: "future date" check needs the real clock
     if (!until || Number.isNaN(until.getTime()) || until.getTime() <= Date.now()) {
       setGrantErr("בחר תאריך תוקף עתידי");
       return;
@@ -133,6 +121,97 @@ export default function AdminUsers() {
       subscription_ends_at: null,
     }, "ההענקה בוטלה");
   }
+
+  const userColumns: Column<User>[] = [
+    {
+      key: "email", label: "משתמש", sortable: true,
+      render: (u) => (
+        <div className={styles.row} style={{ gap: 8 }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
+            background: u.is_suspended ? "var(--danger-bg)" : "var(--accent-soft)",
+            color: u.is_suspended ? "var(--danger)" : "var(--accent)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontWeight: 700, fontSize: 12,
+          }}>{u.email.slice(0,2).toUpperCase()}</div>
+          <div>
+            <div className={styles.strong} style={{ fontSize: 13 }}>{u.email}</div>
+            <div style={{ display: "flex", gap: 5, marginTop: 2 }}>
+              {u.role === "admin" && <span className={`${styles.badge} ${styles.badgeAdmin}`}>אדמין</span>}
+              {u.is_suspended && <span className={`${styles.badge} ${styles.badgeCancelled}`}>חסום</span>}
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "plan", label: "מסלול", sortable: true,
+      render: (u) => (
+        <div className={styles.row} style={{ gap: 6 }}>
+          <select
+            className={`${styles.input} ${styles.inputSm} ${styles.select}`}
+            style={{ width: "auto", minWidth: 110 }}
+            value={u.plan}
+            onChange={e => patch(u.id, { plan: e.target.value }, `מסלול עודכן ל-${planLabelHe(resolvePlanId(e.target.value))}`)}>
+            {PLAN_IDS.map(p => <option key={p} value={p}>{planLabelHe(p)}</option>)}
+          </select>
+          {u.is_comp && <span className={`${styles.badge} ${styles.badgeGreen}`} title={u.comp_note ?? undefined}>חינם</span>}
+        </div>
+      ),
+    },
+    {
+      key: "subscription_status", label: "סטטוס", sortable: true,
+      render: (u) => (
+        <select
+          className={`${styles.input} ${styles.inputSm} ${styles.select}`}
+          style={{ width: "auto", minWidth: 100 }}
+          value={u.subscription_status}
+          onChange={e => patch(u.id, { subscription_status: e.target.value }, "סטטוס עודכן")}>
+          {Object.entries(STATUS_HE).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
+        </select>
+      ),
+    },
+    {
+      key: "subscription_ends_at", label: "תוקף עד", sortable: true,
+      render: (u) => <span style={{ fontVariantNumeric: "tabular-nums", fontSize: 12.5 }}>{fmtDate(u.subscription_ends_at) ?? <span className={styles.muted}>—</span>}</span>,
+    },
+    {
+      key: "bots", label: "בוטים", align: "center",
+      sortValue: (u) => u.bots.active,
+      render: (u) => <span className={`${styles.badge} ${u.bots.active>0?styles.badgeActive:styles.badgeCancelled}`}>{u.bots.active}/{u.bots.total}</span>,
+    },
+    {
+      key: "pack_balance", label: "Packs", align: "center", sortable: true,
+      render: (u) => u.pack_balance > 0
+        ? <span className={`${styles.badge} ${styles.badgeGreen}`}>{u.pack_balance}</span>
+        : <span className={styles.muted}>—</span>,
+    },
+    {
+      key: "totp_enabled", label: "2FA", align: "center",
+      render: (u) => u.totp_enabled
+        ? <ShieldCheck size={16} strokeWidth={2} style={{ color: "var(--success)" }} />
+        : <ShieldOff size={16} strokeWidth={2} style={{ color: "var(--t4)" }} />,
+    },
+    {
+      key: "actions", label: "פעולות", align: "center",
+      render: (u) => (
+        <div className={styles.row} style={{ gap: 6, justifyContent: "center" }}>
+          {u.is_comp ? (
+            <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} onClick={() => revokeGrant(u)}>בטל הענקה</button>
+          ) : (
+            <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} title="הענק מסלול ללא תשלום, עם תוקף" onClick={() => openGrant(u)}>
+              <Gift size={13} strokeWidth={2} /> הענק
+            </button>
+          )}
+          <button
+            className={`${styles.btn} ${u.is_suspended?styles.btnGhost:styles.btnDanger} ${styles.btnSm}`}
+            onClick={() => patch(u.id, { is_suspended: !u.is_suspended }, u.is_suspended ? "משתמש שוחרר" : "משתמש חסום")}>
+            {u.is_suspended ? "שחרר" : "חסום"}
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -166,120 +245,14 @@ export default function AdminUsers() {
         </select>
       </div>
 
-      <div className={styles.tableWrap}>
-        <div className={styles.tableScroll}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>משתמש</th>
-                <th>מסלול</th>
-                <th>סטטוס</th>
-                <th>תוקף עד</th>
-                <th style={{ textAlign: "center" }}>בוטים</th>
-                <th style={{ textAlign: "center" }}>Packs</th>
-                <th style={{ textAlign: "center" }}>2FA</th>
-                <th style={{ textAlign: "center" }}>פעולות</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && [0,1,2,3,4,5].map(i=><SkRow key={i}/>)}
-              {!loading && users.length === 0 && (
-                <tr><td colSpan={8}>
-                  <div className={styles.tableEmpty}>לא נמצאו משתמשים</div>
-                </td></tr>
-              )}
-              {!loading && users.map((u) => (
-                <tr key={u.id}>
-                  <td>
-                    <div className={styles.row} style={{ gap: 8 }}>
-                      <div style={{
-                        width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
-                        background: u.is_suspended ? "var(--danger-bg)" : "var(--accent-soft)",
-                        color: u.is_suspended ? "var(--danger)" : "var(--accent)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontWeight: 700, fontSize: 12,
-                      }}>
-                        {u.email.slice(0,2).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className={styles.strong} style={{ fontSize: 13 }}>{u.email}</div>
-                        <div style={{ display: "flex", gap: 5, marginTop: 2 }}>
-                          {u.role === "admin" && <span className={`${styles.badge} ${styles.badgeAdmin}`}>אדמין</span>}
-                          {u.is_suspended && <span className={`${styles.badge} ${styles.badgeCancelled}`}>חסום</span>}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div className={styles.row} style={{ gap: 6 }}>
-                      <select
-                        className={`${styles.input} ${styles.inputSm} ${styles.select}`}
-                        style={{ width: "auto", minWidth: 110 }}
-                        value={u.plan}
-                        onChange={e => patch(u.id, { plan: e.target.value }, `מסלול עודכן ל-${planLabelHe(resolvePlanId(e.target.value))}`)}>
-                        {PLAN_IDS.map(p => <option key={p} value={p}>{planLabelHe(p)}</option>)}
-                      </select>
-                      {u.is_comp && <span className={`${styles.badge} ${styles.badgeGreen}`} title={u.comp_note ?? undefined}>חינם</span>}
-                    </div>
-                  </td>
-                  <td>
-                    <select
-                      className={`${styles.input} ${styles.inputSm} ${styles.select}`}
-                      style={{ width: "auto", minWidth: 100 }}
-                      value={u.subscription_status}
-                      onChange={e => patch(u.id, { subscription_status: e.target.value }, "סטטוס עודכן")}>
-                      {Object.entries(STATUS_HE).map(([k,v]) =>
-                        <option key={k} value={k}>{v}</option>)}
-                    </select>
-                  </td>
-                  <td style={{ fontVariantNumeric: "tabular-nums", fontSize: 12.5 }}>
-                    {fmtDate(u.subscription_ends_at) ?? <span className={styles.muted}>—</span>}
-                  </td>
-                  <td style={{ textAlign: "center" }}>
-                    <span className={`${styles.badge} ${u.bots.active>0?styles.badgeActive:styles.badgeCancelled}`}>
-                      {u.bots.active}/{u.bots.total}
-                    </span>
-                  </td>
-                  <td style={{ textAlign: "center", fontVariantNumeric: "tabular-nums" }}>
-                    {u.pack_balance > 0
-                      ? <span className={`${styles.badge} ${styles.badgeGreen}`}>{u.pack_balance}</span>
-                      : <span className={styles.muted}>—</span>}
-                  </td>
-                  <td style={{ textAlign: "center" }}>
-                    {u.totp_enabled
-                      ? <ShieldCheck size={16} strokeWidth={2} style={{ color: "var(--success)" }} />
-                      : <ShieldOff size={16} strokeWidth={2} style={{ color: "var(--t4)" }} />}
-                  </td>
-                  <td style={{ textAlign: "center" }}>
-                    <div className={styles.row} style={{ gap: 6, justifyContent: "center" }}>
-                      {u.is_comp ? (
-                        <button
-                          className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`}
-                          onClick={() => revokeGrant(u)}>
-                          בטל הענקה
-                        </button>
-                      ) : (
-                        <button
-                          className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`}
-                          title="הענק מסלול ללא תשלום, עם תוקף"
-                          onClick={() => openGrant(u)}>
-                          <Gift size={13} strokeWidth={2} /> הענק
-                        </button>
-                      )}
-                      <button
-                        className={`${styles.btn} ${u.is_suspended?styles.btnGhost:styles.btnDanger} ${styles.btnSm}`}
-                        onClick={() => patch(u.id, { is_suspended: !u.is_suspended },
-                          u.is_suspended ? "משתמש שוחרר" : "משתמש חסום")}>
-                        {u.is_suspended ? "שחרר" : "חסום"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DataTable<User>
+        rows={users}
+        loading={loading}
+        pageSize={20}
+        initialSort={{ key: "created_at", dir: "desc" }}
+        emptyText="לא נמצאו משתמשים"
+        columns={userColumns}
+      />
 
       {/* Grant modal — plan without payment, time-boxed (item #9) */}
       {grantFor && (

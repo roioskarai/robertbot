@@ -11,6 +11,7 @@ import {
 import styles from "@/app/admin/admin.module.css";
 import { hasPermission } from "@/lib/site/roles";
 import type { Permission } from "@/lib/site/types";
+import NotificationBell from "@/components/admin/NotificationBell";
 
 const NAV = [
   { href: "/admin",          label: "סקירה כללית",  icon: LayoutDashboard, exact: true },
@@ -167,6 +168,7 @@ export default function AdminShell({
             <span className={styles.topbarTime} suppressHydrationWarning>
               {new Date().toLocaleDateString("he-IL", { weekday: "short", day: "numeric", month: "short" })}
             </span>
+            <NotificationBell />
             <span className={`${styles.badge} ${styles.badgeGreen}`}>
               <span className={styles.badgeDot} />
               Online

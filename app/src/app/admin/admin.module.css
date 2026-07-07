@@ -345,6 +345,57 @@
 .table tbody tr:last-child td { border-bottom: none; }
 .tableEmpty { padding: 48px 20px; text-align: center; color: var(--t4); font-size: 13px; }
 
+/* ── Pagination (DataTable) ────────────────────────────────── */
+.pager {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 12px 16px; border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.pagerInfo { font-size: 12.5px; color: var(--t4); }
+.pagerBtns { display: flex; align-items: center; gap: 8px; }
+.sortArrow { display: inline-block; margin-inline-start: 4px; font-size: 10px; opacity: .7; }
+
+/* ── Notification bell (topbar) ────────────────────────────── */
+.bellBtn {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 9px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--t3); cursor: pointer; transition: color .15s, border-color .15s;
+}
+.bellBtn:hover { color: var(--t1); border-color: var(--t4); }
+.bellDot {
+  position: absolute; top: -5px; inset-inline-start: -5px;
+  min-width: 16px; height: 16px; padding: 0 4px; border-radius: 9px;
+  background: var(--danger); color: #fff; font-size: 10px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; line-height: 1;
+}
+.notifPanel {
+  position: absolute; top: calc(100% + 8px); inset-inline-start: 0;
+  width: 320px; max-height: 420px; overflow-y: auto; z-index: 100;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.4);
+}
+.notifHead {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-bottom: 1px solid var(--border);
+}
+.notifMark { background: none; border: 0; color: var(--accent); font-size: 12px; cursor: pointer; font-family: inherit; }
+.notifMark:hover { text-decoration: underline; }
+.notifEmpty { padding: 30px 14px; text-align: center; color: var(--t4); font-size: 12.5px; }
+.notifList { display: flex; flex-direction: column; }
+.notifItem {
+  display: flex; align-items: flex-start; gap: 9px; padding: 11px 14px;
+  border-bottom: 1px solid var(--border-soft); text-decoration: none;
+  color: var(--t2); transition: background .12s;
+}
+.notifItem:last-child { border-bottom: none; }
+.notifItem:hover { background: var(--surface-2); }
+.notifIcon { flex-shrink: 0; margin-top: 1px; }
+.notifIcon.error { color: var(--danger); }
+.notifIcon.warn { color: var(--warning); }
+.notifIcon.info { color: var(--info); }
+.notifText { font-size: 12.5px; line-height: 1.5; }
+
 /* ── Badges ────────────────────────────────────────────────── */
 .badge {
   display: inline-flex; align-items: center; gap: 4px;

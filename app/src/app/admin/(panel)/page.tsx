@@ -1,11 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   TrendingUp, Users, Bot, MessageSquare,
-  DollarSign, AlertTriangle, CheckCircle2, Activity,
+  DollarSign, AlertTriangle, CheckCircle2, Activity, Cpu, CreditCard,
 } from "lucide-react";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar } from "recharts";
 import styles from "@/app/admin/admin.module.css";
+
+interface Series {
+  days: number;
+  signups: { date: string; count: number }[];
+  conversations: { date: string; count: number }[];
+}
+
+const CHART_TOOLTIP = { background: "#161922", border: "1px solid #232733", borderRadius: 8, color: "#f2f4f8" } as const;
+const shortDay = (d: string) => d.slice(5); // "MM-DD"
+const shortDayLabel = (d: unknown) => (typeof d === "string" ? d.slice(5) : "");
 
 interface Stats {
   users: { total: number; active: number; paying: number; comp: number; trial: number; cancelled: number; paused: number; suspended: number; newThisMonth: number };
@@ -42,6 +54,7 @@ function SkStat() {
 
 export default function AdminOverview() {
   const [s, setS] = useState<Stats | null>(null);
+  const [series, setSeries] = useState<Series | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
@@ -49,6 +62,10 @@ export default function AdminOverview() {
       .then((r) => r.json())
       .then((d) => d.error ? setErr(d.error) : setS(d))
       .catch(() => setErr("שגיאה בטעינת נתונים"));
+    fetch("/api/admin/stats/series?days=30")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d && !d.error) setSeries(d); })
+      .catch(() => {});
   }, []);
 
   if (err) return (
@@ -67,10 +84,15 @@ export default function AdminOverview() {
           <h1 className={styles.pageTitle}>סקירה כללית</h1>
           <p className={styles.pageDesc}>מצב המערכת בזמן אמת</p>
         </div>
-        <button className={`${styles.btn} ${styles.btnGhost}`}
-          onClick={() => { setS(null); fetch("/api/admin/stats").then(r=>r.json()).then(d=>setS(d)); }}>
-          <Activity size={14} strokeWidth={2} /> רענן
-        </button>
+        <div className={styles.pageActions}>
+          <Link href="/admin/users" className={`${styles.btn} ${styles.btnGhost}`}><Users size={14} strokeWidth={2} /> משתמשים</Link>
+          <Link href="/admin/billing" className={`${styles.btn} ${styles.btnGhost}`}><CreditCard size={14} strokeWidth={2} /> חיוב</Link>
+          <Link href="/admin/agents" className={`${styles.btn} ${styles.btnGhost}`}><Cpu size={14} strokeWidth={2} /> סוכנים</Link>
+          <button className={`${styles.btn} ${styles.btnGhost}`}
+            onClick={() => { setS(null); fetch("/api/admin/stats").then(r=>r.json()).then(d=>setS(d)); }}>
+            <Activity size={14} strokeWidth={2} /> רענן
+          </button>
+        </div>
       </div>
 
       {/* Stat cards */}
@@ -116,6 +138,42 @@ export default function AdminOverview() {
           <StatCard icon={<TrendingUp size={18} strokeWidth={2} />} label="מושהים" value={s.users.paused} hint="מנויים מושהים" type="info" />
           <StatCard icon={<AlertTriangle size={18} strokeWidth={2} />} label="חסומים" value={s.users.suspended} hint="חשבונות מושעים" type="danger" />
         </>)}
+      </div>
+
+      {/* Trend charts — last 30 days */}
+      <div className={`${styles.grid} ${styles.g2}`} style={{ marginTop: 24 }}>
+        <div className={styles.card}>
+          <div className={styles.cardTitle}>הרשמות — 30 הימים האחרונים</div>
+          <div style={{ width: "100%", height: 240 }}>
+            {series ? (
+              <ResponsiveContainer>
+                <LineChart data={series.signups}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#232733" />
+                  <XAxis dataKey="date" tickFormatter={shortDay} stroke="#8b93a7" fontSize={11} />
+                  <YAxis allowDecimals={false} stroke="#8b93a7" fontSize={11} />
+                  <Tooltip contentStyle={CHART_TOOLTIP} labelFormatter={shortDayLabel} />
+                  <Line type="monotone" dataKey="count" name="הרשמות" stroke="#039855" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : <div className={`${styles.skeleton}`} style={{ width: "100%", height: "100%", borderRadius: 10 }} />}
+          </div>
+        </div>
+        <div className={styles.card}>
+          <div className={styles.cardTitle}>שיחות — 30 הימים האחרונים</div>
+          <div style={{ width: "100%", height: 240 }}>
+            {series ? (
+              <ResponsiveContainer>
+                <BarChart data={series.conversations}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#232733" />
+                  <XAxis dataKey="date" tickFormatter={shortDay} stroke="#8b93a7" fontSize={11} />
+                  <YAxis allowDecimals={false} stroke="#8b93a7" fontSize={11} />
+                  <Tooltip contentStyle={CHART_TOOLTIP} labelFormatter={shortDayLabel} />
+                  <Bar dataKey="count" name="שיחות" fill="#60a5fa" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : <div className={`${styles.skeleton}`} style={{ width: "100%", height: "100%", borderRadius: 10 }} />}
+          </div>
+        </div>
       </div>
 
       {/* Bottom panels */}
