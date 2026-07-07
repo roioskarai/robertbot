@@ -830,14 +830,16 @@ function OnboardingInner() {
       {/* SCREEN 2: ONBOARDING */}
       <div className={c("screen") + (screen === "ob" ? " " + styles.act : "")}>
         <div className={c("ob-header")}>
-          <Link href="/" className={c("ob-logo")} style={{ textDecoration: "none" }}>
-            <div className={c("ob-logo-name")}>
-              Robert<span>.</span>
+          <div className={c("ob-inner")} style={{ justifyContent: "space-between" }}>
+            <Link href="/" className={c("ob-logo")} style={{ textDecoration: "none" }}>
+              <div className={c("ob-logo-name")}>
+                Robert<span>.</span>
+              </div>
+            </Link>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div className={c("ob-step-label")}>שלב {curStep} מתוך {totalSteps}</div>
+              <ThemeToggle />
             </div>
-          </Link>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div className={c("ob-step-label")}>שלב {curStep} מתוך {totalSteps}</div>
-            <ThemeToggle />
           </div>
         </div>
 
@@ -1272,13 +1274,15 @@ function OnboardingInner() {
 
         {/* footer nav */}
         <div className={c("ob-footer")}>
-          <button className={c("btn btn-outline")} style={{ display: curStep > 1 ? "flex" : "none", width: "auto" }} onClick={prevStep}>
-            חזור
-          </button>
-          <div style={{ flex: 1 }}></div>
-          <button className={c("btn btn-primary")} style={{ maxWidth: 160, width: "auto" }} onClick={nextStep} disabled={finishing}>
-            {curStep === totalSteps ? (finishing ? "יוצר בוט..." : "סיום וכניסה") : "המשך"}
-          </button>
+          <div className={c("ob-footer-inner")}>
+            <button className={c("btn btn-outline")} style={{ display: curStep > 1 ? "flex" : "none", width: "auto" }} onClick={prevStep}>
+              חזור
+            </button>
+            <div style={{ flex: 1 }}></div>
+            <button className={c("btn btn-primary")} style={{ maxWidth: 160, width: "auto" }} onClick={nextStep} disabled={finishing}>
+              {curStep === totalSteps ? (finishing ? "יוצר בוט..." : "סיום וכניסה") : "המשך"}
+            </button>
+          </div>
         </div>
       </div>
 
