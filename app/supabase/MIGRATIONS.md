@@ -16,9 +16,9 @@
 | `migrations/0006_website_builder.sql` | סכמת ה-CMS‏ (sites, pages, themes, media, banners, …) | ✅ חל |
 | `migrations/0007_admin_email_cleanup.sql` | הסרת האימייל הקשיח מטריגר ההרשמה (bootstrap עובר ל-env‏ `ADMIN_EMAIL`) | ✅ **חל** — הבעלים הדביק ב-SQL Editor ב-2026-07-03 ("Success. No rows returned") |
 | `migrations/0008_meta_phone_unique.sql` | אינדקס ייחודי חלקי על `meta_phone_number_id` | ✅ **חל** — הבעלים הדביק ב-SQL Editor ב-2026-07-03 (באותו בלוק) |
-| `migrations/0009_comp_plans.sql` | מסלולי חינם (הענקות אדמין): `users.is_comp` + `users.comp_note` | ⏳ **ממתינה** — דורשת `APPROVED - DATABASE`; חובה להריץ **לפני** שחרור אצוות האדמין (4-5) לפרודקשן — הקוד קורא/כותב את העמודות |
+| `migrations/0009_comp_plans.sql` | מסלולי חינם (הענקות אדמין): `users.is_comp` + `users.comp_note` | ✅ **חל** — הבעלים הריץ ב-SQL Editor ב-2026-07-07 (spot-check אכיפת cron: `affected=0`) |
 
-**⚠️ מיגרציה 0009 ממתינה לאישור. כל השאר חלות.**
+**🎯 כל המיגרציות חלות בפרודקשן. אין ממתינות.**
 
 ## פעולות DB שבוצעו ב-2026-07-03 (באישור `APPROVED - DATABASE`)
 
