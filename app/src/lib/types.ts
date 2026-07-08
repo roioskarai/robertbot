@@ -28,6 +28,9 @@ export interface DBUser {
   // Cancel-at-period-end: service stays on until subscription_ends_at.
   cancel_at_period_end?: boolean;
   subscription_ends_at?: string | null;
+  // Admin comp (free grant): active but excluded from MRR/paying metrics.
+  is_comp?: boolean;
+  comp_note?: string | null;
   // Admin / security
   totp_enabled?: boolean;
   totp_secret?: string | null; // encrypted; server-only, never sent to client

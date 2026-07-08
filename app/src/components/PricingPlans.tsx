@@ -3,19 +3,21 @@
 import Link from "next/link";
 import styles from "./PricingPlans.module.css";
 import { scoped } from "@/lib/cx";
-import { PRICING, annualSaving, type PlanId } from "@/lib/plans";
+import {
+  PRICING, annualSaving, planLabelEn, planLabelHe,
+  planChips, planIncludedFeatures, planLockedFeatures, type PlanId,
+} from "@/lib/plans";
 
 const c = scoped(styles);
 
+// Presentation-only per-plan config. All plan NAMES, PRICES, CHIPS and FEATURE
+// LISTS come from lib/plans.ts (the single source of truth) — this array only
+// holds the visual treatment (card variant, badge, chip colors, CTA).
 interface PlanDef {
   id: PlanId;
-  label: string; // English label chip
-  name: string; // Hebrew name
   variant: "" | "popular" | "agency";
   popBadge?: string;
-  chips: { text: string; cls: string }[];
-  included: string[];
-  locked: string[];
+  chipClasses: [string, string]; // color class for [bots-chip, messages-chip]
   cta: { type: string; text: string; href: string };
   savingColor?: string;
 }
@@ -23,78 +25,27 @@ interface PlanDef {
 const PLANS: PlanDef[] = [
   {
     id: "basic",
-    label: "Basic",
-    name: "בסיסי",
     variant: "",
-    chips: [
-      { text: "1 בוט", cls: "chip-green" },
-      { text: "300 הודעות", cls: "chip-blue" },
-    ],
-    included: ["סוכן AI אחד", "מענה אוטומטי על שאלות", "קביעת תורים אוטומטית", "Packs הודעות נוספות"],
-    locked: [
-      "שיחות חכמות עם הלקוח", "זיכרון שיחה אישי ללקוח", "ניהול יומן מלא",
-      "סנכרון עם Google Calendar", "לכידת לידים אוטומטית", "העברה לנציג אנושי",
-      "דוחות וסטטיסטיקות", "ניהול מספר עסקים", "API וחיבורים חיצוניים",
-      "תמיכה מועדפת", "תמיכה ייעודית 24/7",
-    ],
+    chipClasses: ["chip-green", "chip-blue"],
     cta: { type: "cta-outline", text: "התחל 7 ימים חינם", href: "/onboarding" },
   },
   {
     id: "pro",
-    label: "Pro",
-    name: "מקצועי",
     variant: "popular",
     popBadge: "⭐ הכי פופולרי",
-    chips: [
-      { text: "2 בוטים", cls: "chip-green" },
-      { text: "1,000 הודעות", cls: "chip-blue" },
-    ],
-    included: [
-      "עד 2 סוכני AI", "מענה אוטומטי על שאלות", "שיחות חכמות עם הלקוח",
-      "קביעת תורים אוטומטית", "ניהול יומן מלא", "לכידת לידים אוטומטית",
-      "העברה לנציג אנושי", "דוחות וסטטיסטיקות", "Packs הודעות נוספות",
-    ],
-    locked: [
-      "זיכרון שיחה אישי ללקוח", "סנכרון עם Google Calendar", "ניהול מספר עסקים",
-      "API וחיבורים חיצוניים", "תמיכה מועדפת", "תמיכה ייעודית 24/7",
-    ],
+    chipClasses: ["chip-green", "chip-blue"],
     cta: { type: "cta-green", text: "התחל 7 ימים חינם", href: "/onboarding" },
   },
   {
     id: "business",
-    label: "Business",
-    name: "עסקים",
     variant: "",
-    chips: [
-      { text: "5 בוטים", cls: "chip-green" },
-      { text: "6,000 הודעות", cls: "chip-blue" },
-    ],
-    included: [
-      "עד 5 סוכני AI", "מענה אוטומטי על שאלות", "שיחות חכמות עם הלקוח",
-      "זיכרון שיחה אישי ללקוח", "קביעת תורים אוטומטית", "ניהול יומן מלא",
-      "סנכרון עם Google Calendar", "לכידת לידים אוטומטית", "העברה לנציג אנושי",
-      "דוחות וסטטיסטיקות", "Packs הודעות נוספות", "תמיכה מועדפת",
-    ],
-    locked: ["ניהול מספר עסקים", "API וחיבורים חיצוניים", "תמיכה ייעודית 24/7"],
+    chipClasses: ["chip-green", "chip-blue"],
     cta: { type: "cta-outline", text: "התחל 7 ימים חינם", href: "/onboarding" },
   },
   {
     id: "enterprise",
-    label: "Enterprise",
-    name: "ארגוני",
     variant: "agency",
-    chips: [
-      { text: "15 בוטים", cls: "chip-purple" },
-      { text: "15,000 הודעות", cls: "chip-purple" },
-    ],
-    included: [
-      "עד 15 סוכני AI", "מענה אוטומטי על שאלות", "שיחות חכמות עם הלקוח",
-      "זיכרון שיחה אישי ללקוח", "קביעת תורים אוטומטית", "ניהול יומן מלא",
-      "סנכרון עם Google Calendar", "לכידת לידים אוטומטית", "העברה לנציג אנושי",
-      "דוחות וסטטיסטיקות", "Packs הודעות נוספות", "ניהול מספר עסקים",
-      "API וחיבורים חיצוניים", "תמיכה מועדפת", "תמיכה ייעודית 24/7",
-    ],
-    locked: [],
+    chipClasses: ["chip-purple", "chip-purple"],
     cta: { type: "cta-purple", text: "דבר איתנו", href: "mailto:hi@robertbot.co.il" },
     savingColor: "#c084fc",
   },
@@ -119,11 +70,14 @@ export default function PricingPlans({ annual, onSelect, currentPlan, hideTrialL
           const price = annual ? PRICING[p.id].annual : PRICING[p.id].monthly;
           const isContact = p.cta.href.startsWith("mailto:");
           const isCurrent = currentPlan === p.id;
+          const chips = planChips(p.id);
+          const included = planIncludedFeatures(p.id);
+          const locked = planLockedFeatures(p.id);
           return (
             <div key={p.id} className={c("plan " + p.variant)}>
               {p.popBadge && <div className={c("pop-badge")}>{p.popBadge}</div>}
-              <div className={c("plan-label")}>{p.label}</div>
-              <div className={c("plan-name")}>{p.name}</div>
+              <div className={c("plan-label")}>{planLabelEn(p.id)}</div>
+              <div className={c("plan-name")}>{planLabelHe(p.id)}</div>
               <div className={c("plan-price-wrap")}>
                 <div className={c("plan-price")}>
                   <span className={c("price-cur")}>₪</span>
@@ -138,21 +92,21 @@ export default function PricingPlans({ annual, onSelect, currentPlan, hideTrialL
               </div>
 
               <div className={c("stat-chips")}>
-                {p.chips.map((ch, i) => (
-                  <span key={i} className={c("chip " + ch.cls)}>{ch.text}</span>
+                {chips.map((text, i) => (
+                  <span key={i} className={c("chip " + p.chipClasses[i])}>{text}</span>
                 ))}
               </div>
 
               <div className={c("divider")}></div>
 
               <div className={c("feat-list")}>
-                {p.included.map((f, i) => (
+                {included.map((f, i) => (
                   <div key={i} className={c("feat-item")}>
                     <span className={c("feat-icon")}>✓</span> {f}
                   </div>
                 ))}
-                {p.locked.length > 0 && <div className={c("feat-divider-label")}>לא כלול במסלול זה</div>}
-                {p.locked.map((f, i) => (
+                {locked.length > 0 && <div className={c("feat-divider-label")}>לא כלול במסלול זה</div>}
+                {locked.map((f, i) => (
                   <div key={i} className={c("feat-item feat-excluded")}>
                     <span className={c("feat-icon-x")}>✕</span>
                     <span className={c("feat-locked")}>

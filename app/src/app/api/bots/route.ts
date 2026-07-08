@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
 import { buildSystemPrompt } from "@/lib/claude";
-import { PLAN_LIMITS } from "@/lib/plans";
+import { PLAN_LIMITS, resolvePlanId } from "@/lib/plans";
 import { jsonError, unauthorized } from "@/lib/errors";
 import { rateLimit } from "@/lib/rate-limit";
 import { parseBody, botCreateSchema } from "@/lib/schemas";
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
   const supabase = await createClient();
 
   // Enforce plan bot limit
-  const plan = session.profile?.plan ?? "basic";
+  const plan = resolvePlanId(session.profile?.plan);
   const limit = PLAN_LIMITS[plan].bots;
   const { count } = await supabase
     .from("bots")

@@ -107,3 +107,93 @@ export function parseProduct(product: string):
 export function packById(id: PackId) {
   return MESSAGE_PACKS.find((p) => p.id === id)!;
 }
+
+/** Per-message price of a pack, formatted "₪0.078 להודעה". */
+export function packPerMessageHe(id: PackId): string {
+  const p = packById(id);
+  return `₪${(p.price / p.messages).toFixed(3)} להודעה`;
+}
+
+// Hebrew label for every feature identifier used in PLAN_LIMITS.features.
+// Kept here so any surface can name a feature consistently.
+export const PLAN_FEATURES_HE: Record<string, string> = {
+  basic_qa: "מענה אוטומטי על שאלות",
+  whatsapp: "חיבור וואטסאפ",
+  smart_chat: "שיחות חכמות עם הלקוח",
+  memory: "זיכרון שיחה אישי ללקוח",
+  appointments: "קביעת תורים אוטומטית",
+  calendar_full: "ניהול יומן מלא",
+  calendar_sync: "סנכרון עם Google Calendar",
+  leads: "לכידת לידים אוטומטית",
+  lead_filter: "סינון לידים חכם",
+  handoff: "העברה לנציג אנושי",
+  analytics_basic: "דוחות וסטטיסטיקות",
+  analytics_full: "דוחות וסטטיסטיקות",
+  multi_business: "ניהול מספר עסקים",
+  api: "API וחיבורים חיצוניים",
+  white_label: "White-label",
+  priority_support: "תמיכה מועדפת",
+  support_247: "תמיכה ייעודית 24/7",
+  packs: "Packs הודעות נוספות",
+};
+
+// The plan-card feature lists — the ONE source for the pricing grid everywhere
+// (landing, /pricing, dashboard billing/store). Order and wording are the
+// locked design; intentionally NOT derived from PLAN_LIMITS.features (which
+// differ — e.g. Business hides "סינון לידים חכם" and each list leads with the
+// agent-count line rather than a raw feature key).
+const PLAN_INCLUDED_HE: Record<PlanId, string[]> = {
+  basic: ["סוכן AI אחד", "מענה אוטומטי על שאלות", "קביעת תורים אוטומטית", "Packs הודעות נוספות"],
+  pro: [
+    "עד 2 סוכני AI", "מענה אוטומטי על שאלות", "שיחות חכמות עם הלקוח",
+    "קביעת תורים אוטומטית", "ניהול יומן מלא", "לכידת לידים אוטומטית",
+    "העברה לנציג אנושי", "דוחות וסטטיסטיקות", "Packs הודעות נוספות",
+  ],
+  business: [
+    "עד 5 סוכני AI", "מענה אוטומטי על שאלות", "שיחות חכמות עם הלקוח",
+    "זיכרון שיחה אישי ללקוח", "קביעת תורים אוטומטית", "ניהול יומן מלא",
+    "סנכרון עם Google Calendar", "לכידת לידים אוטומטית", "העברה לנציג אנושי",
+    "דוחות וסטטיסטיקות", "Packs הודעות נוספות", "תמיכה מועדפת",
+  ],
+  enterprise: [
+    "עד 15 סוכני AI", "מענה אוטומטי על שאלות", "שיחות חכמות עם הלקוח",
+    "זיכרון שיחה אישי ללקוח", "קביעת תורים אוטומטית", "ניהול יומן מלא",
+    "סנכרון עם Google Calendar", "לכידת לידים אוטומטית", "העברה לנציג אנושי",
+    "דוחות וסטטיסטיקות", "Packs הודעות נוספות", "ניהול מספר עסקים",
+    "API וחיבורים חיצוניים", "תמיכה מועדפת", "תמיכה ייעודית 24/7",
+  ],
+};
+
+const PLAN_LOCKED_HE: Record<PlanId, string[]> = {
+  basic: [
+    "שיחות חכמות עם הלקוח", "זיכרון שיחה אישי ללקוח", "ניהול יומן מלא",
+    "סנכרון עם Google Calendar", "לכידת לידים אוטומטית", "העברה לנציג אנושי",
+    "דוחות וסטטיסטיקות", "ניהול מספר עסקים", "API וחיבורים חיצוניים",
+    "תמיכה מועדפת", "תמיכה ייעודית 24/7",
+  ],
+  pro: [
+    "זיכרון שיחה אישי ללקוח", "סנכרון עם Google Calendar", "ניהול מספר עסקים",
+    "API וחיבורים חיצוניים", "תמיכה מועדפת", "תמיכה ייעודית 24/7",
+  ],
+  business: ["ניהול מספר עסקים", "API וחיבורים חיצוניים", "תמיכה ייעודית 24/7"],
+  enterprise: [],
+};
+
+/** Ordered Hebrew "included" list for the plan card. */
+export function planIncludedFeatures(plan: PlanId): string[] {
+  return PLAN_INCLUDED_HE[plan];
+}
+
+/** Ordered Hebrew "not included in this plan" list for the plan card. */
+export function planLockedFeatures(plan: PlanId): string[] {
+  return PLAN_LOCKED_HE[plan];
+}
+
+/** The two stat chips on a plan card: bots count + monthly message quota. */
+export function planChips(plan: PlanId): string[] {
+  const l = PLAN_LIMITS[plan];
+  return [
+    `${l.bots} ${l.bots === 1 ? "בוט" : "בוטים"}`,
+    `${l.messages.toLocaleString("en-US")} הודעות`,
+  ];
+}

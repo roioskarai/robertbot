@@ -5,8 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./cancel.module.css";
 import { scoped } from "@/lib/cx";
+import { PRICING, PLAN_LIMITS } from "@/lib/plans";
 
 const c = scoped(styles);
+
+// Reference "cost of a human rep" used only in the price-objection comparison.
+const HUMAN_REP_COST = 5000;
 
 type Reason = "price" | "use" | "hard" | "missing" | "competitor" | "other";
 type ScreenId = "s1" | "s2" | "s3" | "s4" | "s5";
@@ -37,7 +41,7 @@ const ACCEPTED_TITLES: Record<Reason, string> = {
   other: "המשוב נשלח — תודה!",
 };
 const ACCEPTED_SUBS: Record<Reason, string> = {
-  price: "המסלול שלך שונה ל-₪99/חודש. הבוט ממשיך לעבוד.",
+  price: `המסלול שלך שונה ל-₪${PRICING.basic.monthly}/חודש. הבוט ממשיך לעבוד.`,
   use: "הבוט מושהה. כשתחזור — הכל ממש כמו שהשארת.",
   hard: "אנחנו כאן אם תצטרך עזרה נוספת.",
   missing: "נעדכן אותך כשהפיצ'ר יהיה מוכן.",
@@ -148,14 +152,14 @@ export default function CancelPage() {
             <>
               <div className={c("offer-card")} style={{ background: "#f8fafc", borderColor: "#e2e8f0" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #e2e8f0" }}><span style={{ fontSize: 13, color: "#334155" }}>נציג שירות לקוחות</span><span style={{ fontSize: 15, fontWeight: 800, color: "#dc2626" }}>₪5,000+/חודש</span></div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #e2e8f0" }}><span style={{ fontSize: 13, color: "#334155" }}>Robert — מסלול מתקדם</span><span style={{ fontSize: 15, fontWeight: 800, color: "var(--green-d)" }}>₪199/חודש</span></div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0" }}><span style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>החיסכון שלך</span><span style={{ fontSize: 18, fontWeight: 900, color: "var(--green-d)" }}>₪4,801/חודש</span></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #e2e8f0" }}><span style={{ fontSize: 13, color: "#334155" }}>נציג שירות לקוחות</span><span style={{ fontSize: 15, fontWeight: 800, color: "#dc2626" }}>₪{HUMAN_REP_COST.toLocaleString("en-US")}+/חודש</span></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #e2e8f0" }}><span style={{ fontSize: 13, color: "#334155" }}>Robert — מסלול מתקדם</span><span style={{ fontSize: 15, fontWeight: 800, color: "var(--green-d)" }}>₪{PRICING.pro.monthly}/חודש</span></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0" }}><span style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>החיסכון שלך</span><span style={{ fontSize: 18, fontWeight: 900, color: "var(--green-d)" }}>₪{(HUMAN_REP_COST - PRICING.pro.monthly).toLocaleString("en-US")}/חודש</span></div>
                 </div>
               </div>
               <div className={c("down-card")} style={{ marginTop: 10 }}>
                 <div className={c("down-title")}>⬇️ אפשרות: ירידה למסלול בסיסי</div>
-                <div className={c("down-sub")}>₪99/חודש — בוט אחד, 500 הודעות. הבוט ממשיך לענות ללקוחות.</div>
+                <div className={c("down-sub")}>₪{PRICING.basic.monthly}/חודש — בוט אחד, {PLAN_LIMITS.basic.messages} הודעות. הבוט ממשיך לענות ללקוחות.</div>
               </div>
             </>
           )}
@@ -178,7 +182,7 @@ export default function CancelPage() {
           )}
           {reason === "competitor" && (
             <div className={c("down-card")}>
-              <div className={c("down-title")}>⬇️ עבור למסלול בסיסי — ₪99</div>
+              <div className={c("down-title")}>⬇️ עבור למסלול בסיסי — ₪{PRICING.basic.monthly}</div>
               <div className={c("down-sub")}>במקום לבטל לגמרי — שמור את הבוט פעיל בעלות נמוכה יותר.</div>
             </div>
           )}

@@ -6,8 +6,11 @@ import styles from "./pricing.module.css";
 import { scoped } from "@/lib/cx";
 import PricingPlans from "@/components/PricingPlans";
 import HeaderAuth from "@/components/site/HeaderAuth";
+import { PRICING, PLAN_LIMITS } from "@/lib/plans";
 
 const c = scoped(styles);
+
+const fmt = (n: number) => n.toLocaleString("en-US");
 
 const FAQS = [
   { q: "האם ניתן לשדרג או לשנמך בין מסלולים?", a: "כן — ניתן לשדרג בכל עת, השינוי נכנס לתוקף מיידית. שנמוך נכנס לתוקף בתחילת תקופת החיוב הבאה." },
@@ -94,16 +97,16 @@ export default function PricingPage() {
               <thead>
                 <tr>
                   <th style={{ width: "38%" }}></th>
-                  <th>בסיסי<br /><span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>₪99</span></th>
-                  <th className={c("th-pop")}>מקצועי<br /><span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>₪199</span></th>
-                  <th>Business<br /><span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>₪399</span></th>
-                  <th className={c("th-agency")}>Enterprise<br /><span style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,.9)" }}>₪699</span></th>
+                  <th>בסיסי<br /><span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>₪{PRICING.basic.monthly}</span></th>
+                  <th className={c("th-pop")}>מקצועי<br /><span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>₪{PRICING.pro.monthly}</span></th>
+                  <th>Business<br /><span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>₪{PRICING.business.monthly}</span></th>
+                  <th className={c("th-agency")}>Enterprise<br /><span style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,.9)" }}>₪{PRICING.enterprise.monthly}</span></th>
                 </tr>
               </thead>
               <tbody>
                 <tr><td className={c("row-label")} colSpan={5}>מגבלות</td></tr>
-                <tr><td>מספר בוטים</td>{td("1")}<td style={{ color: "var(--green)", fontWeight: 700 }}>2</td><td className={c("td-dark")} style={{ color: "#fff", fontWeight: 700 }}>5</td><td className={c("td-purple")} style={{ color: "#c084fc", fontWeight: 700 }}>15</td></tr>
-                <tr><td>הודעות לחודש</td>{td("300")}<td style={{ color: "var(--green)", fontWeight: 700 }}>1,000</td><td className={c("td-dark")} style={{ color: "#fff", fontWeight: 700 }}>6,000</td><td className={c("td-purple")} style={{ color: "#c084fc", fontWeight: 700 }}>15,000</td></tr>
+                <tr><td>מספר בוטים</td>{td(String(PLAN_LIMITS.basic.bots))}<td style={{ color: "var(--green)", fontWeight: 700 }}>{PLAN_LIMITS.pro.bots}</td><td className={c("td-dark")} style={{ color: "#fff", fontWeight: 700 }}>{PLAN_LIMITS.business.bots}</td><td className={c("td-purple")} style={{ color: "#c084fc", fontWeight: 700 }}>{PLAN_LIMITS.enterprise.bots}</td></tr>
+                <tr><td>הודעות לחודש</td>{td(fmt(PLAN_LIMITS.basic.messages))}<td style={{ color: "var(--green)", fontWeight: 700 }}>{fmt(PLAN_LIMITS.pro.messages)}</td><td className={c("td-dark")} style={{ color: "#fff", fontWeight: 700 }}>{fmt(PLAN_LIMITS.business.messages)}</td><td className={c("td-purple")} style={{ color: "#c084fc", fontWeight: 700 }}>{fmt(PLAN_LIMITS.enterprise.messages)}</td></tr>
                 <tr><td>Packs הודעות נוספות</td>{td(<Check />)}{td(<Check />)}{tdDark(<Check />)}{tdPurple(<CheckP />)}</tr>
 
                 <tr><td className={c("row-label")} colSpan={5}>בוט AI</td></tr>

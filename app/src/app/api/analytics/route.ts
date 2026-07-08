@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { PLAN_LIMITS } from "@/lib/plans";
+import { deriveSubscriptionState } from "@/lib/subscription";
 import { unauthorized } from "@/lib/errors";
 
 const HE_MONTHS = ["ינו'", "פבר'", "מרץ", "אפר'", "מאי", "יוני", "יולי", "אוג'", "ספט'", "אוק'", "נוב'", "דצמ'"];
@@ -67,7 +68,10 @@ export async function GET() {
     monthly.push({ label: HE_MONTHS[d.getMonth()], count });
   }
 
-  const plan = session.profile?.plan ?? "basic";
+  // Derive the display-ready subscription state once, so every consumer reads
+  // the same truth (never the raw 'basic'/'trial' column defaults).
+  const subscription = deriveSubscriptionState(session.profile ?? {}, now);
+  const plan = subscription.plan;
   const quota = PLAN_LIMITS[plan].messages;
   const botLimit = PLAN_LIMITS[plan].bots;
 
@@ -85,10 +89,16 @@ export async function GET() {
     quota,
     botLimit,
     messagesThisMonth,
+    // Full derived subscription state — the source of truth for billing UI.
+    subscription,
+    // Flat fields kept for backward compatibility with existing consumers.
     subscriptionStatus: session.profile?.subscription_status ?? "trial",
     subscriptionEndsAt: session.profile?.subscription_ends_at ?? null,
     billingCycle: session.profile?.billing_cycle ?? "monthly",
     cancelAtPeriodEnd: session.profile?.cancel_at_period_end ?? false,
+    trialEndsAt: session.profile?.trial_ends_at ?? null,
+    isComp: subscription.isComp,
+    accountCreatedAt: session.profile?.created_at ?? null,
     packBalance: session.profile?.pack_balance ?? 0,
     weekly,
     monthly,

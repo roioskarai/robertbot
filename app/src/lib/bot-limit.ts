@@ -1,6 +1,6 @@
 import type { createClient } from "@/lib/supabase/server";
 import { jsonError } from "@/lib/errors";
-import { PLAN_LIMITS, type PlanId } from "@/lib/plans";
+import { PLAN_LIMITS, resolvePlanId } from "@/lib/plans";
 
 type ServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -22,7 +22,7 @@ export async function enforceActiveBotLimit(
     .select("plan")
     .eq("id", authId)
     .single();
-  const plan = ((userRow?.plan as PlanId) ?? "basic") as PlanId;
+  const plan = resolvePlanId(userRow?.plan);
   const limit = PLAN_LIMITS[plan].bots;
   const { count } = await supabase
     .from("bots")
