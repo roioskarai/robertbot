@@ -170,7 +170,7 @@ const DEMO_HISTORY: ConvRow[] = [
 
 type PageId =
   | "overview" | "bots" | "inbox" | "history" | "analytics"
-  | "templates" | "billing" | "store" | "account" | "support";
+  | "billing" | "store" | "account" | "support";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -660,11 +660,6 @@ export default function DashboardPage() {
               <svg className={c("sb-icon")} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
               אנליטיקס
             </div>
-            <div className={c("sb-item") + (page === "templates" ? " " + styles.act : "")} onClick={() => goPage("templates")}>
-              <svg className={c("sb-icon")} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" /></svg>
-              תבניות מוכנות
-              <span className={c("sb-new")}>חדש</span>
-            </div>
           </div>
           <div className={c("sb-group")}>
             <div className={c("sb-group-label")}>חשבון</div>
@@ -734,7 +729,6 @@ export default function DashboardPage() {
           {renderInbox()}
           {renderHistory()}
           {renderAnalytics()}
-          {renderTemplates()}
           {renderBilling()}
           {renderStore()}
           {renderAccount()}
@@ -1132,34 +1126,6 @@ export default function DashboardPage() {
             <div className={c("metric-row")}><span className={c("metric-name")}>שיא שיחות ביום</span><span className={c("metric-val")}>43</span></div>
             <div className={c("metric-row")}><span className={c("metric-name")}>שעת שיא</span><span className={c("metric-val")}>10:00–12:00</span></div>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  function renderTemplates() {
-    // [tag, name, desc, onboarding category key] — the key pre-selects the
-    // business type + its default services/FAQ in the wizard (step 1).
-    const tmpls: [string, string, string, string][] = [
-      ["יופי ובריאות", "מספרה / קוסמטיקאית", "תורים, מחירים, שאלות נפוצות. מותאם לסלוני יופי.", "beauty"],
-      ["מסעדנות", "מסעדה / קפה", "תפריט, שעות, הזמנת שולחן, עמדות חנייה.", "food"],
-      ["שירותים מקצועיים", "יועץ / עורך דין / רואה חשבון", "קביעת פגישות, שאלות נפוצות, הכוונה ראשונית.", "professional"],
-      ["קמעונאות", "חנות / אתר מכירות", "שאלות על מוצרים, מדיניות החזרה, מעקב הזמנה.", "retail"],
-      ["רפואה", "מרפאה / קליניקה", "קביעת תורים, שאלות על שירותים, הכנה לביקור.", "medical"],
-      ["נדל\"ן", "סוכן נדל\"ן", "פרטים על נכסים, קביעת סיורים, מידע על שכונות.", "realestate"],
-    ];
-    return (
-      <div className={pageCls("templates")}>
-        <div className={c("ph")}><div><div className={c("ph-title")}>תבניות מוכנות</div><div className={c("ph-sub")}>בחר תבנית ותפעיל בוט תוך דקות</div></div></div>
-        <div className={c("tmpl-grid")}>
-          {tmpls.map((t, i) => (
-            <div key={i} className={c("tmpl-card")}>
-              <div className={c("tmpl-tag")}>{t[0]}</div>
-              <div className={c("tmpl-name")}>{t[1]}</div>
-              <div className={c("tmpl-desc")}>{t[2]}</div>
-              <button className={c("btn btn-primary btn-sm")} onClick={() => router.push(`/onboarding?new=1&cat=${t[3]}`)}>השתמש בתבנית</button>
-            </div>
-          ))}
         </div>
       </div>
     );

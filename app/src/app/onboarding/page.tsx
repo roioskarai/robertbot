@@ -30,6 +30,23 @@ const DEMO_MODE =
   !process.env.NEXT_PUBLIC_SUPABASE_URL ||
   process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder");
 
+// Draft autosave: a logged-in user building a bot can leave and resume without
+// losing progress (nothing is persisted server-side until the bot is created).
+const OB_DRAFT_KEY = "rb_ob_draft";
+const OB_DRAFT_TTL_MS = 7 * 86_400_000; // 7 days
+
+// Popular "start from a template" shortcuts, shown at the top of step 1. Each
+// maps to a real {category, subtype} so one click fills services + FAQ (via
+// openSub) and jumps straight into a customizable wizard.
+const POPULAR_TEMPLATES: { catKey: string; sub: string; icon: string; label: string }[] = [
+  { catKey: "beauty", sub: "ספר / מספרה", icon: "✂️", label: "מספרה / ספר" },
+  { catKey: "food", sub: "מסעדה", icon: "🍖", label: "מסעדה" },
+  { catKey: "beauty", sub: "טיפולי פנים", icon: "🧖", label: "קוסמטיקה" },
+  { catKey: "medical", sub: "רופא / מרפאה", icon: "👨‍⚕️", label: "מרפאה / קליניקה" },
+  { catKey: "fitness", sub: "מאמן אישי", icon: "💪", label: "מאמן כושר" },
+  { catKey: "professional", sub: "עורך דין", icon: "⚖️", label: "עורך דין" },
+];
+
 const STYLE_OPTIONS: { badge: string; badgeClass: string; name: string; ex: string; value: BotStyle }[] = [
   { badge: "מומלץ", badgeClass: "sb-g", name: "חברותי ונעים", ex: '"היי! תודה שפנית 😊 שמחים לעזור לך..."', value: "friendly" },
   { badge: "מקצועי", badgeClass: "sb-b", name: "רשמי ומקצועי", ex: '"שלום, תודה על פנייתך. נשמח לסייע..."', value: "professional" },
@@ -103,6 +120,10 @@ function OnboardingInner() {
   }, []);
   const [curStep, setCurStep] = useState(1);
 
+  // A saved draft found on mount (offered via a restore banner). `presetCat`
+  // wins over a draft — an explicit template choice should start fresh.
+  const [draftFound, setDraftFound] = useState<Record<string, unknown> | null>(null);
+
   // signup
   const [su, setSu] = useState({
     first_name: "",
@@ -167,6 +188,72 @@ function OnboardingInner() {
   const [newBotId, setNewBotId] = useState<string | null>(null);
 
   const totalSteps = 5;
+
+  // ── draft autosave (resume an in-progress bot build) ──
+  // Look for a recent draft on mount (skipped when a template preset is given).
+  useEffect(() => {
+    if (!startOnWizard || presetCat) return;
+    try {
+      const raw = localStorage.getItem(OB_DRAFT_KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw) as Record<string, unknown>;
+      const savedAt = typeof d.savedAt === "number" ? d.savedAt : 0;
+      if (!savedAt || Date.now() - savedAt > OB_DRAFT_TTL_MS) {
+        localStorage.removeItem(OB_DRAFT_KEY);
+        return;
+      }
+      setDraftFound(d);
+    } catch {
+      /* ignore — private mode / bad JSON */
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function restoreDraft() {
+    const d = draftFound;
+    if (!d) return;
+    try {
+      if (typeof d.curStep === "number") setCurStep(d.curStep);
+      if (typeof d.bizType === "string") setBizType(d.bizType);
+      if (typeof d.bizSubtype === "string") setBizSubtype(d.bizSubtype);
+      if (typeof d.activeCat === "string") setActiveCat(d.activeCat);
+      if (d.catView === "main" || d.catView === "sub") setCatView(d.catView);
+      if (d.details && typeof d.details === "object") setDetails(d.details as typeof details);
+      if (Array.isArray(d.hours)) setHours(d.hours as DayRow[]);
+      if (Array.isArray(d.services)) setServices(d.services as Service[]);
+      if (Array.isArray(d.faqs)) setFaqs(d.faqs as FaqItem[]);
+      if (typeof d.styleIdx === "number") setStyleIdx(d.styleIdx);
+    } catch {
+      /* ignore */
+    }
+    setDraftFound(null);
+  }
+
+  function discardDraft() {
+    try { localStorage.removeItem(OB_DRAFT_KEY); } catch { /* ignore */ }
+    setDraftFound(null);
+  }
+
+  function clearDraft() {
+    try { localStorage.removeItem(OB_DRAFT_KEY); } catch { /* ignore */ }
+  }
+
+  // Debounced save of the current wizard state (only while actively building,
+  // and never while a restore banner is still pending a decision).
+  useEffect(() => {
+    if (!startOnWizard || screen !== "ob" || draftFound) return;
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          OB_DRAFT_KEY,
+          JSON.stringify({ v: 1, savedAt: Date.now(), curStep, bizType, bizSubtype, activeCat, catView, details, hours, services, faqs, styleIdx }),
+        );
+      } catch {
+        /* ignore */
+      }
+    }, 600);
+    return () => clearTimeout(t);
+  }, [startOnWizard, screen, draftFound, curStep, bizType, bizSubtype, activeCat, catView, details, hours, services, faqs, styleIdx]);
 
   // ── signup ui
   const [showPw, setShowPw] = useState(false);
@@ -356,6 +443,13 @@ function OnboardingInner() {
   }
   function selSub(name: string) {
     setBizSubtype(name);
+    autoAdvanceFromStep1(350);
+  }
+  // "Start from a template" — pick a category (fills services + FAQ) and its
+  // representative subtype in one click, then auto-advance to the details step.
+  function chooseTemplate(catKey: string, sub: string) {
+    openSub(catKey);
+    setBizSubtype(sub);
     autoAdvanceFromStep1(350);
   }
   function confirmCustom() {
@@ -548,6 +642,7 @@ function OnboardingInner() {
 
     // Demo mode — no real backend; complete the wizard deterministically.
     if (DEMO_MODE) {
+      clearDraft();
       setScreen("success");
       return;
     }
@@ -577,6 +672,7 @@ function OnboardingInner() {
       // Capture the new bot id so the success CTA can open its WhatsApp
       // connect step directly (#14).
       setNewBotId(json.bot.id as string);
+      clearDraft();
       setScreen("success");
     } catch {
       const msg = "אין חיבור לשרת — בדוק את החיבור ונסה שוב.";
@@ -848,6 +944,16 @@ function OnboardingInner() {
               </div>
             </Link>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {startOnWizard && (
+                <button
+                  type="button"
+                  className={c("btn btn-ghost btn-xs")}
+                  style={{ whiteSpace: "nowrap", width: "auto" }}
+                  onClick={() => router.push("/dashboard")}
+                >
+                  יציאה ל-Dashboard
+                </button>
+              )}
               <div className={c("ob-step-label")}>שלב {curStep} מתוך {totalSteps}</div>
               <ThemeToggle />
             </div>
@@ -882,6 +988,17 @@ function OnboardingInner() {
         </div>
 
         <div className={c("ob-content")}>
+          {draftFound && (
+            <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 12, padding: "12px 16px", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <div style={{ fontSize: 13, color: "var(--t1)", lineHeight: 1.5 }}>
+                <strong>נמצאה טיוטה שמורה</strong> — אפשר להמשיך מאיפה שהפסקת.
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button type="button" className={c("btn btn-primary btn-xs")} style={{ width: "auto" }} onClick={restoreDraft}>המשך מהטיוטה</button>
+                <button type="button" className={c("btn btn-ghost btn-xs")} style={{ width: "auto" }} onClick={discardDraft}>התחל מחדש</button>
+              </div>
+            </div>
+          )}
           {/* STEP 1 */}
           <div className={c("ob-pane") + (curStep === 1 ? " " + styles.act : "")}>
             {showStepError && !bizSubtype && (
@@ -889,7 +1006,24 @@ function OnboardingInner() {
             )}
             {catView === "main" ? (
               <div>
-                <div className={c("pane-title")}>מה תחום העסק?</div>
+                <div style={{ marginBottom: 20 }}>
+                  <div className={c("pane-title")}>התחל מתבנית מוכנה</div>
+                  <div className={c("pane-sub")}>הסוגים הנפוצים — לחיצה אחת ואנחנו כבר ממלאים שירותים ושאלות נפוצות</div>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
+                    {POPULAR_TEMPLATES.map((t) => (
+                      <button
+                        key={t.label}
+                        type="button"
+                        onClick={() => chooseTemplate(t.catKey, t.sub)}
+                        style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 14px", borderRadius: 100, border: "1px solid var(--bdr)", background: "var(--white)", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "var(--t1)" }}
+                      >
+                        <span style={{ fontSize: 18 }}>{t.icon}</span>
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className={c("pane-title")}>או בחר לפי תחום העסק</div>
                 <div className={c("pane-sub")}>בחר קטגוריה ראשית — תוכל לבחור את הסוג המדויק בשלב הבא</div>
                 <div className={c("btype-grid")}>
                   {MAIN_CATEGORIES.map((cat) => (
