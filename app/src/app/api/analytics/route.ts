@@ -25,7 +25,7 @@ export async function GET() {
   // Conversations
   const { data: convs } = await supabase
     .from("conversations")
-    .select("id, status, last_message_at");
+    .select("id, status, last_message_at, bot_id");
   const openConversations = convs?.filter((c) => c.status === "human").length ?? 0;
   const closedThisMonth =
     convs?.filter(
@@ -79,6 +79,21 @@ export async function GET() {
   const handoffMsgs = all.filter((m) => m.from_type === "human").length;
   const totalReplies = botMsgs + handoffMsgs;
 
+  // Per-bot stats for the "My Bots" management cards: this month's message
+  // usage (from usage_logs) + distinct customer conversations. RLS-scoped.
+  const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const { data: usageRows } = await supabase
+    .from("usage_logs")
+    .select("bot_id, message_count")
+    .eq("period", period);
+  const perBot = (bots ?? []).map((b) => ({
+    botId: b.id as string,
+    messagesThisMonth: (usageRows ?? [])
+      .filter((u) => u.bot_id === b.id)
+      .reduce((sum, u) => sum + (u.message_count ?? 0), 0),
+    conversations: (convs ?? []).filter((cv) => cv.bot_id === b.id).length,
+  }));
+
   return NextResponse.json({
     messagesToday,
     openConversations,
@@ -100,6 +115,7 @@ export async function GET() {
     isComp: subscription.isComp,
     accountCreatedAt: session.profile?.created_at ?? null,
     packBalance: session.profile?.pack_balance ?? 0,
+    perBot,
     weekly,
     monthly,
     metrics: {

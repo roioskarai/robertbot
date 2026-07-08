@@ -49,6 +49,9 @@ const botEditable = z.object({
   style: z.enum(["friendly", "professional", "short"]),
   faq: z.array(faqItemSchema).max(100, "יותר מדי שאלות נפוצות"),
   active: z.boolean(),
+  // Added by migration 0010 — website/social link + free-form AI instructions.
+  website: z.string().trim().max(200, "הקישור ארוך מדי").nullable(),
+  custom_instructions: z.string().trim().max(2000, "ההנחיות ארוכות מדי").nullable(),
 });
 
 /** POST /api/bots — name is required, everything else optional. */

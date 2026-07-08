@@ -13,7 +13,8 @@ import ThemeToggle from "@/components/ThemeToggle";
 import BillingTab from "@/components/dashboard/BillingTab";
 import StoreTab from "@/components/dashboard/StoreTab";
 import TrialBanner from "@/components/dashboard/TrialBanner";
-import type { Bot } from "@/lib/types";
+import type { Bot, Service, WorkingHours } from "@/lib/types";
+import { DAY_KEYS, DAYS_HE } from "@/app/onboarding/subcats";
 import { planLabelHe, type PlanId } from "@/lib/plans";
 import { deriveSubscriptionState, type SubscriptionState } from "@/lib/subscription";
 import { isValidPhoneIL } from "@/lib/validation";
@@ -34,23 +35,27 @@ const DEMO_BOTS: Partial<Bot>[] = [
     id: "demo-1",
     name: "מספרת מיטל",
     bot_name: "מיטל",
+    business_subtype: "ספר / מספרה",
     description: "עונה על שאלות, קובע תורים ומסביר על השירותים",
     whatsapp_number: "050-1234567",
     active: true,
     style: "friendly",
     faq: [],
     services: [],
+    created_at: "2026-05-02T09:00:00Z",
   },
   {
     id: "demo-2",
     name: "גריל הבשרים",
     bot_name: "גריל",
+    business_subtype: "מסעדה",
     description: "תפריט, שעות פתיחה, הזמנת שולחן",
     whatsapp_number: "052-9876543",
     active: true,
     style: "friendly",
     faq: [],
     services: [],
+    created_at: "2026-06-11T09:00:00Z",
   },
 ];
 
@@ -81,6 +86,7 @@ interface Analytics {
   accountCreatedAt?: string | null;
   subscription: SubscriptionState;
   packBalance: number;
+  perBot?: { botId: string; messagesThisMonth: number; conversations: number }[];
   weekly: number[];
   monthly: { label: string; count: number }[];
   metrics: { botAnsweredPct: number; handoffPct: number };
@@ -108,6 +114,10 @@ const DEMO_ANALYTICS: Analytics = {
   messagesThisMonth: 847,
   subscription: DEMO_SUB,
   packBalance: 0,
+  perBot: [
+    { botId: "demo-1", messagesThisMonth: 612, conversations: 38 },
+    { botId: "demo-2", messagesThisMonth: 235, conversations: 14 },
+  ],
   weekly: [32, 45, 28, 62, 41, 55, 47],
   monthly: [
     { label: "ינו'", count: 320 },
@@ -126,7 +136,7 @@ const ZERO_ANALYTICS: Analytics = {
   messagesToday: 0, openConversations: 0, closedThisMonth: 0, activeBots: 0,
   totalBots: 0, plan: "basic", quota: 0, botLimit: 0, messagesThisMonth: 0,
   subscription: ZERO_SUB,
-  packBalance: 0, weekly: [0, 0, 0, 0, 0, 0, 0], monthly: [],
+  packBalance: 0, perBot: [], weekly: [0, 0, 0, 0, 0, 0, 0], monthly: [],
   metrics: { botAnsweredPct: 0, handoffPct: 0 },
 };
 
@@ -172,6 +182,8 @@ type PageId =
   | "overview" | "bots" | "inbox" | "history" | "analytics"
   | "billing" | "store" | "account" | "support";
 
+type EditorTab = "general" | "hours" | "services" | "faq" | "connect" | "knowledge" | "advanced";
+
 export default function DashboardPage() {
   const router = useRouter();
   const { toast, ToastHost } = useToast();
@@ -196,7 +208,7 @@ export default function DashboardPage() {
 
   // editor
   const [editBot, setEditBot] = useState<Partial<Bot> | null>(null);
-  const [editorTab, setEditorTab] = useState<"info" | "faq" | "connect">("info");
+  const [editorTab, setEditorTab] = useState<EditorTab>("general");
 
   // manual WhatsApp connection (Twilio OTP) inside the editor's "connect" tab
   const [manualPhone, setManualPhone] = useState("");
@@ -361,7 +373,7 @@ export default function DashboardPage() {
     }
     setPage("bots");
     setEditBot({ ...bot });
-    setEditorTab(intent.tab === "connect" ? "connect" : "info");
+    setEditorTab(intent.tab === "connect" ? "connect" : "general");
   }, [bots]);
 
   function goPage(id: PageId) {
@@ -616,6 +628,44 @@ export default function DashboardPage() {
     checkout(`${id}_${planAnnual ? "annual" : "monthly"}`);
   }
 
+  // ── bot editor field helpers ──
+  const DEFAULT_DAY = { open: "09:00", close: "18:00", closed: false };
+  function ensureHours(eb: Partial<Bot>): WorkingHours {
+    if (eb.working_hours) return eb.working_hours;
+    return Object.fromEntries(DAY_KEYS.map((k) => [k, { ...DEFAULT_DAY }])) as WorkingHours;
+  }
+  function updateBotHours(dayKey: (typeof DAY_KEYS)[number], patch: Partial<{ open: string; close: string; closed: boolean }>) {
+    setEditBot((eb) => {
+      if (!eb) return eb;
+      const base = ensureHours(eb);
+      return { ...eb, working_hours: { ...base, [dayKey]: { ...base[dayKey], ...patch } } };
+    });
+  }
+  function updateService(i: number, patch: Partial<Service>) {
+    setEditBot((eb) => {
+      if (!eb) return eb;
+      const services = [...(eb.services ?? [])];
+      services[i] = { ...services[i], ...patch };
+      return { ...eb, services };
+    });
+  }
+
+  // The bot editor tabs — labels + which key. "connect"/"faq" keep their exact
+  // labels so the connect-wizard e2e (tab "חיבור וואטסאפ") stays valid.
+  const EDITOR_TABS: { key: EditorTab; label: string }[] = [
+    { key: "general", label: "מידע כללי" },
+    { key: "hours", label: "שעות פעילות" },
+    { key: "services", label: "שירותים" },
+    { key: "faq", label: "שאלות נפוצות" },
+    { key: "connect", label: "חיבור וואטסאפ" },
+    { key: "knowledge", label: "ידע והנחיות" },
+    { key: "advanced", label: "מתקדם" },
+  ];
+  // Migration-0010 columns are only editable once the DB row actually carries
+  // them (feature-detect on the loaded row) — otherwise hide with a hint.
+  const editBotForDetect: Partial<Bot> = editBot ?? {};
+  const extendedFields = "website" in editBotForDetect || "custom_instructions" in editBotForDetect;
+
   const activeConv = convs.find((cv) => cv.id === activeConvId) ?? null;
 
   return (
@@ -809,12 +859,23 @@ export default function DashboardPage() {
   function renderBots() {
     return (
       <div className={pageCls("bots")}>
-        <div className={c("ph")}><div><div className={c("ph-title")}>הבוטים שלי</div><div className={c("ph-sub")}>ניהול ועריכת הבוטים שלך</div></div></div>
+        <div className={c("ph")}><div><div className={c("ph-title")}>הבוטים שלי</div><div className={c("ph-sub")}>מרכז ניהול הבוטים — סטטוס, חיבור וביצועים</div></div></div>
+        {bots.length === 0 ? (
+          <div className={c("card card-pad")} style={{ textAlign: "center", padding: "40px 20px" }}>
+            <div style={{ fontSize: 40, marginBottom: 10 }}>🤖</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--t1)", marginBottom: 6 }}>עוד אין לך בוטים</div>
+            <div style={{ fontSize: 13, color: "var(--t3)", marginBottom: 16, lineHeight: 1.6 }}>צור את הבוט הראשון שלך תוך דקות — בחר תבנית מוכנה ואנחנו ממלאים את רוב הפרטים.</div>
+            <button className={c("btn btn-primary btn-sm")} style={{ width: "auto" }} onClick={() => router.push("/onboarding?new=1")}>צור בוט ראשון</button>
+          </div>
+        ) : (
         <div className={c("bots-grid")}>
           {bots.map((b, i) => {
             const col = BOT_COLORS[i % BOT_COLORS.length];
+            const stats = analytics.perBot?.find((p) => p.botId === b.id);
+            const category = b.business_subtype || b.business_type || null;
+            const created = b.created_at ? new Date(b.created_at).toLocaleDateString("he-IL") : null;
             return (
-              <div key={b.id ?? i} className={c("bot-card") + (editBot?.id === b.id ? " " + styles.sel : "")} onClick={() => { setEditBot({ ...b }); setEditorTab("info"); }}>
+              <div key={b.id ?? i} className={c("bot-card") + (editBot?.id === b.id ? " " + styles.sel : "")} onClick={() => { setEditBot({ ...b }); setEditorTab("general"); }}>
                 <div className={c("bc-top")}>
                   <div className={c("bc-icon")} style={{ background: col.bg, color: col.color }}>{(b.name ?? "?").charAt(0)}</div>
                   <span className={c("badge") + " " + (b.active ? c("badge-green") : c("badge-gray"))}>
@@ -822,10 +883,25 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <div className={c("bc-name")}>{b.name}</div>
+                {category && <div style={{ fontSize: 11.5, color: "var(--t4)", fontWeight: 600, marginTop: -2, marginBottom: 4 }}>{category}</div>}
                 <div className={c("bc-desc")}>{b.description || "—"}</div>
-                <div className={c("bc-foot")}>
-                  <span className={c("bc-phone")}>{b.whatsapp_number || "לא מחובר"}</span>
+                <div style={{ display: "flex", gap: 6, alignItems: "center", margin: "8px 0", flexWrap: "wrap" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11.5, fontWeight: 600, padding: "3px 9px", borderRadius: 100, background: b.whatsapp_number ? "var(--green-pale)" : "var(--bg)", color: b.whatsapp_number ? "var(--green-text)" : "var(--t4)" }}>
+                    {b.whatsapp_number ? `וואטסאפ ${b.whatsapp_number}` : "וואטסאפ לא מחובר"}
+                  </span>
                 </div>
+                {(stats || created) && (
+                  <div style={{ display: "flex", gap: 14, borderTop: "1px solid var(--bdr)", paddingTop: 10, marginTop: 2 }}>
+                    <div><div style={{ fontSize: 15, fontWeight: 800, color: "var(--t1)" }}>{stats?.messagesThisMonth?.toLocaleString() ?? 0}</div><div style={{ fontSize: 10.5, color: "var(--t4)" }}>הודעות החודש</div></div>
+                    <div><div style={{ fontSize: 15, fontWeight: 800, color: "var(--t1)" }}>{stats?.conversations ?? 0}</div><div style={{ fontSize: 10.5, color: "var(--t4)" }}>לקוחות</div></div>
+                    {created && <div style={{ marginRight: "auto", textAlign: "left" }}><div style={{ fontSize: 12, fontWeight: 600, color: "var(--t3)" }}>{created}</div><div style={{ fontSize: 10.5, color: "var(--t4)" }}>נוצר</div></div>}
+                  </div>
+                )}
+                {!b.whatsapp_number && (
+                  <button className={c("btn btn-outline btn-xs")} style={{ width: "100%", marginTop: 10 }} onClick={(e) => { e.stopPropagation(); setEditBot({ ...b }); setEditorTab("connect"); }}>
+                    חבר וואטסאפ
+                  </button>
+                )}
               </div>
             );
           })}
@@ -834,49 +910,82 @@ export default function DashboardPage() {
             <span>הוסף בוט חדש</span>
           </div>
         </div>
+        )}
 
         {editBot && (
           <div className={c("editor") + " " + styles.open}>
             <div className={c("ed-hdr")}>
               <div className={c("ed-title")}>עריכת בוט — {editBot.name}</div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div className={c("ed-tabs")}>
-                  <button className={c("etab") + (editorTab === "info" ? " " + styles.act : "")} onClick={() => setEditorTab("info")}>פרטים</button>
-                  <button className={c("etab") + (editorTab === "faq" ? " " + styles.act : "")} onClick={() => setEditorTab("faq")}>שאלות נפוצות</button>
-                  <button className={c("etab") + (editorTab === "connect" ? " " + styles.act : "")} onClick={() => setEditorTab("connect")}>חיבור וואטסאפ</button>
+                <div className={c("ed-tabs")} style={{ flexWrap: "wrap" }}>
+                  {EDITOR_TABS.map((t) => (
+                    <button key={t.key} className={c("etab") + (editorTab === t.key ? " " + styles.act : "")} onClick={() => setEditorTab(t.key)}>{t.label}</button>
+                  ))}
                 </div>
                 <button className={c("ed-close")} onClick={() => setEditBot(null)}>✕</button>
               </div>
             </div>
             <div className={c("ed-body")}>
-              {editorTab === "info" && (
+              {editorTab === "general" && (
                 <div className={c("etab-pane") + " " + styles.act}>
                   <div className={c("form-row2")}>
                     <div className={c("fg")}><label className={c("fl")}>שם העסק</label><input className={c("fi")} value={editBot.name ?? ""} onChange={(e) => setEditBot({ ...editBot, name: e.target.value })} /></div>
-                    <div className={c("fg")}><label className={c("fl")}>סגנון דיבור</label>
-                      <select className={c("fs")} value={editBot.style ?? "friendly"} onChange={(e) => setEditBot({ ...editBot, style: e.target.value as Bot["style"] })}>
-                        <option value="friendly">חברותי ונעים</option>
-                        <option value="professional">מקצועי ורשמי</option>
-                        <option value="short">קצר ולעניין</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className={c("form-row2")}>
                     <div className={c("fg")}>
                       <label className={c("fl")}>שם הבוט</label>
                       <input className={c("fi")} value={editBot.bot_name ?? ""} placeholder="למשל: מיטל, נציג, העוזר שלי..." onChange={(e) => setEditBot({ ...editBot, bot_name: e.target.value })} />
-                      <span className={c("fhint")}>השם שלקוחות הקצה רואים בוואטסאפ — שונה מבוט לבוט</span>
-                    </div>
-                    <div className={c("fg")}>
-                      <label className={c("fl")}>תצוגה מקדימה</label>
-                      <div style={{ background: "#075e54", borderRadius: 10, padding: "9px 12px", display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
-                        <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,var(--green),var(--green-d))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{(editBot.bot_name || "ב").charAt(0)}</div>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>{editBot.bot_name || "הבוט"}</div>
-                      </div>
+                      <span className={c("fhint")}>השם שלקוחות הקצה רואים בוואטסאפ</span>
                     </div>
                   </div>
                   <div className={c("fg")}><label className={c("fl")}>תיאור העסק והשירות</label><textarea className={c("fta")} value={editBot.description ?? ""} onChange={(e) => setEditBot({ ...editBot, description: e.target.value })} /><span className={c("fhint")}>Robert משתמש בתיאור זה כדי לענות ללקוחות</span></div>
-                  <div className={c("trow")}><div className={c("tinfo")}><h4>הבוט פעיל</h4><p>כיבוי זמני ללא מחיקה</p></div><label className={c("tog")}><input type="checkbox" checked={!!editBot.active} onChange={(e) => setEditBot({ ...editBot, active: e.target.checked })} /><span className={c("tog-sl")}></span></label></div>
+                  <div className={c("form-row2")}>
+                    <div className={c("fg")}><label className={c("fl")}>כתובת</label><input className={c("fi")} value={editBot.address ?? ""} placeholder="רחוב, עיר" onChange={(e) => setEditBot({ ...editBot, address: e.target.value })} /></div>
+                    <div className={c("fg")}><label className={c("fl")}>טלפון ליצירת קשר</label><input className={c("fi")} value={editBot.phone ?? ""} type="tel" placeholder="03-1234567" onChange={(e) => setEditBot({ ...editBot, phone: e.target.value })} /></div>
+                  </div>
+                  {extendedFields ? (
+                    <div className={c("fg")}><label className={c("fl")}>אתר / קישור לרשת חברתית</label><input className={c("fi")} value={editBot.website ?? ""} dir="ltr" placeholder="https://..." onChange={(e) => setEditBot({ ...editBot, website: e.target.value })} /><span className={c("fhint")}>אתר, אינסטגרם או פייסבוק — הבוט יפנה לקוחות לשם</span></div>
+                  ) : (
+                    <div style={{ fontSize: 12, color: "var(--t4)", padding: "6px 0" }}>שדה האתר יופעל לאחר עדכון מסד הנתונים.</div>
+                  )}
+                </div>
+              )}
+              {editorTab === "hours" && (
+                <div className={c("etab-pane") + " " + styles.act}>
+                  <p style={{ fontSize: 13, color: "var(--t3)", marginBottom: 14 }}>הבוט מיידע לקוחות מתי אתם פתוחים ועונה בהתאם.</p>
+                  {DAY_KEYS.map((dk, i) => {
+                    const day = ensureHours(editBot)[dk];
+                    return (
+                      <div key={dk} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: "1px solid var(--bdr)", flexWrap: "wrap" }}>
+                        <span style={{ width: 56, fontSize: 13, fontWeight: 600, color: "var(--t1)" }}>{DAYS_HE[i]}</span>
+                        {day.closed ? (
+                          <span style={{ flex: 1, fontSize: 13, color: "var(--t4)" }}>סגור</span>
+                        ) : (
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+                            <input className={c("fi")} type="time" value={day.open} style={{ width: 110 }} onChange={(e) => updateBotHours(dk, { open: e.target.value })} />
+                            <span style={{ color: "var(--t4)" }}>–</span>
+                            <input className={c("fi")} type="time" value={day.close} style={{ width: 110 }} onChange={(e) => updateBotHours(dk, { close: e.target.value })} />
+                          </div>
+                        )}
+                        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--t3)", cursor: "pointer" }}>
+                          <input type="checkbox" checked={day.closed} onChange={(e) => updateBotHours(dk, { closed: e.target.checked })} /> סגור
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {editorTab === "services" && (
+                <div className={c("etab-pane") + " " + styles.act}>
+                  <p style={{ fontSize: 13, color: "var(--t3)", marginBottom: 14 }}>השירותים והמחירים שהבוט מציג ללקוחות.</p>
+                  {(editBot.services ?? []).map((s, i) => (
+                    <div className={c("faq-row")} key={i}>
+                      <div className={c("faq-fields")}>
+                        <input className={c("faq-q")} value={s.name} placeholder="שם השירות (למשל: תספורת גבר)" onChange={(e) => updateService(i, { name: e.target.value })} />
+                        <input className={c("faq-a")} value={s.price} placeholder="מחיר (למשל: ₪80)" onChange={(e) => updateService(i, { price: e.target.value })} />
+                      </div>
+                      <button type="button" className={c("faq-del")} title="מחק שירות" aria-label="מחק שירות" onClick={() => setEditBot({ ...editBot, services: (editBot.services ?? []).filter((_, j) => j !== i) })}>🗑</button>
+                    </div>
+                  ))}
+                  <button className={c("btn btn-outline btn-sm")} style={{ marginTop: 4 }} onClick={() => setEditBot({ ...editBot, services: [...(editBot.services ?? []), { name: "", price: "" }] })}>+ הוסף שירות</button>
                 </div>
               )}
               {editorTab === "faq" && (
@@ -959,8 +1068,42 @@ export default function DashboardPage() {
                   )}
                 </div>
               )}
+              {editorTab === "knowledge" && (
+                <div className={c("etab-pane") + " " + styles.act}>
+                  <div className={c("fg")}>
+                    <label className={c("fl")}>סגנון דיבור</label>
+                    <select className={c("fs")} value={editBot.style ?? "friendly"} onChange={(e) => setEditBot({ ...editBot, style: e.target.value as Bot["style"] })}>
+                      <option value="friendly">חברותי ונעים</option>
+                      <option value="professional">מקצועי ורשמי</option>
+                      <option value="short">קצר ולעניין</option>
+                    </select>
+                    <span className={c("fhint")}>קובע את הטון שבו הבוט מדבר עם הלקוחות</span>
+                  </div>
+                  {extendedFields ? (
+                    <div className={c("fg")}>
+                      <label className={c("fl")}>הנחיות מותאמות לבוט</label>
+                      <textarea className={c("fta")} style={{ minHeight: 120 }} value={editBot.custom_instructions ?? ""} maxLength={2000} placeholder="למשל: מדיניות ביטול תור עד 24 שעות מראש; להדגיש שיש חניה בחינם; לא לקבוע תורים אחרי 20:00." onChange={(e) => setEditBot({ ...editBot, custom_instructions: e.target.value })} />
+                      <span className={c("fhint")}>הנחיות חופשיות שהבוט יפעל לפיהן. הוא לעולם לא ימציא מחירים או שירותים שלא הזנת.</span>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 12, color: "var(--t4)", padding: "6px 0" }}>שדה ההנחיות המותאמות יופעל לאחר עדכון מסד הנתונים.</div>
+                  )}
+                </div>
+              )}
+              {editorTab === "advanced" && (
+                <div className={c("etab-pane") + " " + styles.act}>
+                  <div className={c("trow")}><div className={c("tinfo")}><h4>הבוט פעיל</h4><p>כיבוי זמני ללא מחיקה — הבוט מפסיק לענות ללקוחות</p></div><label className={c("tog")}><input type="checkbox" checked={!!editBot.active} onChange={(e) => setEditBot({ ...editBot, active: e.target.checked })} /><span className={c("tog-sl")}></span></label></div>
+                  <div style={{ background: "var(--bg)", border: "1px solid var(--bdr)", borderRadius: 10, padding: "12px 14px", marginTop: 12, fontSize: 12.5, color: "var(--t3)", lineHeight: 1.7 }}>
+                    <strong style={{ color: "var(--t1)" }}>העברה לנציג אנושי</strong> — כשהבוט לא מצליח לענות, הוא מעביר את השיחה ל-Inbox שלך אוטומטית ומסמן אותה כממתינה. אפשר לענות ידנית ולהחזיר לבוט בכל רגע.
+                  </div>
+                  <div style={{ borderTop: "1px solid var(--bdr)", marginTop: 16, paddingTop: 14 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--red)", marginBottom: 4 }}>אזור סכנה</div>
+                    <div style={{ fontSize: 12, color: "var(--t3)", marginBottom: 10 }}>מחיקת הבוט היא פעולה בלתי הפיכה — כל השיחות וההגדרות יאבדו.</div>
+                    <button className={c("btn btn-danger btn-sm")} style={{ width: "auto" }} onClick={deleteBot}>מחק בוט לצמיתות</button>
+                  </div>
+                </div>
+              )}
               <div className={c("ed-actions")}>
-                <button className={c("btn btn-danger btn-sm")} onClick={deleteBot}>מחק בוט</button>
                 <button className={c("btn btn-outline btn-sm")} onClick={() => setEditBot(null)}>ביטול</button>
                 <button className={c("btn btn-primary btn-sm")} onClick={saveBot}>שמור שינויים</button>
               </div>

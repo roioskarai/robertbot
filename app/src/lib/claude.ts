@@ -56,6 +56,15 @@ export function buildSystemPrompt(bot: Bot): string {
         ? "Professional and formal, no emojis"
         : "Short and to the point";
 
+  const contactLine = bot.phone ? `\nCONTACT PHONE: ${bot.phone}` : "";
+  const websiteLine = bot.website ? `\nWEBSITE / SOCIAL: ${bot.website}` : "";
+  // Owner-provided free-form instructions (migration 0010). Placed AFTER the
+  // rules and explicitly subordinate to rule 4 so they can add nuance but never
+  // let the model invent prices/services.
+  const ownerInstructions = bot.custom_instructions?.trim()
+    ? `\nOWNER INSTRUCTIONS (follow these, but never override rule 4 about prices/services):\n${bot.custom_instructions.trim()}\n`
+    : "";
+
   return `
 You are ${bot.bot_name}, the virtual assistant for ${bot.name}.
 
@@ -68,7 +77,7 @@ ${services}
 WORKING HOURS:
 ${formatWorkingHours(bot.working_hours)}
 
-ADDRESS: ${bot.address || ""}
+ADDRESS: ${bot.address || ""}${contactLine}${websiteLine}
 
 COMMUNICATION STYLE: ${styleLine}
 
@@ -81,7 +90,7 @@ RULES:
 4. Never make up prices or services not listed above
 5. Keep responses concise — mobile users don't like long texts
 6. After 2 failed attempts to understand, trigger [HANDOFF]
-
+${ownerInstructions}
 FAQ:
 ${faq}
 `.trim();

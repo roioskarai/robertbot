@@ -75,6 +75,10 @@ export interface Bot {
   address: string | null;
   phone: string | null;
   style: BotStyle;
+  // Business website / social link + free-form owner instructions for the AI
+  // (both added by migration 0010; optional so pre-migration rows still type).
+  website?: string | null;
+  custom_instructions?: string | null;
   whatsapp_number: string | null;
   twilio_sid: string | null;
   // WhatsApp connection (multi-tenant isolation) — each tenant owns its WABA.

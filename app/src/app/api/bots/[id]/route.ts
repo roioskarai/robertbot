@@ -91,6 +91,10 @@ export async function PUT(req: Request, props: Ctx) {
     active: merged.active,
     system_prompt: buildSystemPrompt(merged),
   };
+  // Only touch the migration-0010 columns when the client actually sent them.
+  // Pre-migration the editor hides these fields, so they never reach the DB.
+  if (body.website !== undefined) update.website = merged.website;
+  if (body.custom_instructions !== undefined) update.custom_instructions = merged.custom_instructions;
 
   const { data, error } = await supabase
     .from("bots")
