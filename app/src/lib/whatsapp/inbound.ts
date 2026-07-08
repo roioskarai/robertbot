@@ -7,6 +7,7 @@ import { generateReply, hasAnthropicKey } from "@/lib/claude";
 import { getWhatsAppProvider, hasWhatsApp } from "@/lib/whatsapp";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { PLAN_LIMITS, type PlanId } from "@/lib/plans";
+import { deriveSubscriptionState } from "@/lib/subscription";
 import type { Bot } from "@/lib/types";
 
 type Admin = ReturnType<typeof createAdminClient>;
@@ -86,13 +87,17 @@ export async function processInboundMessage(msg: InboundMessage): Promise<void> 
   if ((existing?.status ?? "bot") === "human") return;
   if (!hasAnthropicKey()) return; // engine off — message stored, no reply
 
-  // Don't serve AI to cancelled or paused accounts — message is stored but no reply sent.
+  // Don't serve AI to accounts without an entitled subscription. This blocks
+  // cancelled/paused AND expired trials (a trial past trial_ends_at keeps the
+  // raw status 'trial' until the daily cron runs — derive the real state so we
+  // stop replying immediately, not up to a day late). Message is still stored.
   const { data: userRow } = await supabase
     .from("users")
-    .select("subscription_status")
+    .select("subscription_status, trial_ends_at")
     .eq("id", bot.user_id)
     .maybeSingle();
-  if (userRow?.subscription_status === "cancelled" || userRow?.subscription_status === "paused") return;
+  const subState = deriveSubscriptionState(userRow ?? {});
+  if (subState.status === "cancelled" || subState.status === "paused" || subState.status === "trial_expired") return;
 
   // Quota: monthly plan quota first, then never-expiring pack balance.
   const period = new Date().toISOString().slice(0, 7); // "YYYY-MM"

@@ -6,6 +6,7 @@ import Link from "next/link";
 import styles from "./cancel.module.css";
 import { scoped } from "@/lib/cx";
 import { PRICING, PLAN_LIMITS } from "@/lib/plans";
+import type { SubscriptionState } from "@/lib/subscription";
 
 const c = scoped(styles);
 
@@ -55,20 +56,27 @@ export default function CancelPage() {
   const [reason, setReason] = useState<Reason | null>(null);
   // Real subscription end date (from /api/analytics) — never a hardcoded date.
   const [endDate, setEndDate] = useState<string | null>(null);
+  // Derived subscription state: a trial/cancelled user has nothing to cancel,
+  // so we short-circuit the whole retention funnel with a clear message.
+  const [sub, setSub] = useState<SubscriptionState | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     fetch("/api/analytics")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (cancelled || !d?.subscriptionEndsAt) return;
-        setEndDate(new Date(d.subscriptionEndsAt).toLocaleDateString("he-IL"));
+        if (cancelled || !d) return;
+        if (d.subscription) setSub(d.subscription as SubscriptionState);
+        if (d.subscriptionEndsAt) setEndDate(new Date(d.subscriptionEndsAt).toLocaleDateString("he-IL"));
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
   }, []);
+
+  // No active paid subscription → don't run the cancel funnel at all.
+  const nothingToCancel = sub != null && !sub.isPaying;
 
   // Grammatical Hebrew for both the real-date and the no-date fallback.
   const stopText = endDate ? `ב-${endDate}` : "בסוף תקופת החיוב הנוכחית";
@@ -104,6 +112,30 @@ export default function CancelPage() {
       <Link href="/dashboard" style={{ fontSize: 13, color: "#64748b", textDecoration: "none" }}>חזור ל-Dashboard</Link>
     </nav>
   );
+
+  // Trial / already-cancelled users have no paid subscription to cancel — show a
+  // clear message instead of a retention funnel that would misrepresent billing.
+  if (nothingToCancel && sub) {
+    const trialText =
+      sub.status === "trial" && sub.trialEndsAt
+        ? `אתה בתקופת ניסיון חינם — אין חיוב פעיל. הניסיון מסתיים ב-${new Date(sub.trialEndsAt).toLocaleDateString("he-IL")}, ואינך מחויב עד שתבחר מסלול.`
+        : "אין לך מנוי פעיל בתשלום — אין מה לבטל. אתה יכול לבחור מסלול בכל עת מהאזור האישי.";
+    return (
+      <div className={styles.cancel}>
+        {Nav}
+        <div className={c("screen") + " " + styles.act}>
+          <div className={c("card")} style={{ textAlign: "center" }}>
+            <div className={c("card-icon")} style={{ background: "var(--green-p)" }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--green-d)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="10" /></svg>
+            </div>
+            <div className={c("card-title")}>אין חיוב פעיל</div>
+            <div className={c("card-sub")}>{trialText}</div>
+            <button className={c("btn btn-primary")} onClick={() => router.push("/dashboard")} style={{ marginTop: 8 }}>חזור ל-Dashboard</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.cancel}>
