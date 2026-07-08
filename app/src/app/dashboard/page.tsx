@@ -89,7 +89,14 @@ interface Analytics {
   perBot?: { botId: string; messagesThisMonth: number; conversations: number }[];
   weekly: number[];
   monthly: { label: string; count: number }[];
-  metrics: { botAnsweredPct: number; handoffPct: number };
+  metrics: {
+    botAnsweredPct: number;
+    handoffPct: number;
+    activeCustomers?: number;
+    avgMsgsPerConversation?: number;
+    peakDayCount?: number;
+    peakHourRange?: string | null;
+  };
 }
 
 // Demo/zero placeholders derive their subscription like the real API does.
@@ -127,7 +134,7 @@ const DEMO_ANALYTICS: Analytics = {
     { label: "מאי", count: 710 },
     { label: "יוני", count: 847 },
   ],
-  metrics: { botAnsweredPct: 94, handoffPct: 6 },
+  metrics: { botAnsweredPct: 94, handoffPct: 6, activeCustomers: 52, avgMsgsPerConversation: 6.8, peakDayCount: 43, peakHourRange: "10:00–12:00" },
 };
 
 // Real users start from a clean zeroed state (never the demo numbers above)
@@ -1240,36 +1247,48 @@ export default function DashboardPage() {
   }
 
   function renderAnalytics() {
+    const m = analytics.metrics;
+    const noData = analytics.messagesThisMonth === 0;
     return (
       <div className={pageCls("analytics")}>
         <div className={c("ph")}><div><div className={c("ph-title")}>אנליטיקס</div><div className={c("ph-sub")}>ביצועי הבוטים שלך לאורך זמן</div></div></div>
+        {noData ? (
+          <div className={c("card card-pad")} style={{ textAlign: "center", padding: "40px 20px" }}>
+            <div style={{ fontSize: 34, marginBottom: 8 }}>📊</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--t1)", marginBottom: 4 }}>אין עדיין נתונים החודש</div>
+            <div style={{ fontSize: 13, color: "var(--t3)" }}>ברגע שהבוט יתחיל לענות ללקוחות, הביצועים יופיעו כאן.</div>
+          </div>
+        ) : (
+        <>
         <div className={c("grid-4")} style={{ marginBottom: 16 }}>
           <div className={c("card sc")}><div className={c("sc-label")}>הודעות החודש</div><div className={c("sc-val")}>{analytics.messagesThisMonth.toLocaleString()}</div><div className={c("sc-sub up")}>↑ פעילות החודש</div></div>
-          <div className={c("card sc")}><div className={c("sc-label")}>שיחות שהושלמו</div><div className={c("sc-val")}>{analytics.closedThisMonth}</div><div className={c("sc-sub up")}>{analytics.metrics.botAnsweredPct}% ע&quot;י הבוט</div></div>
-          <div className={c("card sc")}><div className={c("sc-label")}>זמן תגובה ממוצע</div><div className={c("sc-val")}>3שנ&apos;</div><div className={c("sc-sub up")}>מהיר מאוד</div></div>
-          <div className={c("card sc")}><div className={c("sc-label")}>שביעות רצון</div><div className={c("sc-val")}>4.8</div><div className={c("sc-sub up")}>מתוך 5</div></div>
+          <div className={c("card sc")}><div className={c("sc-label")}>שיחות שהושלמו</div><div className={c("sc-val")}>{analytics.closedThisMonth}</div><div className={c("sc-sub up")}>{m.botAnsweredPct}% ע&quot;י הבוט</div></div>
+          <div className={c("card sc")}><div className={c("sc-label")}>נענו ע&quot;י הבוט</div><div className={c("sc-val")}>{m.botAnsweredPct}%</div><div className={c("sc-sub up")}>ללא נציג אנושי</div></div>
+          <div className={c("card sc")}><div className={c("sc-label")}>לקוחות פעילים</div><div className={c("sc-val")}>{m.activeCustomers ?? 0}</div><div className={c("sc-sub nt")}>שוחחו החודש</div></div>
         </div>
         <div className={c("analytics-grid")}>
           <div className={c("analytics-card")}>
             <div className={c("card-title")}>הודעות לפי חודש</div>
             <div className={c("chart-line-wrap")}>
-              {analytics.monthly.map((m, i) => (
-                <div key={i} className={c("cl-bar")} style={{ height: (m.count / monthlyMax) * 100 + "%" }}></div>
+              {analytics.monthly.map((mm, i) => (
+                <div key={i} className={c("cl-bar")} style={{ height: (mm.count / monthlyMax) * 100 + "%" }}></div>
               ))}
             </div>
             <div className={c("cl-labels")}>
-              {analytics.monthly.map((m, i) => <span key={i} className={c("cl-label")}>{m.label}</span>)}
+              {analytics.monthly.map((mm, i) => <span key={i} className={c("cl-label")}>{mm.label}</span>)}
             </div>
           </div>
           <div className={c("analytics-card")}>
             <div className={c("card-title")}>פירוט ביצועים</div>
-            <div className={c("metric-row")}><span className={c("metric-name")}>שאלות שנענו ע&quot;י בוט</span><span className={c("metric-val")}>{analytics.metrics.botAnsweredPct}%</span></div>
-            <div className={c("metric-row")}><span className={c("metric-name")}>שיחות שהועברו לאדם</span><span className={c("metric-val")}>{analytics.metrics.handoffPct}%</span></div>
-            <div className={c("metric-row")}><span className={c("metric-name")}>ממוצע הודעות לשיחה</span><span className={c("metric-val")}>6.8</span></div>
-            <div className={c("metric-row")}><span className={c("metric-name")}>שיא שיחות ביום</span><span className={c("metric-val")}>43</span></div>
-            <div className={c("metric-row")}><span className={c("metric-name")}>שעת שיא</span><span className={c("metric-val")}>10:00–12:00</span></div>
+            <div className={c("metric-row")}><span className={c("metric-name")}>שאלות שנענו ע&quot;י בוט</span><span className={c("metric-val")}>{m.botAnsweredPct}%</span></div>
+            <div className={c("metric-row")}><span className={c("metric-name")}>שיחות שהועברו לאדם</span><span className={c("metric-val")}>{m.handoffPct}%</span></div>
+            <div className={c("metric-row")}><span className={c("metric-name")}>ממוצע הודעות לשיחה</span><span className={c("metric-val")}>{m.avgMsgsPerConversation ?? 0}</span></div>
+            <div className={c("metric-row")}><span className={c("metric-name")}>שיא הודעות ביום</span><span className={c("metric-val")}>{m.peakDayCount ?? 0}</span></div>
+            <div className={c("metric-row")}><span className={c("metric-name")}>שעת שיא</span><span className={c("metric-val")}>{m.peakHourRange ?? "—"}</span></div>
           </div>
         </div>
+        </>
+        )}
       </div>
     );
   }
@@ -1392,8 +1411,8 @@ export default function DashboardPage() {
       <div className={pageCls("support")}>
         <div className={c("ph")}><div><div className={c("ph-title")}>תמיכה</div><div className={c("ph-sub")}>מרכז עזרה ויצירת קשר</div></div></div>
         <div className={c("grid-2")} style={{ marginBottom: 16 }}>
-          <div className={c("card sc")}><div className={c("sc-label")}>זמן תגובה ממוצע</div><div className={c("sc-val")}>שעתיים</div><div className={c("sc-sub up")}>זמין א&apos;-ו&apos;</div></div>
-          <div className={c("card sc")}><div className={c("sc-label")}>גרסת מערכת</div><div className={c("sc-val")}>2.4.1</div><div className={c("sc-sub nt")}>עדכנית</div></div>
+          <div className={c("card sc")}><div className={c("sc-label")}>זמן תגובה לתמיכה</div><div className={c("sc-val")}>עד יום עסקים</div><div className={c("sc-sub up")}>זמין א&apos;-ה&apos;</div></div>
+          <div className={c("card sc")}><div className={c("sc-label")}>סטטוס מערכת</div><div className={c("sc-val")}>תקין</div><div className={c("sc-sub up")}>כל השירותים פעילים</div></div>
         </div>
         <div className={c("support-list")}>
           <a className={c("support-item")} href="/#faq" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>

@@ -59,6 +59,8 @@ export default function CancelPage() {
   // Derived subscription state: a trial/cancelled user has nothing to cancel,
   // so we short-circuit the whole retention funnel with a clear message.
   const [sub, setSub] = useState<SubscriptionState | null>(null);
+  // Real usage stats for the "look what Robert did for you" panel (was fake).
+  const [usage, setUsage] = useState<{ messages: number; closed: number } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,6 +70,7 @@ export default function CancelPage() {
         if (cancelled || !d) return;
         if (d.subscription) setSub(d.subscription as SubscriptionState);
         if (d.subscriptionEndsAt) setEndDate(new Date(d.subscriptionEndsAt).toLocaleDateString("he-IL"));
+        setUsage({ messages: d.messagesThisMonth ?? 0, closed: d.closedThisMonth ?? 0 });
       })
       .catch(() => {});
     return () => {
@@ -149,11 +152,12 @@ export default function CancelPage() {
           </div>
           <div className={c("card-title")}>רגע לפני שמבטלים...</div>
           <div className={c("card-sub")}>Robert עבד קשה בשבילך החודש. לפני שאתה הולך — ספר לנו למה.</div>
-          <div className={c("stats-row")}>
-            <div className={c("stat-box")}><div className={c("stat-n green")}>847</div><div className={c("stat-l")}>הודעות החודש</div></div>
-            <div className={c("stat-box")}><div className={c("stat-n green")}>124</div><div className={c("stat-l")}>שיחות שנסגרו</div></div>
-            <div className={c("stat-box")}><div className={c("stat-n green")}>3שנ&apos;</div><div className={c("stat-l")}>זמן תגובה</div></div>
-          </div>
+          {usage && (usage.messages > 0 || usage.closed > 0) && (
+            <div className={c("stats-row")}>
+              <div className={c("stat-box")}><div className={c("stat-n green")}>{usage.messages.toLocaleString()}</div><div className={c("stat-l")}>הודעות החודש</div></div>
+              <div className={c("stat-box")}><div className={c("stat-n green")}>{usage.closed.toLocaleString()}</div><div className={c("stat-l")}>שיחות שנסגרו</div></div>
+            </div>
+          )}
           <div className={c("reasons")}>
             {REASONS.map((r) => (
               <div key={r.key} className={c("reason") + (reason === r.key ? " " + styles.sel : "")} onClick={() => setReason(r.key)}>

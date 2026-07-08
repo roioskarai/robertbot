@@ -79,6 +79,25 @@ export async function GET() {
   const handoffMsgs = all.filter((m) => m.from_type === "human").length;
   const totalReplies = botMsgs + handoffMsgs;
 
+  // Real derived analytics (replacing previously hardcoded demo numbers).
+  const convsThisMonth = (convs ?? []).filter(
+    (cv) => cv.last_message_at && new Date(cv.last_message_at) >= startOfMonth,
+  ).length;
+  const avgMsgsPerConversation = convsThisMonth
+    ? Math.round((messagesThisMonth / convsThisMonth) * 10) / 10
+    : 0;
+  const peakDayCount = Math.max(0, ...weekly);
+  // Peak 2-hour window: histogram this month's messages by hour, pick the mode.
+  const hourHist = new Array(24).fill(0) as number[];
+  for (const m of all) {
+    const d = new Date(m.created_at);
+    if (d >= startOfMonth) hourHist[d.getHours()]++;
+  }
+  const peakHour = hourHist.some((n) => n > 0) ? hourHist.indexOf(Math.max(...hourHist)) : null;
+  const peakHourRange = peakHour === null
+    ? null
+    : `${String(peakHour).padStart(2, "0")}:00–${String((peakHour + 2) % 24).padStart(2, "0")}:00`;
+
   // Per-bot stats for the "My Bots" management cards: this month's message
   // usage (from usage_logs) + distinct customer conversations. RLS-scoped.
   const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -121,6 +140,10 @@ export async function GET() {
     metrics: {
       botAnsweredPct: totalReplies ? Math.round((botMsgs / totalReplies) * 100) : 0,
       handoffPct: totalReplies ? Math.round((handoffMsgs / totalReplies) * 100) : 0,
+      activeCustomers: convsThisMonth,
+      avgMsgsPerConversation,
+      peakDayCount,
+      peakHourRange,
     },
   });
 }
