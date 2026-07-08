@@ -172,22 +172,22 @@ export default function AdminUsers() {
       ),
     },
     {
-      key: "subscription_ends_at", label: "תוקף עד", sortable: true,
+      key: "subscription_ends_at", label: "תוקף עד", sortable: true, hideBelow: "md",
       render: (u) => <span style={{ fontVariantNumeric: "tabular-nums", fontSize: 12.5 }}>{fmtDate(u.subscription_ends_at) ?? <span className={styles.muted}>—</span>}</span>,
     },
     {
-      key: "bots", label: "בוטים", align: "center",
+      key: "bots", label: "בוטים", align: "center", hideBelow: "sm",
       sortValue: (u) => u.bots.active,
       render: (u) => <span className={`${styles.badge} ${u.bots.active>0?styles.badgeActive:styles.badgeCancelled}`}>{u.bots.active}/{u.bots.total}</span>,
     },
     {
-      key: "pack_balance", label: "Packs", align: "center", sortable: true,
+      key: "pack_balance", label: "Packs", align: "center", sortable: true, hideBelow: "md",
       render: (u) => u.pack_balance > 0
         ? <span className={`${styles.badge} ${styles.badgeGreen}`}>{u.pack_balance}</span>
         : <span className={styles.muted}>—</span>,
     },
     {
-      key: "totp_enabled", label: "2FA", align: "center",
+      key: "totp_enabled", label: "2FA", align: "center", hideBelow: "sm",
       render: (u) => u.totp_enabled
         ? <ShieldCheck size={16} strokeWidth={2} style={{ color: "var(--success)" }} />
         : <ShieldOff size={16} strokeWidth={2} style={{ color: "var(--t4)" }} />,

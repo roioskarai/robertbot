@@ -1,10 +1,11 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard, Users, Bot, CreditCard,
-  Cpu, ShieldCheck, LogOut, ChevronRight, Activity,
+  Cpu, ShieldCheck, LogOut, ChevronRight, Activity, Menu,
   Palette, LayoutTemplate, Image as ImageIcon, FileText, Megaphone,
   Brush, BarChart3, History, Code2, UserCog,
 } from "lucide-react";
@@ -74,6 +75,10 @@ export default function AdminShell({
   const router = useRouter();
   const builderItems = BUILDER_NAV.filter((i) => hasPermission(adminRole, i.perm));
 
+  // Mobile off-canvas nav — closes automatically on route change.
+  const [navOpen, setNavOpen] = useState(false);
+  useEffect(() => { setNavOpen(false); }, [pathname]);
+
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" });
     router.push("/admin/login");
@@ -84,8 +89,11 @@ export default function AdminShell({
 
   return (
     <div className={`${styles.wrap} ${styles.root}`}>
+      {/* Mobile overlay behind the drawer */}
+      {navOpen && <div className={styles.sideOverlay} onClick={() => setNavOpen(false)} />}
+
       {/* ── Sidebar ── */}
-      <aside className={styles.sidebar}>
+      <aside className={`${styles.sidebar} ${navOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.sideTop}>
           <div className={styles.brand}>
             <div className={styles.brandIcon}>
@@ -159,6 +167,13 @@ export default function AdminShell({
       {/* ── Main ── */}
       <div className={styles.main}>
         <header className={styles.topbar}>
+          <button
+            className={styles.menuBtn}
+            onClick={() => setNavOpen((o) => !o)}
+            aria-label="תפריט"
+          >
+            <Menu size={18} />
+          </button>
           <nav className={styles.breadcrumb}>
             <span>Robert</span>
             <ChevronRight size={13} strokeWidth={2} className={styles.breadcrumbSep} />

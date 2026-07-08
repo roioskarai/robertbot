@@ -14,6 +14,12 @@ export interface Column<T> {
   render?: (row: T) => ReactNode;
   align?: "right" | "center" | "left";
   thStyle?: React.CSSProperties;
+  /** Hide this column below a breakpoint on mobile ("sm" ≤640px, "md" ≤960px). */
+  hideBelow?: "sm" | "md";
+}
+
+function hideClass(hideBelow?: "sm" | "md"): string {
+  return hideBelow === "sm" ? styles.hideSm : hideBelow === "md" ? styles.hideMd : "";
 }
 
 // Generic client-side sortable + paginated table over already-fetched rows.
@@ -62,7 +68,7 @@ export default function DataTable<T extends { id: string }>({
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={col.sortable ? styles.sortable : undefined}
+                  className={`${col.sortable ? styles.sortable : ""} ${hideClass(col.hideBelow)}`.trim() || undefined}
                   style={{ textAlign: col.align ?? "right", ...col.thStyle }}
                   onClick={col.sortable ? () => toggleSort(col.key) : undefined}
                 >
@@ -84,7 +90,7 @@ export default function DataTable<T extends { id: string }>({
             {!loading && view.rows.map((row) => (
               <tr key={row.id}>
                 {columns.map((col) => (
-                  <td key={col.key} style={{ textAlign: col.align ?? "right" }}>
+                  <td key={col.key} className={hideClass(col.hideBelow) || undefined} style={{ textAlign: col.align ?? "right" }}>
                     {col.render ? col.render(row) : String((row as Record<string, unknown>)[col.key] ?? "")}
                   </td>
                 ))}
