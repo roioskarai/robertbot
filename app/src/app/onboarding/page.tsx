@@ -158,6 +158,7 @@ function OnboardingInner() {
   const [waStep, setWaStep] = useState<"idle" | "sent" | "success">("idle");
   const [waBusy, setWaBusy] = useState(false);
   const [waError, setWaError] = useState<string | null>(null);
+  const [waConfigIssue, setWaConfigIssue] = useState(false);
   const [waVerified, setWaVerified] = useState<{ number: string; token: string } | null>(null);
   const [waManualEnabled, setWaManualEnabled] = useState(true);
 
@@ -437,6 +438,7 @@ function OnboardingInner() {
       return;
     }
     setWaError(null);
+    setWaConfigIssue(false);
     if (DEMO_MODE) {
       setWaStep("sent");
       toast("מצב הדגמה — הזן קוד כלשהו");
@@ -452,6 +454,7 @@ function OnboardingInner() {
       const d = await res.json().catch(() => ({}));
       if (!res.ok) {
         setWaError(d.error || "שליחת הקוד נכשלה. נסה שוב.");
+        setWaConfigIssue(!!d.configIssue);
         return;
       }
       setWaStep("sent");
@@ -470,9 +473,13 @@ function OnboardingInner() {
       return;
     }
     setWaError(null);
+    setWaConfigIssue(false);
     if (DEMO_MODE) {
-      setWaVerified({ number: num, token: "demo" });
+      const verified = { number: num, token: "demo" };
+      setWaVerified(verified);
       setWaStep("success");
+      // Verified → auto-continue to finish (brief success state first).
+      setTimeout(() => finish(verified), 1400);
       return;
     }
     setWaBusy(true);
@@ -485,10 +492,14 @@ function OnboardingInner() {
       const d = await res.json().catch(() => ({}));
       if (!res.ok || !d.token) {
         setWaError(d.error || "אימות הקוד נכשל. נסה שוב.");
+        setWaConfigIssue(!!d.configIssue);
         return;
       }
-      setWaVerified({ number: (d.number as string) ?? num, token: d.token as string });
+      const verified = { number: (d.number as string) ?? num, token: d.token as string };
+      setWaVerified(verified);
       setWaStep("success");
+      // Verified → continue automatically to bot creation (requirement 2).
+      setTimeout(() => finish(verified), 1400);
     } catch {
       setWaError("אין חיבור לשרת — נסה שוב.");
     } finally {
@@ -1229,13 +1240,14 @@ function OnboardingInner() {
                     title: "המספר אומת בהצלחה!",
                     sub: "המספר יחובר לבוט שלך אוטומטית בסיום ההקמה.",
                   }}
+                  configIssue={waConfigIssue}
                 />
               )}
               {waStep !== "success" && (
                 <button
                   type="button"
-                  className={c("btn btn-ghost btn-xs")}
-                  style={{ marginTop: 10, padding: 0 }}
+                  className={c("btn btn-outline")}
+                  style={{ marginTop: 12, width: "100%" }}
                   onClick={() => { setWaVerified(null); finish(null); }}
                   disabled={finishing}
                 >

@@ -8,7 +8,7 @@ import { jsonError, unauthorized } from "@/lib/errors";
 import { rateLimit } from "@/lib/rate-limit";
 import { parseBody, botCreateSchema } from "@/lib/schemas";
 import { verifyWaVerifyToken } from "@/lib/wa-verify-token";
-import { isValidPhoneIL } from "@/lib/validation";
+import { normalizePhoneE164, e164ToLocalIL } from "@/lib/validation";
 import type { Bot } from "@/lib/types";
 
 // GET /api/bots — list the current user's bots
@@ -71,20 +71,23 @@ export async function POST(req: Request) {
   // rejected — we never attach an unproven number at creation.
   let connectNumber: string | null = null;
   if (body.whatsapp_number) {
-    const num = body.whatsapp_number.trim();
-    if (!isValidPhoneIL(num)) return jsonError("מספר הטלפון אינו תקין");
+    // Store/verify on the canonical E.164 form — the same form the verify route
+    // signed the ownership token over.
+    const num = normalizePhoneE164(body.whatsapp_number);
+    if (!num) return jsonError("מספר הטלפון אינו תקין");
     if (!verifyWaVerifyToken(body.wa_verify_token, session.authId, num)) {
       return jsonError(
         "אימות המספר פג תוקף — אמת שוב או דלג וחבר מאוחר יותר מה-Dashboard",
         403,
       );
     }
-    // Cross-tenant uniqueness (same guard as the connect route).
+    // Cross-tenant uniqueness (same guard as the connect route) — compare both
+    // E.164 and legacy 0-prefixed forms until migration 0010 normalizes rows.
     const admin = createAdminClient();
     const { data: taken } = await admin
       .from("bots")
       .select("id")
-      .eq("whatsapp_number", num)
+      .in("whatsapp_number", [num, e164ToLocalIL(num)])
       .maybeSingle();
     if (taken) return jsonError("מספר זה כבר מחובר לבוט אחר במערכת", 409);
     connectNumber = num;

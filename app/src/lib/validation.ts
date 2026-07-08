@@ -18,6 +18,24 @@ export function isValidPhoneIL(input: string): boolean {
   return /^0\d{8,9}$/.test(normalizePhone(input));
 }
 
+/**
+ * Canonical E.164 form (+972…) for a valid Israeli number, or null if invalid.
+ * This is the ONE storage/compare form for WhatsApp numbers — it matches what
+ * Twilio actually dials, so "0501234567" and "+972501234567" collapse to the
+ * same value and can never be mistaken for two different numbers.
+ */
+export function normalizePhoneE164(input: string): string | null {
+  if (!isValidPhoneIL(input)) return null;
+  const local = normalizePhone(input); // 0XXXXXXXXX
+  return "+972" + local.slice(1);
+}
+
+/** Inverse of normalizePhoneE164 for the local (0…) form. Used for the
+ *  dual-form uniqueness check while legacy rows are still 0-prefixed. */
+export function e164ToLocalIL(e164: string): string {
+  return "0" + e164.replace(/^\+972/, "");
+}
+
 // Reasonable upper bounds to stop oversized text reaching the DB / the model.
 export const LIMITS = {
   name: 120,

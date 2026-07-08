@@ -204,11 +204,12 @@ export default function DashboardPage() {
   const [manualStep, setManualStep] = useState<"idle" | "sent" | "success">("idle");
   const [manualBusy, setManualBusy] = useState(false);
   const [manualError, setManualError] = useState<string | null>(null);
+  const [manualConfigIssue, setManualConfigIssue] = useState(false);
   // Whether the server can actually run the manual OTP flow (Twilio Verify
   // configured). Demo mode is always "available" — the connect route pretends.
   const [manualAvailable, setManualAvailable] = useState(true);
   // Reset the manual-connect flow whenever the edited bot changes / editor closes.
-  useEffect(() => { setManualStep("idle"); setManualPhone(""); setManualCode(""); setManualError(null); }, [editBot?.id]);
+  useEffect(() => { setManualStep("idle"); setManualPhone(""); setManualCode(""); setManualError(null); setManualConfigIssue(false); }, [editBot?.id]);
   // Pre-detect a half-configured Twilio (creds without a Verify service) so we
   // show a friendly note instead of letting "שלח קוד" hit a 503.
   useEffect(() => {
@@ -485,7 +486,7 @@ export default function DashboardPage() {
         body: JSON.stringify({ number: manualPhone.trim() }),
       });
       const d = await res.json().catch(() => ({}));
-      if (!res.ok) { setManualError(d.error || "שליחת הקוד נכשלה — נסה שוב"); return; }
+      if (!res.ok) { setManualError(d.error || "שליחת הקוד נכשלה — נסה שוב"); setManualConfigIssue(!!d.configIssue); return; }
       setManualStep("sent");
       setManualCode("");
       toast(d.demo ? "מצב הדגמה — הזן קוד כלשהו" : "קוד אימות נשלח לוואטסאפ של המספר");
@@ -528,7 +529,7 @@ export default function DashboardPage() {
         body: JSON.stringify({ number: manualPhone.trim(), code: manualCode.trim() }),
       });
       const d = await res.json().catch(() => ({}));
-      if (!res.ok) { setManualError(d.error || "אימות הקוד נכשל — בדוק את הקוד ונסה שוב"); return; }
+      if (!res.ok) { setManualError(d.error || "אימות הקוד נכשל — בדוק את הקוד ונסה שוב"); setManualConfigIssue(!!d.configIssue); return; }
       setManualPhone(d.bot?.whatsapp_number ?? manualPhone.trim());
       setEditBot((eb) => (eb ? { ...eb, whatsapp_number: d.bot?.whatsapp_number ?? manualPhone.trim(), active: true } : eb));
       setManualStep("success");
@@ -941,7 +942,7 @@ export default function DashboardPage() {
                         code={manualCode}
                         busy={manualBusy}
                         error={manualError}
-                        onPhoneChange={(v) => { setManualPhone(v); setManualError(null); }}
+                        onPhoneChange={(v) => { setManualPhone(v); setManualError(null); setManualConfigIssue(false); }}
                         onCodeChange={(v) => { setManualCode(v.replace(/\D/g, "")); setManualError(null); }}
                         onSendCode={sendManualCode}
                         onVerify={verifyManualCode}
@@ -953,6 +954,7 @@ export default function DashboardPage() {
                           ctaLabel: "סגור",
                           onCta: closeManualSuccess,
                         }}
+                        configIssue={manualConfigIssue}
                       />
                     </div>
                   )}

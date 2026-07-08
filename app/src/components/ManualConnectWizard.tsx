@@ -26,6 +26,7 @@ export default function ManualConnectWizard({
   onResend,
   onChangeNumber,
   success,
+  configIssue,
 }: {
   classes: (names: string) => string;
   step: ManualConnectStep;
@@ -40,7 +41,15 @@ export default function ManualConnectWizard({
   onResend: () => void;
   onChangeNumber: () => void;
   success: { title: string; sub: string; ctaLabel?: string; onCta?: () => void };
+  /** True when the failure is a server/provider misconfig — show a reassuring
+   *  "it's us, not you" hint so the user knows to skip and try later. */
+  configIssue?: boolean;
 }) {
+  const configHint = configIssue ? (
+    <div style={{ fontSize: 11.5, color: "var(--t3)", marginTop: 6, lineHeight: 1.5 }}>
+      נראה שיש תקלה זמנית אצלנו, לא אצלך. אפשר לדלג ולחבר מאוחר יותר — הבוט ימשיך לפעול.
+    </div>
+  ) : null;
   return (
     <>
       {/* step badges: 1 מספר → 2 קוד → 3 הצלחה (#12) */}
@@ -79,6 +88,7 @@ export default function ManualConnectWizard({
             </button>
           </div>
           {error && <div className={c("field-err")} role="alert">{error}</div>}
+          {configHint}
         </div>
       )}
 
@@ -100,6 +110,7 @@ export default function ManualConnectWizard({
             </button>
           </div>
           {error && <div className={c("field-err")} role="alert">{error}</div>}
+          {configHint}
           <div style={{ display: "flex", gap: 14, marginTop: 8 }}>
             <button className={c("btn btn-ghost btn-xs")} onClick={onResend} disabled={busy}>שלח קוד שוב</button>
             <button className={c("btn btn-ghost btn-xs")} onClick={onChangeNumber} disabled={busy}>החלף מספר</button>

@@ -39,10 +39,9 @@ test("אשף חיבור בשלב 5 — שגיאת טלפון, אימות מלא,
   await page.getByPlaceholder("קוד אימות").fill("1234");
   await page.getByRole("button", { name: "אמת וחבר" }).click();
   await expect(page.getByText("המספר אומת בהצלחה!")).toBeVisible();
-  await expect(page.getByText("המספר יחובר לבוט שלך אוטומטית בסיום ההקמה.")).toBeVisible();
 
-  // finish → connected success screen
-  await page.getByRole("button", { name: /סיום וכניסה/ }).click();
+  // Verified → the wizard auto-continues to the connected success screen
+  // (requirement 2: "Connection confirmed → Continue automatically").
   await expect(page.getByText("הבוט שלך מוכן!")).toBeVisible();
   await expect(page.getByText("מחובר לוואטסאפ", { exact: true })).toBeVisible();
   await expect(page.locator('[class*="sd-val"]').filter({ hasText: "0501234567" })).toBeVisible();

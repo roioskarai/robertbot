@@ -3,25 +3,21 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, unauthorized } from "@/lib/errors";
-import { hasTwilioCreds, hasVerifyCreds, startVerification, checkVerification } from "@/lib/twilio";
-import { isValidPhoneIL } from "@/lib/validation";
-import { rateLimit } from "@/lib/rate-limit";
 import { parseBody, connectSchema } from "@/lib/schemas";
+import { sendOtp, checkOtp } from "@/lib/wa-verify-service";
+import { e164ToLocalIL } from "@/lib/validation";
 import { isDemoMode } from "@/lib/env";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 // POST /api/bots/[id]/connect
 // body: { number, code? }  — no code → send OTP; with code → verify + save number
+// Shares lib/wa-verify-service with the onboarding verify route; this route adds
+// bot ownership, cross-tenant uniqueness and persistence.
 export async function POST(req: Request, props: Ctx) {
   const params = await props.params;
   const session = await getSessionUser();
   if (!session) return unauthorized();
-
-  // Tight limit — the no-code branch sends a paid Twilio verification message.
-  if (!rateLimit(`bot-connect:${session.authId}`, 5, 60_000).allowed) {
-    return jsonError("יותר מדי ניסיונות חיבור. נסה שוב בעוד דקה.", 429);
-  }
 
   let raw: unknown;
   try {
@@ -32,7 +28,6 @@ export async function POST(req: Request, props: Ctx) {
   const parsed = parseBody(connectSchema, raw);
   if (!parsed.ok) return jsonError(parsed.message);
   const { number, code } = parsed.data;
-  if (!isValidPhoneIL(number)) return jsonError("מספר הטלפון אינו תקין");
 
   const supabase = await createClient();
 
@@ -48,50 +43,32 @@ export async function POST(req: Request, props: Ctx) {
     if (!ownBot) return jsonError("הבוט לא נמצא", 404);
   }
 
-  // Half-configured Twilio (creds without a Verify service) would throw a raw
-  // env-var error from startVerification — return a friendly, non-leaky 503.
-  const verifyMisconfigured = hasTwilioCreds() && !hasVerifyCreds();
-  if (verifyMisconfigured) {
-    return jsonError(
-      "חיבור וואטסאפ ידני עדיין לא זמין במערכת. נסה שוב בקרוב או פנה לתמיכה.",
-      503,
-    );
-  }
-
   // Step 1: send verification code
   if (!code) {
-    if (!hasTwilioCreds()) {
-      // Demo mode — no Twilio configured. Pretend the code was sent.
-      return NextResponse.json({ sent: true, demo: true });
+    const r = await sendOtp(session.authId, number, "bot-connect");
+    if (!r.ok) {
+      return NextResponse.json(
+        { error: r.error, configIssue: r.configIssue, retryInSec: r.retryInSec },
+        { status: r.status ?? 400 },
+      );
     }
-    try {
-      await startVerification(number);
-      return NextResponse.json({ sent: true });
-    } catch (e) {
-      // Never surface internal error strings (env names, Twilio SDK text).
-      console.error("[connect] startVerification failed:", e instanceof Error ? e.message : e);
-      return jsonError("שליחת הקוד נכשלה. נסה שוב בעוד רגע.", 502);
-    }
+    return NextResponse.json({ sent: true, demo: r.demo });
   }
 
-  // Step 2: verify code, then attach number to bot
-  if (hasTwilioCreds()) {
-    try {
-      const res = await checkVerification(number, code);
-      if (res.status !== "approved") return jsonError("הקוד שגוי או פג תוקף");
-    } catch (e) {
-      console.error("[connect] checkVerification failed:", e instanceof Error ? e.message : e);
-      return jsonError("אימות הקוד נכשל. נסה שוב.", 502);
-    }
+  // Step 2: verify code
+  const r = await checkOtp(session.authId, number, code);
+  if (!r.ok) {
+    return NextResponse.json({ error: r.error, configIssue: r.configIssue }, { status: r.status ?? 400 });
   }
-  // (demo mode: accept any code)
+  const e164 = r.number!;
 
-  // Guard against the same WhatsApp number being claimed by two different tenants.
+  // Guard against the same number being claimed by two tenants. Compare BOTH
+  // the E.164 and legacy 0-prefixed forms until migration 0010 normalizes rows.
   const admin = createAdminClient();
   const { data: taken } = await admin
     .from("bots")
     .select("id")
-    .eq("whatsapp_number", number)
+    .in("whatsapp_number", [e164, e164ToLocalIL(e164)])
     .neq("id", params.id)
     .maybeSingle();
   if (taken) return jsonError("מספר זה כבר מחובר לבוט אחר במערכת");
@@ -99,7 +76,7 @@ export async function POST(req: Request, props: Ctx) {
   // active:true set server-side (was client-only — asymmetry vs connect-meta).
   const { data, error } = await supabase
     .from("bots")
-    .update({ whatsapp_number: number, active: true })
+    .update({ whatsapp_number: e164, active: true })
     .eq("id", params.id)
     .eq("user_id", session.authId)
     .select("*")

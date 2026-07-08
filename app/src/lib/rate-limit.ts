@@ -48,6 +48,24 @@ export function rateLimit(
   return { allowed: true, remaining: max - bucket.count };
 }
 
+/**
+ * A one-shot cooldown: reports seconds left if `key` is still cooling down,
+ * else 0. Distinct from rateLimit — it does NOT consume on read, so a failed
+ * attempt never traps the user behind a cooldown they didn't earn. Call
+ * armCooldown() only after a successful action.
+ */
+export function cooldownRemaining(key: string): number {
+  const bucket = buckets.get(key);
+  if (!bucket) return 0;
+  const rem = Math.ceil((bucket.resetAt - Date.now()) / 1000);
+  return rem > 0 ? rem : 0;
+}
+
+/** Arm a cooldown window for `key` (e.g. after a successful OTP send). */
+export function armCooldown(key: string, windowMs: number): void {
+  buckets.set(key, { count: 1, resetAt: Date.now() + windowMs });
+}
+
 /** Best-effort client identifier (IP) for rate-limit keys. */
 export function clientKey(req: Request): string {
   const fwd = req.headers.get("x-forwarded-for");
