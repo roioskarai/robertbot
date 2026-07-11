@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
 import DataTable, { type Column } from "@/components/admin/DataTable";
+import SubscriptionCenter from "@/components/admin/SubscriptionCenter";
 import { deriveSubscriptionState } from "@/lib/subscription";
 import { PLAN_LIMITS, resolvePlanId, planLabelHe } from "@/lib/plans";
 import type { TimelineEvent, TimelineKind } from "@/lib/admin-timeline";
@@ -116,6 +117,11 @@ export default function AdminUserDetail() {
     await load();
     if (msg) showToast(msg);
     return true;
+  }
+
+  // Subscription-center apply: patch + audit note.
+  async function patch2(body: Record<string, unknown>, note: string): Promise<boolean> {
+    return patch({ ...body, _note: note || undefined }, "שינוי המנוי בוצע ותועד ביומן");
   }
 
   async function saveProfile() {
@@ -324,6 +330,14 @@ export default function AdminUserDetail() {
           )}
         </div>
       </div>
+
+      {/* ── Subscription management center ── */}
+      {user && (
+        <SubscriptionCenter
+          user={user}
+          onApply={(patch, note) => patch2(patch, note)}
+        />
+      )}
 
       {/* ── Bots ── */}
       <div className={styles.card} style={{ marginBottom: 18 }}>
