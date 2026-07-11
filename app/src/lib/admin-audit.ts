@@ -9,6 +9,7 @@ import "server-only";
 // isMissingTableError() from lib/admin-audit-core.ts.
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { rateLimit } from "@/lib/rate-limit";
 import type { AdminAuditEntry } from "@/lib/admin-audit-core";
 
 export type { AdminAuditEntry } from "@/lib/admin-audit-core";
@@ -33,4 +34,20 @@ export async function logAdminAudit(db: Db, entry: AdminAuditEntry): Promise<voi
   } catch (e) {
     console.error("[admin-audit] insert threw:", e instanceof Error ? e.message : e);
   }
+}
+
+/**
+ * Record a webhook signature-validation failure (feeds the security alert in
+ * the admin bell). Throttled per provider so a flood can't spam the table;
+ * never throws — webhooks must stay bulletproof.
+ */
+export async function logWebhookSignatureFailure(provider: string, ip?: string | null): Promise<void> {
+  if (!rateLimit(`sig-fail-log:${provider}`, 5, 3_600_000).allowed) return;
+  await logAdminAudit(createAdminClient(), {
+    action: "security.webhook_signature_failed",
+    target_type: "system",
+    target_id: provider,
+    target_label: provider,
+    meta: { provider, ip: ip ?? null },
+  });
 }

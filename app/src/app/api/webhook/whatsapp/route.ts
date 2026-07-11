@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import twilio from "twilio";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logWebhookSignatureFailure } from "@/lib/admin-audit";
 import { processInboundMessage } from "@/lib/whatsapp/inbound";
 import { isDemoMode } from "@/lib/env";
 import { MAX_WEBHOOK_BYTES, declaredBodyTooLarge } from "@/lib/validation";
@@ -52,6 +53,7 @@ export async function POST(req: Request) {
     const obj: Record<string, string> = {};
     params.forEach((v, k) => (obj[k] = v));
     if (!twilio.validateRequest(token, sig, req.url, obj)) {
+      await logWebhookSignatureFailure("twilio", req.headers.get("x-forwarded-for"));
       return new NextResponse("invalid signature", { status: 403 });
     }
   }

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar } from "recharts";
 import styles from "@/app/admin/admin.module.css";
+import AlertsPanel from "@/components/admin/AlertsPanel";
 
 interface Series {
   days: number;
@@ -138,6 +139,11 @@ export default function AdminOverview() {
           <StatCard icon={<TrendingUp size={18} strokeWidth={2} />} label="מושהים" value={s.users.paused} hint="מנויים מושהים" type="info" />
           <StatCard icon={<AlertTriangle size={18} strokeWidth={2} />} label="חסומים" value={s.users.suspended} hint="חשבונות מושעים" type="danger" />
         </>)}
+      </div>
+
+      {/* Smart alerts */}
+      <div style={{ marginTop: 14 }}>
+        <AlertsPanel />
       </div>
 
       {/* Trend charts — last 30 days */}

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { stripeProvider } from "@/lib/payments/stripe-provider";
 import { applyPaymentEvent, getPaymentProvider } from "@/lib/payments";
+import { logWebhookSignatureFailure } from "@/lib/admin-audit";
 import { declaredBodyTooLarge } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
@@ -23,10 +24,11 @@ export async function POST(req: Request) {
     const event = await stripeProvider.parseWebhook(req);
     await applyPaymentEvent(event);
   } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "webhook failed" },
-      { status: 400 },
-    );
+    const msg = e instanceof Error ? e.message : "webhook failed";
+    if (/signature/i.test(msg)) {
+      await logWebhookSignatureFailure("stripe", req.headers.get("x-forwarded-for"));
+    }
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
   return NextResponse.json({ received: true });
 }

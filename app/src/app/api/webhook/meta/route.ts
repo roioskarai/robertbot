@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logWebhookSignatureFailure } from "@/lib/admin-audit";
 import { processInboundMessage } from "@/lib/whatsapp/inbound";
 import { MAX_WEBHOOK_BYTES, declaredBodyTooLarge } from "@/lib/validation";
 import type { Bot } from "@/lib/types";
@@ -64,6 +65,7 @@ export async function POST(req: Request) {
     return new NextResponse("payload too large", { status: 413 });
   }
   if (!validSignature(raw, req.headers.get("x-hub-signature-256"))) {
+    await logWebhookSignatureFailure("meta", req.headers.get("x-forwarded-for"));
     return new NextResponse("invalid signature", { status: 403 });
   }
 
