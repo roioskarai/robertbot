@@ -1,7 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { dailyOwnerReportEmail, hasResendKey, sendEmail } from "@/lib/resend";
 import type { AgentMode } from "@/lib/types";
-import { SCHEDULED_AGENTS } from "./registry";
+import { SCHEDULED_AGENTS, WEEKLY_AGENTS } from "./registry";
 import { runAgent, supabaseAdminConfigured, type RunOutcome } from "./runner";
 
 /**
@@ -26,6 +26,14 @@ export async function runOrchestrator(
   const ran: RunOutcome[] = [];
   for (const name of Object.keys(SCHEDULED_AGENTS)) {
     ran.push(await runAgent(SCHEDULED_AGENTS[name], mode));
+  }
+
+  // Weekly agents piggyback on the daily cron: Sunday (UTC) only. The
+  // ISO-week dedup_key inside each weekly agent makes retries a no-op.
+  if (new Date().getUTCDay() === 0) {
+    for (const name of Object.keys(WEEKLY_AGENTS)) {
+      ran.push(await runAgent(WEEKLY_AGENTS[name], mode));
+    }
   }
 
   const totalProposals = ran.reduce(

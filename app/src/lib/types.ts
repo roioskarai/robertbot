@@ -129,7 +129,9 @@ export type AgentName =
   | "conversation-analyst"
   | "retention"
   | "knowledge"
-  | "orchestrator";
+  | "orchestrator"
+  | "weekly-report"
+  | "admin-assistant";
 
 export type AgentMode = "dry" | "live";
 export type AgentStatus = "success" | "error" | "skipped";

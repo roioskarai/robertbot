@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { jsonError } from "@/lib/errors";
 import { requireAdmin } from "@/lib/admin-auth";
 import { logAdminAudit } from "@/lib/admin-audit";
-import { getAgent, SCHEDULED_AGENT_NAMES } from "@/lib/agents/registry";
+import { getAgent, SCHEDULED_AGENT_NAMES, WEEKLY_AGENT_NAMES } from "@/lib/agents/registry";
 import { runAgent } from "@/lib/agents/runner";
 import { runOrchestrator } from "@/lib/agents/orchestrator";
 import type { AgentMode } from "@/lib/types";
@@ -17,7 +17,7 @@ export async function GET() {
     .select("id, agent, status, mode, summary, proposed_actions, tokens, created_at")
     .order("created_at", { ascending: false })
     .limit(100);
-  return NextResponse.json({ runs: runs ?? [], available: ["orchestrator", ...SCHEDULED_AGENT_NAMES] });
+  return NextResponse.json({ runs: runs ?? [], available: ["orchestrator", ...SCHEDULED_AGENT_NAMES, ...WEEKLY_AGENT_NAMES] });
 }
 
 // POST /api/admin/agents  { agent, mode } — trigger an agent or the orchestrator.

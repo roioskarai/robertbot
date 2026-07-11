@@ -167,7 +167,53 @@ const AGENT_HE: Record<string, string> = {
   retention: "שימור לקוחות",
   knowledge: "סוכן ידע",
   orchestrator: "מנצח התפעול",
+  "weekly-report": "דוח שבועי",
+  "admin-assistant": "עוזר אדמין",
 };
+
+/**
+ * Weekly strategic report — computed numbers + a short AI-phrased narrative.
+ * Sent to the OWNER only (owner report ≠ customer message).
+ */
+export function weeklyOwnerReportEmail(opts: {
+  week: string; // "2026-W28"
+  stats: {
+    signupsThisWeek: number;
+    signupsLastWeek: number;
+    mrr: number;
+    paying: number;
+    comps: number;
+    paymentsThisWeek: number;
+    cancellationsThisWeek: number | null;
+    alerts: string[];
+    pendingProposals: number;
+    tokensThisWeek: number;
+  };
+  narrative: string;
+}): { subject: string; html: string } {
+  const s = opts.stats;
+  const rows =
+    infoRow("הרשמות השבוע", `${s.signupsThisWeek} (שבוע קודם: ${s.signupsLastWeek})`) +
+    infoRow("MRR", `₪${s.mrr.toLocaleString()}`) +
+    infoRow("לקוחות משלמים", `${s.paying} (+${s.comps} מנויי חינם)`) +
+    infoRow("אירועי תשלום השבוע", String(s.paymentsThisWeek)) +
+    infoRow("ביטולים השבוע", s.cancellationsThisWeek === null ? "לא זמין (ממתין למיגרציה 0011)" : String(s.cancellationsThisWeek)) +
+    infoRow("הצעות ממתינות לאישור", String(s.pendingProposals)) +
+    infoRow("צריכת טוקנים (סוכנים)", s.tokensThisWeek.toLocaleString());
+  const alertsHtml = s.alerts.length
+    ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px 16px;margin:16px 0;font-size:13px;color:#92400e;line-height:1.8;">⚠️ התראות פעילות:<br>${s.alerts.map((a) => `• ${a}`).join("<br>")}</div>`
+    : "";
+  const body =
+    hi(`דוח אסטרטגי שבועי — ${opts.week} 📊`) +
+    text(opts.narrative) +
+    infoBox(rows) +
+    alertsHtml +
+    btn(`${APP_URL}/admin`, "לפאנל הניהול ←");
+  return {
+    subject: `דוח שבועי של Robert — ${opts.week}`,
+    html: shell("סיכום השבוע של העסק", body),
+  };
+}
 
 /**
  * Daily owner report — the digest the ops-orchestrator sends to the platform

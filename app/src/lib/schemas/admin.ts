@@ -43,3 +43,10 @@ export type AdminUserPatchInput = z.infer<typeof adminUserPatchSchema>;
 export const adminUserDeleteSchema = z.object({
   confirmEmail: z.string().trim().email("אימייל לא תקין"),
 });
+
+/** POST /api/admin/agents/actions — approve/dismiss/apply a proposed action. */
+export const agentActionDecisionSchema = z.object({
+  runId: z.string().uuid("מזהה ריצה לא תקין"),
+  actionIndex: z.number().int().min(0).max(200),
+  decision: z.enum(["approve", "dismiss", "apply"]),
+});
