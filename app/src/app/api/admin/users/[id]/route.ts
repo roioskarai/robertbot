@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { jsonError } from "@/lib/errors";
 import { requireAdmin } from "@/lib/admin-auth";
-import { isPlanId } from "@/lib/plans";
+import { parseBody, adminUserPatchSchema } from "@/lib/schemas";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { logAdminAudit, diffOf } from "@/lib/admin-audit";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -25,51 +27,41 @@ export async function GET(_req: Request, props: Ctx) {
   return NextResponse.json({ user: safe, bots: bots ?? [], usageThisMonth: used });
 }
 
-// PATCH /api/admin/users/[id] — update plan / status / role / suspend / pack.
+/** Pick the most specific audit action for a user patch. */
+function auditAction(before: Record<string, unknown>, patch: Record<string, unknown>): string {
+  if (patch.is_comp === true && before.is_comp !== true) return "subscription.comp_grant";
+  if (patch.is_comp === false && before.is_comp === true) return "subscription.comp_revoke";
+  if (typeof patch.is_suspended === "boolean" && patch.is_suspended !== before.is_suspended)
+    return patch.is_suspended ? "user.suspend" : "user.unsuspend";
+  if (typeof patch.role === "string" && patch.role !== before.role) return "user.role_change";
+  const subKeys = ["plan", "subscription_status", "subscription_ends_at", "trial_ends_at", "cancel_at_period_end", "pack_balance"];
+  if (subKeys.some((k) => k in patch)) return "subscription.change";
+  return "user.update";
+}
+
+// PATCH /api/admin/users/[id] — update plan / status / role / suspend / pack / comp.
 export async function PATCH(req: Request, props: Ctx) {
   const params = await props.params;
-  if (!(await requireAdmin())) return jsonError("אין הרשאת אדמין", 403);
+  const session = await requireAdmin();
+  if (!session) return jsonError("אין הרשאת אדמין", 403);
+  if (!rateLimit(`admin-mutate:${clientKey(req)}`, 30, 60_000).allowed) {
+    return jsonError("יותר מדי פעולות. נסה שוב בעוד דקה.", 429);
+  }
 
-  let body: Record<string, unknown>;
+  let body: unknown;
   try {
     body = await req.json();
   } catch {
     return jsonError("בקשה לא תקינה");
   }
-
-  // ISO date string (or null to clear) → validated value for a timestamptz column.
-  const parseDate = (v: unknown): string | null | undefined => {
-    if (v === null) return null;
-    if (typeof v === "string" && !Number.isNaN(Date.parse(v))) return new Date(v).toISOString();
-    return undefined; // invalid → ignored
-  };
-
-  const patch: Record<string, unknown> = {};
-  if (typeof body.plan === "string" && isPlanId(body.plan)) patch.plan = body.plan;
-  if (typeof body.subscription_status === "string" &&
-      ["trial", "active", "cancelled", "paused"].includes(body.subscription_status))
-    patch.subscription_status = body.subscription_status;
-  if (typeof body.role === "string" && ["admin", "tenant"].includes(body.role)) patch.role = body.role;
-  if (typeof body.is_suspended === "boolean") patch.is_suspended = body.is_suspended;
-  if (typeof body.pack_balance === "number" && body.pack_balance >= 0) patch.pack_balance = Math.floor(body.pack_balance);
-
-  // Comp-plan grants (admin item #9): entitlement window + comp flag + note.
-  if ("subscription_ends_at" in body) {
-    const d = parseDate(body.subscription_ends_at);
-    if (d !== undefined) patch.subscription_ends_at = d;
-  }
-  if ("trial_ends_at" in body) {
-    const d = parseDate(body.trial_ends_at);
-    if (d !== undefined) patch.trial_ends_at = d;
-  }
-  if (typeof body.cancel_at_period_end === "boolean") patch.cancel_at_period_end = body.cancel_at_period_end;
-  if (typeof body.is_comp === "boolean") patch.is_comp = body.is_comp;
-  if (body.comp_note === null) patch.comp_note = null;
-  else if (typeof body.comp_note === "string") patch.comp_note = body.comp_note.slice(0, 300);
-
-  if (!Object.keys(patch).length) return jsonError("אין שדות תקינים לעדכון");
+  const parsed = parseBody(adminUserPatchSchema, body);
+  if (!parsed.ok) return jsonError(parsed.message);
+  const { _note, ...patch } = parsed.data;
 
   const db = createAdminClient();
+  const { data: before } = await db.from("users").select("*").eq("id", params.id).maybeSingle();
+  if (!before) return jsonError("המשתמש לא נמצא", 404);
+
   const { data, error } = await db.from("users").update(patch).eq("id", params.id).select("*").single();
   if (error) return jsonError(error.message, 500);
 
@@ -77,6 +69,17 @@ export async function PATCH(req: Request, props: Ctx) {
   if (patch.is_suspended === true) {
     await db.from("bots").update({ active: false }).eq("user_id", params.id);
   }
+
+  await logAdminAudit(db, {
+    actor_id: session.authId,
+    actor_email: session.email,
+    action: auditAction(before as Record<string, unknown>, patch),
+    target_type: "user",
+    target_id: params.id,
+    target_label: (before as { email?: string }).email,
+    diff: diffOf(before as Record<string, unknown>, data as Record<string, unknown>, Object.keys(patch)),
+    meta: { note: _note ?? null, ip: clientKey(req) },
+  });
 
   const { totp_secret: _o, ...safe } = data as Record<string, unknown>;
   void _o;

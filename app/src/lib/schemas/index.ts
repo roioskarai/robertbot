@@ -3,6 +3,8 @@ import { z } from "zod";
 export { parseBody } from "./parse";
 export { botCreateSchema, botUpdateSchema } from "./bot";
 export type { BotCreateInput, BotUpdateInput } from "./bot";
+export { adminUserPatchSchema, adminUserDeleteSchema } from "./admin";
+export type { AdminUserPatchInput } from "./admin";
 
 /** POST /api/bots/[id]/connect — phone verification (OTP send / check). */
 export const connectSchema = z.object({

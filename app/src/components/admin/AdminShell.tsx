@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Users, Bot, CreditCard,
   Cpu, ShieldCheck, LogOut, ChevronRight, Activity, Menu,
   Palette, LayoutTemplate, Image as ImageIcon, FileText, Megaphone,
-  Brush, BarChart3, History, Code2, UserCog,
+  Brush, BarChart3, History, Code2, UserCog, ScrollText,
 } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
 import { hasPermission } from "@/lib/site/roles";
@@ -20,6 +20,7 @@ const NAV = [
   { href: "/admin/bots",     label: "בוטים",         icon: Bot },
   { href: "/admin/billing",  label: "כספים",         icon: CreditCard },
   { href: "/admin/agents",   label: "סוכני AI",      icon: Cpu },
+  { href: "/admin/audit",    label: "יומן פעולות",   icon: ScrollText },
   { href: "/admin/security", label: "אבטחה",         icon: ShieldCheck },
 ];
 
@@ -44,6 +45,7 @@ const PAGE_NAMES: Record<string, string> = {
   "/admin/bots":      "בוטים",
   "/admin/billing":   "כספים",
   "/admin/agents":    "סוכני AI",
+  "/admin/audit":     "יומן פעולות",
   "/admin/security":  "אבטחה",
   "/admin/site":           "בנאי האתר",
   "/admin/site/design":    "עיצוב",

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { jsonError } from "@/lib/errors";
 import { requireAdminPreTotp, signAdminToken, ADMIN_COOKIE } from "@/lib/admin-auth";
+import { logAdminAudit } from "@/lib/admin-audit";
 import { verifyTotp } from "@/lib/totp";
 import { decryptSecret } from "@/lib/crypto";
 
@@ -28,6 +29,15 @@ export async function POST(req: Request) {
   if (!ok) return jsonError("הקוד שגוי. נסה שוב.", 401);
 
   await admin.from("users").update({ totp_enabled: true }).eq("id", session.authId);
+
+  await logAdminAudit(admin, {
+    actor_id: session.authId,
+    actor_email: session.email,
+    action: "auth.2fa_enable",
+    target_type: "user",
+    target_id: session.authId,
+    target_label: session.email,
+  });
 
   const res = NextResponse.json({ ok: true });
   res.cookies.set(ADMIN_COOKIE, signAdminToken(session.authId), {

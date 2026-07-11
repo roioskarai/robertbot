@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { hebAuthError, jsonError } from "@/lib/errors";
 import { ADMIN_EMAIL } from "@/lib/admin-auth";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { logAdminAudit } from "@/lib/admin-audit";
 
 // POST /api/admin/login  { email, password }
 // First factor only. On success returns whether 2FA setup or verification is
@@ -25,7 +26,23 @@ export async function POST(req: Request) {
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error || !data.user) return jsonError(hebAuthError(error?.message ?? "שגיאה"));
+  if (error || !data.user) {
+    // Audit only when the target email belongs to an admin (attack signal,
+    // not tenant noise). Never reveals to the caller whether the email exists.
+    const adminDb = createAdminClient();
+    const { data: byEmail } = await adminDb
+      .from("users").select("id, role").eq("email", email).maybeSingle();
+    if (byEmail?.role === "admin" || (!!ADMIN_EMAIL && email === ADMIN_EMAIL)) {
+      await logAdminAudit(adminDb, {
+        action: "auth.login_failed",
+        target_type: "user",
+        target_id: byEmail?.id,
+        target_label: email,
+        meta: { ip: clientKey(req), reason: "bad_password" },
+      });
+    }
+    return jsonError(hebAuthError(error?.message ?? "שגיאה"));
+  }
 
   // Verify admin role via service-role (bypass RLS).
   const admin = createAdminClient();
@@ -38,6 +55,15 @@ export async function POST(req: Request) {
   const isAdmin = profile?.role === "admin" || (!!ADMIN_EMAIL && email === ADMIN_EMAIL);
   if (!isAdmin || profile?.is_suspended) {
     await supabase.auth.signOut();
+    if (isAdmin && profile?.is_suspended) {
+      await logAdminAudit(admin, {
+        action: "auth.login_failed",
+        target_type: "user",
+        target_id: data.user.id,
+        target_label: email,
+        meta: { ip: clientKey(req), reason: "suspended" },
+      });
+    }
     return jsonError("אין הרשאת אדמין", 403);
   }
 

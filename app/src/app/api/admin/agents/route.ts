@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { jsonError } from "@/lib/errors";
 import { requireAdmin } from "@/lib/admin-auth";
+import { logAdminAudit } from "@/lib/admin-audit";
 import { getAgent, SCHEDULED_AGENT_NAMES } from "@/lib/agents/registry";
 import { runAgent } from "@/lib/agents/runner";
 import { runOrchestrator } from "@/lib/agents/orchestrator";
@@ -21,7 +22,8 @@ export async function GET() {
 
 // POST /api/admin/agents  { agent, mode } — trigger an agent or the orchestrator.
 export async function POST(req: Request) {
-  if (!(await requireAdmin())) return jsonError("אין הרשאת אדמין", 403);
+  const session = await requireAdmin();
+  if (!session) return jsonError("אין הרשאת אדמין", 403);
   let body: { agent?: string; mode?: string };
   try {
     body = await req.json();
@@ -29,6 +31,16 @@ export async function POST(req: Request) {
     return jsonError("בקשה לא תקינה");
   }
   const mode: AgentMode = body.mode === "live" ? "live" : "dry";
+
+  await logAdminAudit(createAdminClient(), {
+    actor_id: session.authId,
+    actor_email: session.email,
+    action: "agent.trigger",
+    target_type: "agent",
+    target_id: body.agent,
+    target_label: body.agent,
+    meta: { mode },
+  });
 
   try {
     if (body.agent === "orchestrator") {

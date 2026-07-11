@@ -1,0 +1,42 @@
+import { z } from "zod";
+import { isPlanId } from "@/lib/plans";
+
+/**
+ * Zod schemas for admin routes. Unknown keys are stripped (zod default), so a
+ * request body can never smuggle unrelated columns into a write — on top of
+ * routes still building explicit update objects.
+ */
+
+/** ISO date string or null (clear). Normalized to a full ISO timestamp. */
+const isoDateOrNull = z
+  .union([z.null(), z.string().refine((v) => !Number.isNaN(Date.parse(v)), "תאריך לא תקין")])
+  .transform((v) => (v === null ? null : new Date(v).toISOString()));
+
+/** PATCH /api/admin/users/[id] — every field the admin may change. */
+export const adminUserPatchSchema = z
+  .object({
+    plan: z.string().refine(isPlanId, "מסלול לא חוקי"),
+    subscription_status: z.enum(["trial", "active", "cancelled", "paused"]),
+    role: z.enum(["admin", "tenant"]),
+    is_suspended: z.boolean(),
+    pack_balance: z.number().int("יתרה לא תקינה").min(0, "יתרה לא תקינה"),
+    subscription_ends_at: isoDateOrNull,
+    trial_ends_at: isoDateOrNull,
+    cancel_at_period_end: z.boolean(),
+    is_comp: z.boolean(),
+    comp_note: z.union([z.null(), z.string().trim().max(300, "ההערה ארוכה מדי")]),
+    /** Free-text reason — stored in the audit meta only, never on the user row. */
+    _note: z.string().trim().max(300, "ההערה ארוכה מדי"),
+  })
+  .partial()
+  .refine(
+    (v) => Object.keys(v).some((k) => k !== "_note" && v[k as keyof typeof v] !== undefined),
+    "אין שדות תקינים לעדכון",
+  );
+
+export type AdminUserPatchInput = z.infer<typeof adminUserPatchSchema>;
+
+/** DELETE /api/admin/users/[id] — email confirmation guard. */
+export const adminUserDeleteSchema = z.object({
+  confirmEmail: z.string().trim().email("אימייל לא תקין"),
+});

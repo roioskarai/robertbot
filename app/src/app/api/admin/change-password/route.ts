@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { jsonError } from "@/lib/errors";
 import { requireAdmin } from "@/lib/admin-auth";
+import { logAdminAudit } from "@/lib/admin-audit";
 
 // POST /api/admin/change-password  { currentPassword, newPassword }
 export async function POST(req: Request) {
@@ -26,6 +27,15 @@ export async function POST(req: Request) {
   const admin = createAdminClient();
   const { error } = await admin.auth.admin.updateUserById(session.authId, { password: newPassword });
   if (error) return jsonError(error.message, 500);
+
+  await logAdminAudit(admin, {
+    actor_id: session.authId,
+    actor_email: session.email,
+    action: "auth.password_change",
+    target_type: "user",
+    target_id: session.authId,
+    target_label: session.email,
+  });
 
   return NextResponse.json({ ok: true });
 }

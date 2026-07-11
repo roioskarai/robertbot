@@ -5,6 +5,7 @@ import { requireAdminPreTotp, signAdminToken, ADMIN_COOKIE } from "@/lib/admin-a
 import { verifyTotp } from "@/lib/totp";
 import { decryptSecret } from "@/lib/crypto";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { logAdminAudit } from "@/lib/admin-audit";
 
 // POST /api/admin/2fa/verify  { code }
 // Second-factor check at login. Issues the signed 2FA session cookie on success.
@@ -34,7 +35,29 @@ export async function POST(req: Request) {
   if (!data?.totp_enabled || !data.totp_secret) return jsonError("2FA אינו מופעל", 400);
 
   const ok = verifyTotp(body.code, decryptSecret(data.totp_secret));
-  if (!ok) return jsonError("הקוד שגוי. נסה שוב.", 401);
+  if (!ok) {
+    await logAdminAudit(admin, {
+      actor_id: session.authId,
+      actor_email: session.email,
+      action: "auth.2fa_verify_failed",
+      target_type: "user",
+      target_id: session.authId,
+      target_label: session.email,
+      meta: { ip: clientKey(req) },
+    });
+    return jsonError("הקוד שגוי. נסה שוב.", 401);
+  }
+
+  // Full admin login completed (password + TOTP).
+  await logAdminAudit(admin, {
+    actor_id: session.authId,
+    actor_email: session.email,
+    action: "auth.login",
+    target_type: "user",
+    target_id: session.authId,
+    target_label: session.email,
+    meta: { ip: clientKey(req) },
+  });
 
   const res = NextResponse.json({ ok: true });
   res.cookies.set(ADMIN_COOKIE, signAdminToken(session.authId), {
