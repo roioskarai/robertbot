@@ -147,6 +147,20 @@ export function trialEndingEmail(opts: { name: string; trialEndsAt: string }): {
   return { subject: "הניסיון החינם שלך ב-Robert מסתיים בקרוב", html: shell("תזכורת סיום ניסיון", body) };
 }
 
+export function passwordResetEmail(opts: { name: string; link: string }): {
+  subject: string;
+  html: string;
+} {
+  const body =
+    hi(`היי ${opts.name}, קיבלנו בקשה לאיפוס סיסמה`) +
+    text(
+      "צוות Robert יצר עבורך קישור לאיפוס הסיסמה. לחץ על הכפתור כדי לבחור סיסמה חדשה:",
+    ) +
+    btn(opts.link, "איפוס סיסמה ←") +
+    `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px 16px;margin:16px 0;font-size:13px;color:#92400e;line-height:1.6;">🔒 אם לא ביקשת איפוס סיסמה — פנה אלינו מיד ואל תלחץ על הקישור.</div>`;
+  return { subject: "איפוס סיסמה ל-Robert", html: shell("איפוס סיסמה", body) };
+}
+
 // Hebrew labels for the agent registry names.
 const AGENT_HE: Record<string, string> = {
   "conversation-analyst": "מנתח שיחות",

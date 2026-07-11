@@ -87,7 +87,9 @@ export default function AdminShell({
     router.refresh();
   }
 
-  const currentPage = PAGE_NAMES[pathname] ?? "פאנל אדמין";
+  const currentPage =
+    PAGE_NAMES[pathname] ??
+    (pathname.startsWith("/admin/users/") ? "פרטי משתמש" : "פאנל אדמין");
 
   return (
     <div className={`${styles.wrap} ${styles.root}`}>

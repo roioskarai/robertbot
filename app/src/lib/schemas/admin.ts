@@ -25,6 +25,9 @@ export const adminUserPatchSchema = z
     cancel_at_period_end: z.boolean(),
     is_comp: z.boolean(),
     comp_note: z.union([z.null(), z.string().trim().max(300, "ההערה ארוכה מדי")]),
+    full_name: z.union([z.null(), z.string().trim().max(120, "השם ארוך מדי")]),
+    // Email changes also update auth.users (handled in-route, service-role).
+    email: z.string().trim().toLowerCase().email("אימייל לא תקין").max(160, "האימייל ארוך מדי"),
     /** Free-text reason — stored in the audit meta only, never on the user row. */
     _note: z.string().trim().max(300, "ההערה ארוכה מדי"),
   })

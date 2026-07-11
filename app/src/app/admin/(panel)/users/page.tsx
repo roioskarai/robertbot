@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Search, RefreshCw, ShieldOff, ShieldCheck, Filter, Gift, X } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
 import { PLAN_IDS, planLabelHe, resolvePlanId, type PlanId } from "@/lib/plans";
@@ -135,7 +136,10 @@ export default function AdminUsers() {
             fontWeight: 700, fontSize: 12,
           }}>{u.email.slice(0,2).toUpperCase()}</div>
           <div>
-            <div className={styles.strong} style={{ fontSize: 13 }}>{u.email}</div>
+            <Link href={`/admin/users/${u.id}`} className={styles.strong}
+              style={{ fontSize: 13, textDecoration: "none" }} title="פתח כרטיס משתמש">
+              {u.email}
+            </Link>
             <div style={{ display: "flex", gap: 5, marginTop: 2 }}>
               {u.role === "admin" && <span className={`${styles.badge} ${styles.badgeAdmin}`}>אדמין</span>}
               {u.is_suspended && <span className={`${styles.badge} ${styles.badgeCancelled}`}>חסום</span>}
