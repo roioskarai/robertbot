@@ -23,6 +23,25 @@ const BASE =
     ? "https://secure.meshulam.co.il/api/light/server/1.0"
     : "https://sandbox.meshulam.co.il/api/light/server/1.0";
 
+/**
+ * Idempotency key for a Grow charge. Prefer a per-charge unique id
+ * (transactionId/asmachta). recurringId is STABLE across monthly renewals —
+ * using it alone would make every renewal share one key, so claimEvent would
+ * skip renewals #2+ and the subscription would never extend (the cron then
+ * revokes a paying customer). When only recurringId exists, scope it to the
+ * current month so each billing period is a distinct key while same-period
+ * retries still dedup. Pure + exported for tests.
+ */
+export function growIdempotencyKey(
+  perChargeId: string,
+  recurringId: string,
+  now: Date = new Date(),
+): string | null {
+  if (perChargeId) return perChargeId;
+  if (recurringId) return `${recurringId}:${now.toISOString().slice(0, 7)}`;
+  return null;
+}
+
 function creds() {
   return {
     userId: process.env.GROW_USER_ID || "",
@@ -167,8 +186,10 @@ export const growProvider: PaymentProvider = {
     if (!ok) return { type: "ignore" };
 
     const subscriptionId = f("recurringId") || f("transactionId") || null;
-    // Unique charge id for webhook idempotency (prevents double-credit on retry).
-    const eventId = f("transactionId") || f("asmachta") || f("recurringId") || null;
+    const eventId = growIdempotencyKey(
+      f("transactionId") || f("asmachta"),
+      f("recurringId"),
+    );
 
     if (product.startsWith("pack_")) {
       return { type: "pack_purchased", userId, pack: product.slice("pack_".length) as PackId, eventId };
