@@ -1,2 +1,2 @@
 robertbot build marker
-product-improvement release (batches 1-7, 12 items) 2026-07-08 commit dc3679f
+admin enterprise upgrade (batches 1-8) 2026-07-11 commit ef61273
