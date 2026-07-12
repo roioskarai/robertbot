@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { guardPublicMaintenance } from "@/lib/system-settings";
 
 export const metadata: Metadata = {
   title: "מחירים ומסלולים",
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PricingLayout({ children }: { children: React.ReactNode }) {
+export default async function PricingLayout({ children }: { children: React.ReactNode }) {
+  await guardPublicMaintenance();
   return children;
 }

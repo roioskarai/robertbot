@@ -8,6 +8,7 @@ import {
   Cpu, ShieldCheck, LogOut, ChevronRight, Activity, Menu,
   Palette, LayoutTemplate, Image as ImageIcon, FileText, Megaphone,
   Brush, BarChart3, History, Code2, UserCog, ScrollText, Search as SearchIcon, Sparkles,
+  SlidersHorizontal,
 } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
 import { hasPermission } from "@/lib/site/roles";
@@ -23,6 +24,7 @@ export const NAV = [
   { href: "/admin/agents",   label: "סוכני AI",      icon: Cpu },
   { href: "/admin/assistant", label: "עוזר AI",      icon: Sparkles },
   { href: "/admin/audit",    label: "יומן פעולות",   icon: ScrollText },
+  { href: "/admin/system",   label: "מערכת",         icon: SlidersHorizontal },
   { href: "/admin/security", label: "אבטחה",         icon: ShieldCheck },
 ];
 
@@ -49,6 +51,7 @@ const PAGE_NAMES: Record<string, string> = {
   "/admin/agents":    "סוכני AI",
   "/admin/assistant": "עוזר AI",
   "/admin/audit":     "יומן פעולות",
+  "/admin/system":    "מערכת",
   "/admin/security":  "אבטחה",
   "/admin/site":           "בנאי האתר",
   "/admin/site/design":    "עיצוב",

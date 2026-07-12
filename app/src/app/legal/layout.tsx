@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { guardPublicMaintenance } from "@/lib/system-settings";
 
 export const metadata: Metadata = {
   title: "תקנון ומדיניות פרטיות",
@@ -7,6 +8,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function LegalLayout({ children }: { children: React.ReactNode }) {
+export default async function LegalLayout({ children }: { children: React.ReactNode }) {
+  await guardPublicMaintenance();
   return children;
 }

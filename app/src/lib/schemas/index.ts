@@ -3,7 +3,7 @@ import { z } from "zod";
 export { parseBody } from "./parse";
 export { botCreateSchema, botUpdateSchema } from "./bot";
 export type { BotCreateInput, BotUpdateInput } from "./bot";
-export { adminUserPatchSchema, adminUserDeleteSchema, agentActionDecisionSchema, assistantAskSchema } from "./admin";
+export { adminUserPatchSchema, adminUserDeleteSchema, agentActionDecisionSchema, assistantAskSchema, maintenanceSchema, featureFlagSchema } from "./admin";
 export type { AdminUserPatchInput } from "./admin";
 
 /** POST /api/bots/[id]/connect — phone verification (OTP send / check). */

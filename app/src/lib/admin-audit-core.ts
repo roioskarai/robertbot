@@ -36,6 +36,10 @@ export const AUDIT_ACTION_HE: Record<string, string> = {
   "agent.action_dismiss": "דחיית הצעת סוכן",
   "assistant.ask": "שאלה לעוזר AI",
   "security.webhook_signature_failed": "כשל חתימת Webhook",
+  "system.maintenance_on": "הפעלת מצב תחזוקה",
+  "system.maintenance_off": "כיבוי מצב תחזוקה",
+  "system.flag_toggle": "שינוי דגל פיצ'ר",
+  "site.restore_defaults": "שחזור לברירת מחדל",
 };
 
 /** Hebrew labels for the fields that appear in audit diffs. */

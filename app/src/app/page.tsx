@@ -13,6 +13,7 @@ import SitePopups from "@/components/site/SitePopups";
 import WhatsAppWidget from "@/components/site/WhatsAppWidget";
 import CustomCode from "@/components/site/CustomCode";
 import Tracker from "@/components/site/Tracker";
+import { guardPublicMaintenance } from "@/lib/system-settings";
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getRenderPage("home");
@@ -26,6 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function LandingPage() {
+  await guardPublicMaintenance();
   const { isEnabled } = await draftMode();
   const [{ theme, settings }, page, banners] = await Promise.all([
     getResolvedSite(),

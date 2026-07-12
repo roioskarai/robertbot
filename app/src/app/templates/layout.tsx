@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { guardPublicMaintenance } from "@/lib/system-settings";
 
 export const metadata: Metadata = {
   title: "תבניות בוט מוכנות",
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function TemplatesLayout({ children }: { children: React.ReactNode }) {
+export default async function TemplatesLayout({ children }: { children: React.ReactNode }) {
+  await guardPublicMaintenance();
   return children;
 }

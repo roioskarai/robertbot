@@ -55,3 +55,16 @@ export const agentActionDecisionSchema = z.object({
 export const assistantAskSchema = z.object({
   question: z.string().trim().min(2, "שאלה קצרה מדי").max(500, "השאלה ארוכה מדי"),
 });
+
+/** POST /api/admin/system/maintenance — toggle site maintenance mode. */
+export const maintenanceSchema = z.object({
+  enabled: z.boolean(),
+  message: z.string().trim().max(500, "ההודעה ארוכה מדי").optional(),
+  etaText: z.string().trim().max(120, "הטקסט ארוך מדי").optional(),
+});
+
+/** POST /api/admin/system/flags — toggle one known feature flag. */
+export const featureFlagSchema = z.object({
+  key: z.string().trim().min(1).max(64),
+  enabled: z.boolean(),
+});
