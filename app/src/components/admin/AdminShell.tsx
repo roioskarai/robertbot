@@ -12,35 +12,60 @@ import {
 } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
 import { hasPermission } from "@/lib/site/roles";
+import { visibleNavGroups } from "@/lib/admin-nav-core";
 import type { Permission } from "@/lib/site/types";
 import TopbarStatus from "@/components/admin/TopbarStatus";
 import CommandPalette from "@/components/admin/CommandPalette";
 
-export const NAV = [
-  { href: "/admin",          label: "סקירה כללית",  icon: LayoutDashboard, exact: true },
-  { href: "/admin/users",    label: "משתמשים",      icon: Users },
-  { href: "/admin/bots",     label: "בוטים",         icon: Bot },
-  { href: "/admin/billing",  label: "כספים",         icon: CreditCard },
-  { href: "/admin/agents",   label: "סוכני AI",      icon: Cpu },
-  { href: "/admin/assistant", label: "עוזר AI",      icon: Sparkles },
-  { href: "/admin/audit",    label: "יומן פעולות",   icon: ScrollText },
-  { href: "/admin/system",   label: "מערכת",         icon: SlidersHorizontal },
-  { href: "/admin/security", label: "אבטחה",         icon: ShieldCheck },
-];
+export interface NavEntry {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+  /** When set, the item is shown only if the admin role holds this permission. */
+  perm?: Permission;
+}
 
-// Website Builder nav — each item gated by a permission.
-export const BUILDER_NAV: { href: string; label: string; icon: typeof Palette; perm: Permission }[] = [
-  { href: "/admin/site",           label: "עמודים",        icon: LayoutTemplate, perm: "content.read" },
-  { href: "/admin/site/design",    label: "עיצוב",         icon: Palette,        perm: "design.write" },
-  { href: "/admin/site/themes",    label: "ערכות נושא",    icon: Brush,          perm: "design.write" },
-  { href: "/admin/site/media",     label: "מדיה",          icon: ImageIcon,      perm: "content.write" },
-  { href: "/admin/site/blog",      label: "בלוג",          icon: FileText,       perm: "content.write" },
-  { href: "/admin/site/banners",   label: "באנרים ופופאפים", icon: Megaphone,    perm: "content.write" },
-  { href: "/admin/site/marketing", label: "הגדרות ושיווק",  icon: Megaphone,      perm: "settings.write" },
-  { href: "/admin/site/analytics", label: "אנליטיקס",      icon: BarChart3,      perm: "content.read" },
-  { href: "/admin/site/history",   label: "יומן וגיבוי",   icon: History,        perm: "backup.manage" },
-  { href: "/admin/site/code",      label: "קוד מותאם",     icon: Code2,          perm: "code.write" },
-  { href: "/admin/site/team",      label: "צוות והרשאות",  icon: UserCog,        perm: "team.manage" },
+export interface NavGroup {
+  label: string;
+  items: NavEntry[];
+}
+
+// Six top-level groups (owner brief). Same routes as before — just grouped so
+// the sidebar reads as a small SaaS control center instead of a flat list.
+export const NAV_GROUPS: NavGroup[] = [
+  { label: "לוח בקרה", items: [
+    { href: "/admin", label: "סקירה כללית", icon: LayoutDashboard, exact: true },
+  ] },
+  { label: "משתמשים", items: [
+    { href: "/admin/users", label: "משתמשים", icon: Users },
+  ] },
+  { label: "כספים", items: [
+    { href: "/admin/billing", label: "כספים", icon: CreditCard },
+  ] },
+  { label: "AI ובוטים", items: [
+    { href: "/admin/bots", label: "בוטים", icon: Bot },
+    { href: "/admin/agents", label: "סוכני AI", icon: Cpu },
+    { href: "/admin/assistant", label: "עוזר AI", icon: Sparkles },
+  ] },
+  { label: "אבטחה", items: [
+    { href: "/admin/security", label: "אבטחה", icon: ShieldCheck },
+    { href: "/admin/audit", label: "יומן פעולות", icon: ScrollText },
+  ] },
+  { label: "מערכת ואתר", items: [
+    { href: "/admin/system", label: "תחזוקה ודגלים", icon: SlidersHorizontal },
+    { href: "/admin/site", label: "עמודים", icon: LayoutTemplate, exact: true, perm: "content.read" },
+    { href: "/admin/site/design", label: "עיצוב", icon: Palette, perm: "design.write" },
+    { href: "/admin/site/themes", label: "ערכות נושא", icon: Brush, perm: "design.write" },
+    { href: "/admin/site/media", label: "מדיה", icon: ImageIcon, perm: "content.write" },
+    { href: "/admin/site/blog", label: "בלוג", icon: FileText, perm: "content.write" },
+    { href: "/admin/site/banners", label: "באנרים ופופאפים", icon: Megaphone, perm: "content.write" },
+    { href: "/admin/site/marketing", label: "הגדרות ושיווק", icon: Megaphone, perm: "settings.write" },
+    { href: "/admin/site/analytics", label: "אנליטיקס", icon: BarChart3, perm: "content.read" },
+    { href: "/admin/site/history", label: "יומן וגיבוי", icon: History, perm: "backup.manage" },
+    { href: "/admin/site/code", label: "קוד מותאם", icon: Code2, perm: "code.write" },
+    { href: "/admin/site/team", label: "צוות והרשאות", icon: UserCog, perm: "team.manage" },
+  ] },
 ];
 
 const PAGE_NAMES: Record<string, string> = {
@@ -81,7 +106,9 @@ export default function AdminShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const builderItems = BUILDER_NAV.filter((i) => hasPermission(adminRole, i.perm));
+
+  // Filter each group's items by permission; drop empty groups. (Pure helper.)
+  const visibleGroups = visibleNavGroups(NAV_GROUPS, (p) => hasPermission(adminRole, p as Permission));
 
   // Mobile off-canvas nav — closes automatically on route change.
   const [navOpen, setNavOpen] = useState(false);
@@ -117,36 +144,11 @@ export default function AdminShell({
         </div>
 
         <nav className={styles.sideNav}>
-          <div className={styles.navGroup}>
-            <span className={styles.navGroupLabel}>ניהול</span>
-            {NAV.map(({ href, label, icon: Icon, exact }) => {
-              const active = exact ? pathname === href : pathname.startsWith(href);
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`${styles.navItem} ${active ? styles.navItemActive : ""}`}
-                >
-                  <Icon
-                    size={17}
-                    strokeWidth={active ? 2.2 : 1.8}
-                    className={styles.navIcon}
-                  />
-                  {label}
-                </Link>
-              );
-            })}
-          </div>
-
-          {builderItems.length > 0 && (
-            <div className={styles.navGroup}>
-              <span className={styles.navGroupLabel}>בנאי האתר</span>
-              {builderItems.map(({ href, label, icon: Icon }) => {
-                // /admin/site is exact; the rest match by prefix.
-                const active =
-                  href === "/admin/site"
-                    ? pathname === href
-                    : pathname.startsWith(href);
+          {visibleGroups.map((group) => (
+            <div className={styles.navGroup} key={group.label}>
+              <span className={styles.navGroupLabel}>{group.label}</span>
+              {group.items.map(({ href, label, icon: Icon, exact }) => {
+                const active = exact ? pathname === href : pathname.startsWith(href);
                 return (
                   <Link
                     key={href}
@@ -159,7 +161,7 @@ export default function AdminShell({
                 );
               })}
             </div>
-          )}
+          ))}
         </nav>
 
         <div className={styles.sideBottom}>

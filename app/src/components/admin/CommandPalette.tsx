@@ -10,7 +10,7 @@ import { Search, CornerDownRight, UserRound, Compass, Zap } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
 import { hasPermission } from "@/lib/site/roles";
 import { filterPalette } from "@/lib/palette";
-import { NAV, BUILDER_NAV } from "@/components/admin/AdminShell";
+import { NAV_GROUPS } from "@/components/admin/AdminShell";
 
 interface Item {
   id: string;
@@ -80,16 +80,12 @@ export default function CommandPalette({ adminRole = null }: { adminRole?: strin
   }, [query, open]);
 
   const items: Item[] = useMemo(() => {
-    const nav: Item[] = [
-      ...NAV.map((n) => ({
+    const nav: Item[] = NAV_GROUPS.flatMap((g) => g.items)
+      .filter((n) => !n.perm || hasPermission(adminRole, n.perm))
+      .map((n) => ({
         id: `nav:${n.href}`, labelHe: n.label, keywords: n.href,
         section: "nav" as const, run: () => router.push(n.href),
-      })),
-      ...BUILDER_NAV.filter((n) => hasPermission(adminRole, n.perm)).map((n) => ({
-        id: `nav:${n.href}`, labelHe: n.label, keywords: n.href,
-        section: "nav" as const, run: () => router.push(n.href),
-      })),
-    ];
+      }));
     const actions: Item[] = [
       {
         id: "act:audit", labelHe: "פתח יומן פעולות", keywords: "audit log",

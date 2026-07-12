@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Save, UploadCloud, Plus, Trash2, Download } from "lucide-react";
+import { Save, UploadCloud, Plus, Trash2, Download, RotateCcw } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
 import { Btn, Card, Field, TextInput, TextArea, NumberInput, ColorInput, Toggle, useToast } from "@/components/admin/site/ui";
 import type { SiteSettingsDoc } from "@/lib/site/types";
@@ -59,6 +59,16 @@ export default function MarketingSettings() {
     showToast("✓ נשמר כטיוטה");
   }
 
+  async function restoreDefaults() {
+    if (!confirm("לשחזר את הגדרות האתר (כותרת, תחתית, פס הכרזה, וידג׳ט וואטסאפ) לברירת המחדל? הפעולה משנה את הטיוטה בלבד — תוכל לבדוק לפני פרסום. קוד מותאם יישמר."))
+      return;
+    const res = await fetch("/api/admin/site/settings/restore-defaults", { method: "POST" });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) return showToast(json.error || "שחזור נכשל", false);
+    setDoc({ ...DEFAULT_SETTINGS, ...(json.draft ?? {}) });
+    showToast("✓ שוחזר לברירת מחדל (טיוטה) — פרסם כדי להחיל");
+  }
+
   function exportSubs() {
     const csv = "email,source,created_at\n" + subs.map((s) => `${s.email},${s.source ?? ""},${s.created_at}`).join("\n");
     const a = document.createElement("a");
@@ -76,6 +86,7 @@ export default function MarketingSettings() {
           <p className={styles.pageDesc}>כותרת, תחתית, פס הכרזה, וידג&apos;ט וואטסאפ ורשימת ניוזלטר.</p>
         </div>
         <div className={styles.row}>
+          <Btn onClick={restoreDefaults}><RotateCcw size={14} /> שחזר לברירת מחדל</Btn>
           <Btn onClick={() => save(false)}><Save size={14} /> שמור טיוטה</Btn>
           <Btn variant="primary" onClick={() => save(true)}><UploadCloud size={14} /> פרסם</Btn>
         </div>
