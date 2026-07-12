@@ -3,11 +3,14 @@
 import { useEffect, useState } from "react";
 import { TrendingUp, DollarSign, Users, XCircle, RefreshCw } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
+import DataTable, { type Column } from "@/components/admin/DataTable";
+
+interface Customer { id: string; email: string; plan: string; cycle: string; provider: string|null; since: string; isComp?: boolean; endsAt?: string|null }
 
 interface Billing {
   summary: { mrr: number; arr: number; payingCustomers: number; compCustomers?: number; trials: number; cancelled: number; currency: string };
   byPlan: Record<string, { count: number; mrr: number; label: string }>;
-  customers: { id: string; email: string; plan: string; cycle: string; provider: string|null; since: string; isComp?: boolean; endsAt?: string|null }[];
+  customers: Customer[];
 }
 
 export default function AdminBilling() {
@@ -21,6 +24,24 @@ export default function AdminBilling() {
   useEffect(load,[]);
 
   const c = b?.summary.currency ?? "₪";
+
+  const customerColumns: Column<Customer>[] = [
+    { key: "email", label: "אימייל", sortable: true,
+      render: (cu) => <span className={styles.strong} style={{ fontSize: 13 }}>{cu.email}</span> },
+    {
+      key: "plan", label: "מסלול", sortable: true,
+      render: (cu) => (
+        <span>
+          <span className={`${styles.badge} ${styles.badgeGreen}`}>{cu.plan}</span>
+          {cu.isComp && <span className={`${styles.badge} ${styles.badgeAdmin}`} style={{ marginRight: 5 }}>חינם</span>}
+        </span>
+      ),
+    },
+    { key: "cycle", label: "מחזור", hideBelow: "sm",
+      render: (cu) => <span className={styles.muted}>{cu.isComp && cu.endsAt ? `עד ${new Date(cu.endsAt).toLocaleDateString("he-IL")}` : cu.cycle === "annual" ? "שנתי" : "חודשי"}</span> },
+    { key: "provider", label: "ספק", hideBelow: "md",
+      render: (cu) => <span className={styles.muted}>{cu.provider ?? "—"}</span> },
+  ];
 
   return (
     <>
@@ -88,34 +109,13 @@ export default function AdminBilling() {
           <div style={{padding:"14px 18px", borderBottom:"1px solid var(--border)"}}>
             <div className={styles.cardTitle} style={{margin:0}}>לקוחות משלמים</div>
           </div>
-          <div className={styles.tableScroll}>
-            <table className={styles.table}>
-              <thead>
-                <tr><th>אימייל</th><th>מסלול</th><th>מחזור</th><th>ספק</th></tr>
-              </thead>
-              <tbody>
-                {loading && [0,1,2,3].map(i=>(
-                  <tr key={i}>{[160,80,70,60].map((w,j)=>(
-                    <td key={j}><div className={`${styles.skeleton} ${styles.skBlock}`} style={{width:w}}/></td>
-                  ))}</tr>
-                ))}
-                {!loading && (!b?.customers.length)
-                  ? <tr><td colSpan={4}><div className={styles.tableEmpty}>אין לקוחות עדיין</div></td></tr>
-                  : b?.customers.map(cu=>(
-                      <tr key={cu.id}>
-                        <td className={styles.strong} style={{fontSize:13}}>{cu.email}</td>
-                        <td>
-                          <span className={`${styles.badge} ${styles.badgeGreen}`}>{cu.plan}</span>
-                          {cu.isComp && <span className={`${styles.badge} ${styles.badgeAdmin}`} style={{marginRight:5}}>חינם</span>}
-                        </td>
-                        <td className={styles.muted}>{cu.isComp && cu.endsAt ? `עד ${new Date(cu.endsAt).toLocaleDateString("he-IL")}` : cu.cycle==="annual"?"שנתי":"חודשי"}</td>
-                        <td className={styles.muted}>{cu.provider??"—"}</td>
-                      </tr>
-                    ))
-                }
-              </tbody>
-            </table>
-          </div>
+          <DataTable<Customer>
+            rows={b?.customers ?? []}
+            loading={loading}
+            pageSize={15}
+            emptyText="אין לקוחות עדיין"
+            columns={customerColumns}
+          />
         </div>
       </div>
     </>

@@ -3,22 +3,13 @@
 import { useEffect, useState } from "react";
 import { Bot, Wifi, WifiOff, RefreshCw } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
+import DataTable, { type Column } from "@/components/admin/DataTable";
 
 interface AdminBot {
   id: string; name: string; bot_name: string;
   business_type: string | null; active: boolean;
   whatsapp_number: string | null; wa_provider: string | null;
   owner_email: string | null; created_at: string;
-}
-
-function SkRow() {
-  return (
-    <tr>
-      {[180,140,140,80,70,80].map((w,i)=>(
-        <td key={i}><div className={`${styles.skeleton} ${styles.skBlock}`} style={{width:w}}/></td>
-      ))}
-    </tr>
-  );
 }
 
 export default function AdminBots() {
@@ -33,6 +24,42 @@ export default function AdminBots() {
 
   const active = bots.filter(b=>b.active).length;
   const meta   = bots.filter(b=>b.wa_provider==="meta").length;
+
+  const columns: Column<AdminBot>[] = [
+    {
+      key: "name", label: "בוט", sortable: true,
+      render: (b) => (
+        <div>
+          <div className={styles.strong} style={{ fontSize: 13 }}>{b.name}</div>
+          <div className={styles.muted}>{b.bot_name}</div>
+        </div>
+      ),
+    },
+    { key: "owner_email", label: "בעלים", sortable: true, hideBelow: "md",
+      render: (b) => <span className={styles.muted}>{b.owner_email ?? "—"}</span> },
+    {
+      key: "whatsapp_number", label: "מספר וואטסאפ", hideBelow: "sm",
+      render: (b) => b.whatsapp_number
+        ? <span className={styles.mono} dir="ltr">{b.whatsapp_number}</span>
+        : <span className={styles.muted}>לא מחובר</span>,
+    },
+    {
+      key: "wa_provider", label: "ספק", align: "center", hideBelow: "md",
+      render: (b) => b.wa_provider
+        ? <span className={`${styles.badge} ${b.wa_provider==="meta"?styles.badgeAdmin:styles.badgeGreen}`}>{b.wa_provider}</span>
+        : <span className={styles.muted}>—</span>,
+    },
+    {
+      key: "active", label: "סטטוס", align: "center", sortable: true, sortValue: (b) => (b.active ? 1 : 0),
+      render: (b) => b.active
+        ? <Wifi size={16} strokeWidth={2} style={{ color: "var(--success)" }} />
+        : <WifiOff size={16} strokeWidth={2} style={{ color: "var(--t4)" }} />,
+    },
+    {
+      key: "created_at", label: "נוצר", sortable: true, hideBelow: "sm",
+      render: (b) => <span className={styles.muted}>{new Date(b.created_at).toLocaleDateString("he-IL")}</span>,
+    },
+  ];
 
   return (
     <>
@@ -67,51 +94,14 @@ export default function AdminBots() {
         ))}
       </div>
 
-      <div className={styles.tableWrap}>
-        <div className={styles.tableScroll}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>בוט</th><th>בעלים</th>
-                <th>מספר וואטסאפ</th><th>ספק</th>
-                <th style={{textAlign:"center"}}>סטטוס</th>
-                <th>נוצר</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && [0,1,2,3,4].map(i=><SkRow key={i}/>)}
-              {!loading && bots.length===0 && (
-                <tr><td colSpan={6}><div className={styles.tableEmpty}>אין בוטים</div></td></tr>
-              )}
-              {!loading && bots.map(b=>(
-                <tr key={b.id}>
-                  <td>
-                    <div className={styles.strong} style={{fontSize:13}}>{b.name}</div>
-                    <div className={styles.muted}>{b.bot_name}</div>
-                  </td>
-                  <td className={styles.muted}>{b.owner_email??'—'}</td>
-                  <td>
-                    {b.whatsapp_number
-                      ? <span className={styles.mono} dir="ltr">{b.whatsapp_number}</span>
-                      : <span className={styles.muted}>לא מחובר</span>}
-                  </td>
-                  <td>
-                    {b.wa_provider
-                      ? <span className={`${styles.badge} ${b.wa_provider==="meta"?styles.badgeAdmin:styles.badgeGreen}`}>{b.wa_provider}</span>
-                      : <span className={styles.muted}>—</span>}
-                  </td>
-                  <td style={{textAlign:"center"}}>
-                    {b.active
-                      ? <Wifi size={16} strokeWidth={2} style={{color:"var(--success)"}}/>
-                      : <WifiOff size={16} strokeWidth={2} style={{color:"var(--t4)"}}/>}
-                  </td>
-                  <td className={styles.muted}>{new Date(b.created_at).toLocaleDateString("he-IL")}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DataTable<AdminBot>
+        rows={bots}
+        loading={loading}
+        pageSize={25}
+        initialSort={{ key: "created_at", dir: "desc" }}
+        emptyText="אין בוטים"
+        columns={columns}
+      />
     </>
   );
 }

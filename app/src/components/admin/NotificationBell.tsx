@@ -12,7 +12,9 @@ const ICONS = { error: AlertTriangle, warn: Clock, info: Info } as const;
 
 // Topbar bell: derives alerts from /api/admin/notifications (computed, no
 // table). Unseen count = items newer than the client's last "mark all read".
-export default function NotificationBell() {
+// The 2-min poll doubles as the real connection signal (onStatus) for the
+// topbar badge — no second request.
+export default function NotificationBell({ onStatus }: { onStatus?: (ok: boolean) => void } = {}) {
   const [items, setItems] = useState<AdminNotification[]>([]);
   const [open, setOpen] = useState(false);
   const [seenAt, setSeenAt] = useState(0);
@@ -22,14 +24,17 @@ export default function NotificationBell() {
     setSeenAt(Number(localStorage.getItem(SEEN_KEY)) || 0);
     const load = () => {
       fetch("/api/admin/notifications", { cache: "no-store" })
-        .then((r) => (r.ok ? r.json() : null))
+        .then((r) => {
+          onStatus?.(r.ok);
+          return r.ok ? r.json() : null;
+        })
         .then((d) => { if (d?.notifications) setItems(d.notifications as AdminNotification[]); })
-        .catch(() => {});
+        .catch(() => onStatus?.(false));
     };
     load();
     const t = setInterval(load, 120_000); // refresh every 2 min
     return () => clearInterval(t);
-  }, []);
+  }, [onStatus]);
 
   // Close on outside click.
   useEffect(() => {

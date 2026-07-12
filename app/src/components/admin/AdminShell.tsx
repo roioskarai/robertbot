@@ -12,7 +12,7 @@ import {
 import styles from "@/app/admin/admin.module.css";
 import { hasPermission } from "@/lib/site/roles";
 import type { Permission } from "@/lib/site/types";
-import NotificationBell from "@/components/admin/NotificationBell";
+import TopbarStatus from "@/components/admin/TopbarStatus";
 import CommandPalette from "@/components/admin/CommandPalette";
 
 export const NAV = [
@@ -198,11 +198,7 @@ export default function AdminShell({
             <span className={styles.topbarTime} suppressHydrationWarning>
               {new Date().toLocaleDateString("he-IL", { weekday: "short", day: "numeric", month: "short" })}
             </span>
-            <NotificationBell />
-            <span className={`${styles.badge} ${styles.badgeGreen}`}>
-              <span className={styles.badgeDot} />
-              Online
-            </span>
+            <TopbarStatus />
           </div>
         </header>
         <div className={styles.content}>{children}</div>

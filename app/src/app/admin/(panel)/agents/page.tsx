@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Play, Cpu, RefreshCw, CheckCircle, XCircle, Clock, Copy, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
+import DataTable, { type Column } from "@/components/admin/DataTable";
 
 interface Proposal {
   type: string;
@@ -152,16 +153,6 @@ const statusIcon = (s: string) => {
 const statusClass = (s: string) =>
   s==="success"?styles.badgeActive:s==="error"?styles.badgeCancelled:styles.badgeTrial;
 
-function SkRow() {
-  return (
-    <tr>
-      {[100,90,70,70,200,70].map((w,i)=>(
-        <td key={i}><div className={`${styles.skeleton} ${styles.skBlock}`} style={{width:w}}/></td>
-      ))}
-    </tr>
-  );
-}
-
 export default function AdminAgents() {
   const [runs, setRuns] = useState<Run[]>([]);
   const [available, setAvailable] = useState<string[]>([]);
@@ -218,6 +209,31 @@ export default function AdminAgents() {
     finally { setDeciding(null); }
   }
 
+  const runColumns: Column<Run>[] = [
+    {
+      key: "created_at", label: "תאריך", sortable: true,
+      render: (r) => <span className={styles.muted} style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+        {new Date(r.created_at).toLocaleString("he-IL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+      </span>,
+    },
+    { key: "agent", label: "סוכן", sortable: true, render: (r) => <span className={styles.strong} style={{ fontSize: 13 }}>{r.agent}</span> },
+    { key: "mode", label: "מצב", hideBelow: "sm",
+      render: (r) => <span className={`${styles.badge} ${r.mode === "live" ? styles.badgeActive : styles.badgeTrial}`}>{r.mode}</span> },
+    {
+      key: "status", label: "סטטוס", sortable: true,
+      render: (r) => (
+        <div className={styles.row} style={{ gap: 5 }}>
+          {statusIcon(r.status)}
+          <span className={`${styles.badge} ${statusClass(r.status)}`}>{r.status}</span>
+        </div>
+      ),
+    },
+    { key: "summary", label: "סיכום", hideBelow: "md",
+      render: (r) => <span style={{ fontSize: 12, color: "var(--t3)" }}>{r.summary || "—"}</span> },
+    { key: "tokens", label: "טוקנים", align: "center", sortable: true, hideBelow: "sm",
+      render: (r) => <span className={styles.mono}>{r.tokens?.toLocaleString() || "0"}</span> },
+  ];
+
   return (
     <>
       <div className={styles.pageHeader}>
@@ -270,36 +286,13 @@ export default function AdminAgents() {
         <div style={{padding:"14px 18px", borderBottom:"1px solid var(--border)"}}>
           <div className={styles.cardTitle} style={{margin:0}}>יומן ריצות (100 אחרונות)</div>
         </div>
-        <div className={styles.tableScroll}>
-          <table className={styles.table}>
-            <thead>
-              <tr><th>תאריך</th><th>סוכן</th><th>מצב</th><th>סטטוס</th><th>סיכום</th><th style={{textAlign:"center"}}>טוקנים</th></tr>
-            </thead>
-            <tbody>
-              {loading && [0,1,2,3,4].map(i=><SkRow key={i}/>)}
-              {!loading && runs.length===0 && (
-                <tr><td colSpan={6}><div className={styles.tableEmpty}>אין ריצות עדיין</div></td></tr>
-              )}
-              {!loading && runs.map(r=>(
-                <tr key={r.id}>
-                  <td className={styles.muted} style={{fontSize:12,whiteSpace:"nowrap"}}>
-                    {new Date(r.created_at).toLocaleString("he-IL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}
-                  </td>
-                  <td className={styles.strong} style={{fontSize:13}}>{r.agent}</td>
-                  <td><span className={`${styles.badge} ${r.mode==="live"?styles.badgeActive:styles.badgeTrial}`}>{r.mode}</span></td>
-                  <td>
-                    <div className={styles.row} style={{gap:5}}>
-                      {statusIcon(r.status)}
-                      <span className={`${styles.badge} ${statusClass(r.status)}`}>{r.status}</span>
-                    </div>
-                  </td>
-                  <td style={{maxWidth:280, fontSize:12, color:"var(--t3)"}}>{r.summary||"—"}</td>
-                  <td style={{textAlign:"center"}} className={styles.mono}>{r.tokens?.toLocaleString()||"0"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable<Run>
+          rows={runs}
+          loading={loading}
+          pageSize={20}
+          emptyText="אין ריצות עדיין"
+          columns={runColumns}
+        />
       </div>
 
       {toast && (
