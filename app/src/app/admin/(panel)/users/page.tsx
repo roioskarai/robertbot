@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Search, RefreshCw, ShieldOff, ShieldCheck, Filter, Gift, X } from "lucide-react";
+import { Search, RefreshCw, ShieldOff, ShieldCheck, Filter, Check } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
-import { PLAN_IDS, planLabelHe, resolvePlanId, type PlanId } from "@/lib/plans";
+import { PLAN_IDS, planLabelHe } from "@/lib/plans";
 import DataTable, { type Column } from "@/components/admin/DataTable";
 
 interface User {
@@ -21,33 +21,23 @@ interface User {
 
 const STATUS_HE: Record<string,string> = { trial:"ניסיון", active:"פעיל", cancelled:"בוטל", paused:"מושהה" };
 
-const fmtDate = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric" }) : null;
+// The three inline-editable fields. Edits accumulate in a per-row draft and are
+// committed together by the row's single "אישור" button (disabled until dirty).
+type Draft = { plan?: string; subscription_status?: string; subscription_ends_at?: string | null };
+const EDITABLE_KEYS = ["plan", "subscription_status", "subscription_ends_at"] as const;
 
-const modalBackdrop: React.CSSProperties = {
-  position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", zIndex: 1000,
-  display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
-};
-const modalBox: React.CSSProperties = {
-  background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14,
-  padding: 22, width: "100%", maxWidth: 440,
-};
+/** ISO → yyyy-mm-dd for <input type="date">. */
+const toDateInput = (iso: string | null | undefined) => (iso ? iso.slice(0, 10) : "");
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [drafts, setDrafts] = useState<Record<string, Draft>>({});
+  const [savingId, setSavingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string|null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>|null>(null);
-
-  // "הענק מסלול" modal (item #9): plan + expiry (required) + note.
-  const [grantFor, setGrantFor] = useState<User | null>(null);
-  const [grantPlan, setGrantPlan] = useState<PlanId>("pro");
-  const [grantUntil, setGrantUntil] = useState("");
-  const [grantNote, setGrantNote] = useState("");
-  const [grantErr, setGrantErr] = useState<string | null>(null);
-  const [grantBusy, setGrantBusy] = useState(false);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -59,7 +49,9 @@ export default function AdminUsers() {
     setLoading(true);
     const params = new URLSearchParams();
     if (q) params.set("q", q);
-    if (statusFilter) params.set("status", statusFilter);
+    // "comp" is a special filter (is_comp = true), not a subscription_status.
+    if (statusFilter === "comp") params.set("comp", "1");
+    else if (statusFilter) params.set("status", statusFilter);
     const res = await fetch(`/api/admin/users?${params}`);
     const json = await res.json();
     setUsers(json.users ?? []);
@@ -68,59 +60,68 @@ export default function AdminUsers() {
 
   useEffect(() => { load(); }, [load]);
 
-  async function patch(id: string, body: Record<string,unknown>, msg?: string) {
-    const res = await fetch(`/api/admin/users/${id}`, {
+  // ── draft helpers ──
+  function draftVal<K extends keyof Draft>(u: User, k: K): Draft[K] {
+    const d = drafts[u.id];
+    if (d && k in d) return d[k];
+    return u[k as keyof User] as Draft[K];
+  }
+  function setDraft(u: User, patch: Draft) {
+    setDrafts((prev) => ({ ...prev, [u.id]: { ...prev[u.id], ...patch } }));
+  }
+  function clearDraft(id: string) {
+    setDrafts((prev) => { const n = { ...prev }; delete n[id]; return n; });
+  }
+  /** Only the fields that actually changed (dates compared by day). */
+  function rowDiff(u: User): Record<string, unknown> {
+    const d = drafts[u.id];
+    if (!d) return {};
+    const out: Record<string, unknown> = {};
+    for (const k of EDITABLE_KEYS) {
+      if (!(k in d)) continue;
+      if (k === "subscription_ends_at") {
+        if (toDateInput(d.subscription_ends_at) !== toDateInput(u.subscription_ends_at)) {
+          out[k] = d.subscription_ends_at;
+        }
+      } else if (d[k] !== u[k]) {
+        out[k] = d[k];
+      }
+    }
+    return out;
+  }
+
+  async function saveRow(u: User) {
+    const diff = rowDiff(u);
+    if (!Object.keys(diff).length) return;
+    setSavingId(u.id);
+    const res = await fetch(`/api/admin/users/${u.id}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(diff),
+    });
+    setSavingId(null);
+    if (!res.ok) {
+      const dd = await res.json().catch(() => ({}));
+      showToast(dd.error || "העדכון נכשל");
+      return;
+    }
+    clearDraft(u.id);
+    showToast("השינויים נשמרו");
+    load();
+  }
+
+  // Suspend/unsuspend stays a distinct immediate action (safety toggle).
+  async function toggleSuspend(u: User) {
+    const res = await fetch(`/api/admin/users/${u.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ is_suspended: !u.is_suspended }),
     });
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));
       showToast(d.error || "העדכון נכשל");
-      return false;
-    }
-    load();
-    if (msg) showToast(msg);
-    return true;
-  }
-
-  function openGrant(u: User) {
-    setGrantFor(u);
-    setGrantPlan(resolvePlanId(u.plan));
-    // default expiry: 30 days out — the admin adjusts as needed
-    const d = new Date(Date.now() + 30 * 86_400_000);
-    setGrantUntil(d.toISOString().slice(0, 16));
-    setGrantNote(u.comp_note ?? "");
-    setGrantErr(null);
-  }
-
-  async function submitGrant() {
-    if (!grantFor) return;
-    const until = grantUntil ? new Date(grantUntil) : null;
-    if (!until || Number.isNaN(until.getTime()) || until.getTime() <= Date.now()) {
-      setGrantErr("בחר תאריך תוקף עתידי");
       return;
     }
-    setGrantBusy(true);
-    const ok = await patch(grantFor.id, {
-      plan: grantPlan,
-      subscription_status: "active",
-      is_comp: true,
-      cancel_at_period_end: true, // the trial-cron enforces expiry via this flag
-      subscription_ends_at: until.toISOString(),
-      comp_note: grantNote.trim() || null,
-    }, `הוענק מסלול ${planLabelHe(grantPlan)} עד ${fmtDate(until.toISOString())}`);
-    setGrantBusy(false);
-    if (ok) setGrantFor(null);
-  }
-
-  async function revokeGrant(u: User) {
-    if (!window.confirm(`לבטל את ההענקה של ${u.email}? הסטטוס יעבור ל"בוטל" והבוטים יכובו בפקיעה הרגילה.`)) return;
-    await patch(u.id, {
-      is_comp: false,
-      subscription_status: "cancelled",
-      cancel_at_period_end: false,
-      subscription_ends_at: null,
-    }, "ההענקה בוטלה");
+    showToast(u.is_suspended ? "משתמש שוחרר" : "משתמש חסום");
+    load();
   }
 
   const userColumns: Column<User>[] = [
@@ -155,8 +156,8 @@ export default function AdminUsers() {
           <select
             className={`${styles.input} ${styles.inputSm} ${styles.select}`}
             style={{ width: "auto", minWidth: 110 }}
-            value={u.plan}
-            onChange={e => patch(u.id, { plan: e.target.value }, `מסלול עודכן ל-${planLabelHe(resolvePlanId(e.target.value))}`)}>
+            value={draftVal(u, "plan")}
+            onChange={e => setDraft(u, { plan: e.target.value })}>
             {PLAN_IDS.map(p => <option key={p} value={p}>{planLabelHe(p)}</option>)}
           </select>
           {u.is_comp && <span className={`${styles.badge} ${styles.badgeGreen}`} title={u.comp_note ?? undefined}>חינם</span>}
@@ -169,15 +170,24 @@ export default function AdminUsers() {
         <select
           className={`${styles.input} ${styles.inputSm} ${styles.select}`}
           style={{ width: "auto", minWidth: 100 }}
-          value={u.subscription_status}
-          onChange={e => patch(u.id, { subscription_status: e.target.value }, "סטטוס עודכן")}>
+          value={draftVal(u, "subscription_status")}
+          onChange={e => setDraft(u, { subscription_status: e.target.value })}>
           {Object.entries(STATUS_HE).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
         </select>
       ),
     },
     {
       key: "subscription_ends_at", label: "תוקף עד", sortable: true, hideBelow: "md",
-      render: (u) => <span style={{ fontVariantNumeric: "tabular-nums", fontSize: 12.5 }}>{fmtDate(u.subscription_ends_at) ?? <span className={styles.muted}>—</span>}</span>,
+      render: (u) => (
+        <input
+          type="date"
+          className={`${styles.input} ${styles.inputSm}`}
+          style={{ width: "auto", minWidth: 140, fontVariantNumeric: "tabular-nums" }}
+          value={toDateInput(draftVal(u, "subscription_ends_at") as string | null)}
+          onChange={e => setDraft(u, { subscription_ends_at: e.target.value ? new Date(e.target.value).toISOString() : null })}
+          title="לחץ לבחירת תאריך תוקף"
+        />
+      ),
     },
     {
       key: "bots", label: "בוטים", align: "center", hideBelow: "sm",
@@ -198,22 +208,25 @@ export default function AdminUsers() {
     },
     {
       key: "actions", label: "פעולות", align: "center",
-      render: (u) => (
-        <div className={styles.row} style={{ gap: 6, justifyContent: "center" }}>
-          {u.is_comp ? (
-            <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} onClick={() => revokeGrant(u)}>בטל הענקה</button>
-          ) : (
-            <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} title="הענק מסלול ללא תשלום, עם תוקף" onClick={() => openGrant(u)}>
-              <Gift size={13} strokeWidth={2} /> הענק
+      render: (u) => {
+        const dirty = Object.keys(rowDiff(u)).length > 0;
+        return (
+          <div className={styles.row} style={{ gap: 6, justifyContent: "center" }}>
+            <button
+              className={`${styles.btn} ${dirty ? styles.btnPrimary : styles.btnGhost} ${styles.btnSm}`}
+              disabled={!dirty || savingId === u.id}
+              onClick={() => saveRow(u)}
+              title={dirty ? "שמור את השינויים בשורה" : "אין שינוי לשמירה"}>
+              <Check size={13} strokeWidth={2} /> {savingId === u.id ? "שומר…" : "אישור"}
             </button>
-          )}
-          <button
-            className={`${styles.btn} ${u.is_suspended?styles.btnGhost:styles.btnDanger} ${styles.btnSm}`}
-            onClick={() => patch(u.id, { is_suspended: !u.is_suspended }, u.is_suspended ? "משתמש שוחרר" : "משתמש חסום")}>
-            {u.is_suspended ? "שחרר" : "חסום"}
-          </button>
-        </div>
-      ),
+            <button
+              className={`${styles.btn} ${u.is_suspended?styles.btnGhost:styles.btnDanger} ${styles.btnSm}`}
+              onClick={() => toggleSuspend(u)}>
+              {u.is_suspended ? "שחרר" : "חסום"}
+            </button>
+          </div>
+        );
+      },
     },
   ];
 
@@ -246,6 +259,7 @@ export default function AdminUsers() {
           value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}>
           <option value="">כל הסטטוסים</option>
           {Object.entries(STATUS_HE).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
+          <option value="comp">מנוי חינמי</option>
         </select>
       </div>
 
@@ -257,50 +271,6 @@ export default function AdminUsers() {
         emptyText="לא נמצאו משתמשים"
         columns={userColumns}
       />
-
-      {/* Grant modal — plan without payment, time-boxed (item #9) */}
-      {grantFor && (
-        <div style={modalBackdrop} onClick={() => !grantBusy && setGrantFor(null)}>
-          <div style={modalBox} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="הענקת מסלול">
-            <div className={styles.row} style={{ justifyContent: "space-between", marginBottom: 14 }}>
-              <div className={styles.strong} style={{ fontSize: 15 }}>הענקת מסלול — {grantFor.email}</div>
-              <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} onClick={() => setGrantFor(null)} disabled={grantBusy} aria-label="סגור">
-                <X size={14} strokeWidth={2} />
-              </button>
-            </div>
-            <p className={styles.muted} style={{ fontSize: 12.5, marginBottom: 14, lineHeight: 1.6 }}>
-              המשתמש יקבל את המסלול ללא תשלום עד לתאריך שנבחר. בפקיעה — המנוי יסומן
-              &quot;בוטל&quot;, הבוטים יכובו, והלקוח יתבקש לשלם כדי להמשיך. ההענקה לא נספרת ב-MRR.
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12.5 }}>
-                מסלול
-                <select className={`${styles.input} ${styles.select}`} value={grantPlan}
-                  onChange={(e) => setGrantPlan(resolvePlanId(e.target.value))}>
-                  {PLAN_IDS.map(p => <option key={p} value={p}>{planLabelHe(p)}</option>)}
-                </select>
-              </label>
-              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12.5 }}>
-                תוקף עד
-                <input type="datetime-local" className={styles.input} value={grantUntil}
-                  onChange={(e) => { setGrantUntil(e.target.value); setGrantErr(null); }} />
-              </label>
-              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12.5 }}>
-                הערה (אופציונלי — למשל &quot;פיצוי&quot; / &quot;בדיקות&quot;)
-                <input className={styles.input} value={grantNote} maxLength={300}
-                  onChange={(e) => setGrantNote(e.target.value)} placeholder="למה הוענק המסלול?" />
-              </label>
-              {grantErr && <div style={{ color: "var(--danger)", fontSize: 12.5 }} role="alert">{grantErr}</div>}
-              <div className={styles.row} style={{ justifyContent: "flex-end", gap: 8, marginTop: 4 }}>
-                <button className={`${styles.btn} ${styles.btnGhost}`} onClick={() => setGrantFor(null)} disabled={grantBusy}>ביטול</button>
-                <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={submitGrant} disabled={grantBusy}>
-                  {grantBusy ? "מעניק..." : "הענק מסלול"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {toast && (
         <div className={`${styles.toast} ${styles.toastOk}`}>

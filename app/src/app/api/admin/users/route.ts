@@ -10,6 +10,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const q = url.searchParams.get("q")?.trim();
   const status = url.searchParams.get("status")?.trim();
+  const comp = url.searchParams.get("comp")?.trim();
 
   let query = db
     .from("users")
@@ -19,6 +20,7 @@ export async function GET(req: Request) {
 
   if (q) query = query.ilike("email", `%${q}%`);
   if (status) query = query.eq("subscription_status", status);
+  if (comp === "1") query = query.eq("is_comp", true);
 
   const { data: users, error } = await query;
   if (error) {

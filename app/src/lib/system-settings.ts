@@ -71,7 +71,10 @@ const loadMaintenance = unstable_cache(
     };
   },
   ["system-maintenance"],
-  { tags: [SYSTEM_TAG] },
+  // Tag revalidation makes a toggle instant; the short time-based revalidate is
+  // a safety net so the flag self-heals within seconds even if a tag
+  // invalidation is ever missed across serverless instances.
+  { tags: [SYSTEM_TAG], revalidate: 15 },
 );
 
 /** Current maintenance state (cached). Safe default: OFF. */
@@ -86,7 +89,7 @@ const loadFeatureFlags = unstable_cache(
     return coerceFlagMap(row?.value);
   },
   ["system-feature-flags"],
-  { tags: [SYSTEM_TAG] },
+  { tags: [SYSTEM_TAG], revalidate: 30 },
 );
 
 /** Raw stored flag overrides (cached). Absent key → use the registry default. */
