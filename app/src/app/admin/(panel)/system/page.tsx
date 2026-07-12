@@ -1,5 +1,6 @@
 import styles from "@/app/admin/admin.module.css";
 import MaintenanceCard from "@/components/admin/MaintenanceCard";
+import FeatureFlagsCard from "@/components/admin/FeatureFlagsCard";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export default function AdminSystemPage() {
 
       <div className={`${styles.grid} ${styles.g2}`} style={{ alignItems: "start" }}>
         <MaintenanceCard />
+        <FeatureFlagsCard />
       </div>
     </>
   );

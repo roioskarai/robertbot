@@ -7,12 +7,16 @@ import { hasAnthropicKey } from "@/lib/claude";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAdminAudit } from "@/lib/admin-audit";
 import { answerQuestion } from "@/lib/admin-assistant/engine";
+import { isFeatureEnabled } from "@/lib/feature-flags";
 
 // POST /api/admin/assistant  { question }
 // Predefined-safe-query assistant. Rate-limited to cap token spend.
 export async function POST(req: Request) {
   const session = await requireAdmin();
   if (!session) return jsonError("אין הרשאת אדמין", 403);
+  if (!(await isFeatureEnabled("ai_assistant"))) {
+    return jsonError("עוזר ה-AI מושבת כרגע", 403);
+  }
   if (!rateLimit(`admin-assistant:${clientKey(req)}`, 10, 60_000).allowed) {
     return jsonError("יותר מדי שאלות. נסה שוב בעוד דקה.", 429);
   }

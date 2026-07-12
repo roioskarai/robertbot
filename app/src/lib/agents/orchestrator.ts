@@ -3,6 +3,7 @@ import { dailyOwnerReportEmail, hasResendKey, sendEmail } from "@/lib/resend";
 import type { AgentMode } from "@/lib/types";
 import { SCHEDULED_AGENTS, WEEKLY_AGENTS } from "./registry";
 import { runAgent, supabaseAdminConfigured, type RunOutcome } from "./runner";
+import { isFeatureEnabled } from "@/lib/feature-flags";
 
 /**
  * ops-orchestrator — the daily heartbeat. Runs every scheduled operational
@@ -30,7 +31,8 @@ export async function runOrchestrator(
 
   // Weekly agents piggyback on the daily cron: Sunday (UTC) only. The
   // ISO-week dedup_key inside each weekly agent makes retries a no-op.
-  if (new Date().getUTCDay() === 0) {
+  // Gated by the weekly_report feature flag (default ON).
+  if (new Date().getUTCDay() === 0 && (await isFeatureEnabled("weekly_report"))) {
     for (const name of Object.keys(WEEKLY_AGENTS)) {
       ran.push(await runAgent(WEEKLY_AGENTS[name], mode));
     }

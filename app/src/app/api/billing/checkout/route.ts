@@ -6,6 +6,7 @@ import { parseProduct } from "@/lib/plans";
 import { jsonError, unauthorized } from "@/lib/errors";
 import { rateLimit } from "@/lib/rate-limit";
 import { parseBody, checkoutSchema } from "@/lib/schemas";
+import { isFeatureEnabled } from "@/lib/feature-flags";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -32,9 +33,15 @@ export async function POST(req: Request) {
   const parsed = parseProduct(product);
   if (!parsed) return jsonError("מוצר לא חוקי");
 
-  // Store access rule: packs are for active subscribers only.
-  if (parsed.kind === "pack" && session.profile?.subscription_status !== "active") {
-    return jsonError("רכישת Packs זמינה למנויים פעילים בלבד", 403);
+  // Store access rule: packs are for active subscribers only, and only when
+  // the store_packs feature flag is on.
+  if (parsed.kind === "pack") {
+    if (!(await isFeatureEnabled("store_packs"))) {
+      return jsonError("מכירת חבילות ההודעות מושבתת כרגע", 403);
+    }
+    if (session.profile?.subscription_status !== "active") {
+      return jsonError("רכישת Packs זמינה למנויים פעילים בלבד", 403);
+    }
   }
 
   const provider = getPaymentProvider();
