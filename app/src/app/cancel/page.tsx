@@ -27,7 +27,7 @@ const REASONS: { key: Reason; text: string }[] = [
 
 const OFFER_TITLES: Record<Reason, string> = {
   price: "רגע — חשבת כמה Robert חוסך לך?",
-  use: "לא משתמש? הקפא את המנוי",
+  use: "לא משתמש? עצור את החיוב",
   hard: "קשה להגדיר? יש סרטון הסבר קצר",
   missing: "חסר פיצ'ר? ספר לנו",
   competitor: "עברת למתחרה?",
@@ -35,7 +35,7 @@ const OFFER_TITLES: Record<Reason, string> = {
 };
 const ACCEPTED_TITLES: Record<Reason, string> = {
   price: "עברת למסלול בסיסי!",
-  use: "המנוי הוקפא!",
+  use: "החיוב נעצר!",
   hard: "תודה — צפה בסרטון וחזור אלינו!",
   missing: "המשוב נשלח — תודה!",
   competitor: "עברת למסלול בסיסי",
@@ -43,7 +43,7 @@ const ACCEPTED_TITLES: Record<Reason, string> = {
 };
 const ACCEPTED_SUBS: Record<Reason, string> = {
   price: `המסלול שלך שונה ל-₪${PRICING.basic.monthly}/חודש. הבוט ממשיך לעבוד.`,
-  use: "הבוט מושהה. כשתחזור — הכל ממש כמו שהשארת.",
+  use: "החיוב נעצר וההגדרות שלך נשמרות. תוכל לחדש את המנוי בכל עת.",
   hard: "אנחנו כאן אם תצטרך עזרה נוספת.",
   missing: "נעדכן אותך כשהפיצ'ר יהיה מוכן.",
   competitor: "המסלול שלך שונה. הבוט ממשיך לעבוד.",
@@ -61,6 +61,10 @@ export default function CancelPage() {
   const [sub, setSub] = useState<SubscriptionState | null>(null);
   // Real usage stats for the "look what Robert did for you" panel (was fake).
   const [usage, setUsage] = useState<{ messages: number; closed: number } | null>(null);
+  // Guards a double-submit and lets us show the REAL server outcome (never a
+  // hardcoded "success" that could contradict what the billing API actually did).
+  const [busy, setBusy] = useState(false);
+  const [outcome, setOutcome] = useState<{ title: string; sub: string } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -93,17 +97,56 @@ export default function CancelPage() {
     setScreen("s2");
   }
 
+  // Single billing call with honest result handling: returns the server's ok
+  // flag + its Hebrew message/error. Never throws.
+  async function callBilling(url: string, body?: unknown): Promise<{ ok: boolean; message?: string; error?: string }> {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: body ? { "Content-Type": "application/json" } : undefined,
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      const d = await res.json().catch(() => ({}));
+      return { ok: res.ok, message: d.message, error: d.error };
+    } catch {
+      return { ok: false, error: "אין חיבור לשרת — נסה שוב." };
+    }
+  }
+
   async function acceptOffer() {
-    if (!reason) return;
-    // Wire the retention offers to the billing API.
-    if (reason === "use") await fetch("/api/billing/pause", { method: "POST" }).catch(() => {});
-    if (reason === "price" || reason === "competitor")
-      await fetch("/api/billing/downgrade", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ plan: "basic" }) }).catch(() => {});
+    if (!reason || busy) return;
+    // Feedback-only reasons touch no billing — just record and thank.
+    if (reason === "hard" || reason === "missing" || reason === "other") {
+      setOutcome({ title: ACCEPTED_TITLES[reason], sub: ACCEPTED_SUBS[reason] });
+      setScreen("s5");
+      return;
+    }
+    setBusy(true);
+    const r = reason === "use"
+      ? await callBilling("/api/billing/pause")
+      : await callBilling("/api/billing/downgrade", { plan: "basic" }); // price | competitor
+    setBusy(false);
+    if (!r.ok) {
+      // Do NOT advance to a success screen when the server failed — the customer
+      // must not believe a change happened that didn't.
+      alert(r.error || "הפעולה נכשלה. נסה שוב או פנה לתמיכה.");
+      return;
+    }
+    // Show the REAL server message (e.g. Grow cancels rather than pauses).
+    setOutcome({ title: "הפעולה בוצעה", sub: r.message || ACCEPTED_SUBS[reason] });
     setScreen("s5");
   }
 
   async function confirmCancel() {
-    await fetch("/api/billing/cancel", { method: "POST" }).catch(() => {});
+    if (busy) return;
+    setBusy(true);
+    const r = await callBilling("/api/billing/cancel");
+    setBusy(false);
+    if (!r.ok) {
+      alert(r.error || "הביטול נכשל. נסה שוב או פנה לתמיכה.");
+      return;
+    }
+    setOutcome({ title: "המנוי בוטל", sub: r.message || `המנוי בוטל. הבוט ימשיך לפעול עד ${untilText}.` });
     setScreen("s4");
   }
 
@@ -201,8 +244,8 @@ export default function CancelPage() {
           )}
           {reason === "use" && (
             <div className={c("pause-card")}>
-              <div className={c("pause-title")}>⏸️ הקפאת מנוי — עד 3 חודשים</div>
-              <div className={c("pause-sub")}>הבוט מושהה, ההגדרות נשמרות, אין חיוב. כשתחזור — הכל ממש כמו שהשארת.</div>
+              <div className={c("pause-title")}>⏸️ עצירת המנוי</div>
+              <div className={c("pause-sub")}>החיוב ייפסק והבוט יושהה. ההגדרות שלך נשמרות — תוכל לחדש את המנוי בכל עת.</div>
             </div>
           )}
           {reason === "hard" && (
@@ -226,10 +269,10 @@ export default function CancelPage() {
             <textarea className={c("fta")} placeholder="ספר לנו עוד — נשתמש בזה כדי להשתפר" />
           )}
 
-          <button className={c("btn btn-primary")} onClick={acceptOffer}>
-            {reason === "use" ? "הקפא את המנוי" : reason === "price" || reason === "competitor" ? "עבור למסלול בסיסי" : reason === "hard" ? "צפה בסרטון וחזור" : "שלח משוב"}
+          <button className={c("btn btn-primary")} onClick={acceptOffer} disabled={busy}>
+            {busy ? "רגע…" : reason === "use" ? "עצור את החיוב" : reason === "price" || reason === "competitor" ? "עבור למסלול בסיסי" : reason === "hard" ? "צפה בסרטון וחזור" : "שלח משוב"}
           </button>
-          <button className={c("btn btn-ghost")} style={{ color: "var(--t4)", fontSize: 13, marginTop: 4 }} onClick={() => setScreen("s3")}>בטל בכל זאת</button>
+          <button className={c("btn btn-ghost")} style={{ color: "var(--t4)", fontSize: 13, marginTop: 4 }} onClick={() => setScreen("s3")} disabled={busy}>בטל בכל זאת</button>
           <button className={c("btn btn-ghost")} onClick={() => router.push("/dashboard")}>חזור ל-Dashboard</button>
         </div>
       </div>
@@ -253,8 +296,8 @@ export default function CancelPage() {
               ❌ לאחר מכן יימחקו לצמיתות
             </div>
           </div>
-          <button className={c("btn btn-danger")} onClick={confirmCancel}>כן, בטל את המנוי</button>
-          <button className={c("btn btn-primary")} onClick={() => router.push("/dashboard")}>השאר אותי — חזור ל-Dashboard</button>
+          <button className={c("btn btn-danger")} onClick={confirmCancel} disabled={busy}>{busy ? "מבטל…" : "כן, בטל את המנוי"}</button>
+          <button className={c("btn btn-primary")} onClick={() => router.push("/dashboard")} disabled={busy}>השאר אותי — חזור ל-Dashboard</button>
         </div>
       </div>
 
@@ -264,8 +307,8 @@ export default function CancelPage() {
           <div className={c("success-icon")}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green-d)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
           </div>
-          <div className={c("card-title")}>המנוי בוטל</div>
-          <div className={c("card-sub")}>המנוי שלך בוטל בהצלחה. הבוט ימשיך לפעול עד <strong>{untilText}</strong>.<br /><br />תמיד תוכל לחזור — ההגדרות שלך שמורות.</div>
+          <div className={c("card-title")}>{outcome?.title ?? "המנוי בוטל"}</div>
+          <div className={c("card-sub")}>{outcome?.sub ?? <>המנוי שלך בוטל בהצלחה. הבוט ימשיך לפעול עד <strong>{untilText}</strong>.</>}<br /><br />תמיד תוכל לחזור — ההגדרות שלך שמורות.</div>
           <button className={c("btn btn-primary")} onClick={() => router.push("/")} style={{ marginTop: 8 }}>חזור לדף הבית</button>
           <button className={c("btn btn-ghost")} onClick={() => router.push("/dashboard")}>התחרטתי — הפעל מחדש</button>
         </div>
@@ -277,8 +320,8 @@ export default function CancelPage() {
           <div className={c("success-icon")}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green-d)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
           </div>
-          <div className={c("card-title")}>{reason ? ACCEPTED_TITLES[reason] : "תודה!"}</div>
-          <div className={c("card-sub")}>{reason ? ACCEPTED_SUBS[reason] : ""}</div>
+          <div className={c("card-title")}>{outcome?.title ?? (reason ? ACCEPTED_TITLES[reason] : "תודה!")}</div>
+          <div className={c("card-sub")}>{outcome?.sub ?? (reason ? ACCEPTED_SUBS[reason] : "")}</div>
           <button className={c("btn btn-primary")} onClick={() => router.push("/dashboard")} style={{ marginTop: 8 }}>חזור ל-Dashboard</button>
         </div>
       </div>

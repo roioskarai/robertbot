@@ -34,8 +34,8 @@ interface Props {
  * method + invoices, and account actions (upgrade / cancel / referral).
  */
 export default function BillingTab({
-  sub, usage, usagePct, botPct, accountCreatedAt, billingInfo, referral,
-  onUpgrade, onCancel, onBillingPortal, onCopyRef,
+  sub, usage, usagePct, botPct, accountCreatedAt, billingInfo,
+  onUpgrade, onCancel, onBillingPortal,
 }: Props) {
   return (
     <>
@@ -125,17 +125,15 @@ export default function BillingTab({
             )}
           </div>
 
+          {/* Referral rewards are not live yet — the tracking/credit system
+              hasn't shipped. Until it does we show a "coming soon" card instead
+              of promising ₪50 that would never be credited. */}
           <div className={c("ref-box")}>
             <div className={c("ref-title")}>חבר מביא חבר</div>
-            <div className={c("ref-sub")}>שתף את הלינק האישי שלך — כל חבר שנרשם דרכך מקבל ₪50 קרדיט, וגם אתה מקבל ₪50.</div>
-            <div className={c("ref-link-row")}>
-              <input className={c("ref-link")} value={referral?.link ?? "טוען..."} readOnly dir="ltr" />
-              <button className={c("btn btn-outline btn-sm")} onClick={onCopyRef}>העתק</button>
-            </div>
-            <div className={c("ref-stats")}>
-              <div className={c("ref-stat")}><div className={c("ref-stat-n")}>{referral?.friends ?? 0}</div><div className={c("ref-stat-l")}>חברים הצטרפו</div></div>
-              <div className={c("ref-stat")}><div className={c("ref-stat-n")}>₪{referral?.earned ?? 0}</div><div className={c("ref-stat-l")}>קרדיט שנצבר</div></div>
-              <div className={c("ref-stat")}><div className={c("ref-stat-n")}>₪{referral?.available ?? 0}</div><div className={c("ref-stat-l")}>זמין לשימוש</div></div>
+            <div className={c("ref-sub")}>
+              <span style={{ display: "inline-block", background: "var(--green-p, #e6f7ee)", color: "var(--green-d, #0a7d3e)", fontWeight: 700, fontSize: 12, borderRadius: 999, padding: "2px 10px", marginBottom: 8 }}>בקרוב 🚀</span>
+              <br />
+              תוכנית ההפניות בדרך. נעדכן אותך ברגע שתהיה זמינה — ואז כל הזמנה של חבר תזכה את שניכם.
             </div>
           </div>
         </div>
