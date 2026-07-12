@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
 import { getPaymentProvider, hasPayment } from "@/lib/payments";
 import { parseProduct } from "@/lib/plans";
@@ -38,7 +38,9 @@ export async function POST(req: Request) {
   }
 
   const provider = getPaymentProvider();
-  const supabase = await createClient();
+  // Service-role client — payment_customer_id must never be writable by the
+  // tenant's own RLS-scoped session (see billing/cancel/route.ts).
+  const supabase = createAdminClient();
 
   try {
     const out = await provider.createCheckout({

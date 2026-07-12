@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
 import { getPaymentProvider, hasPayment } from "@/lib/payments";
 import { jsonError, unauthorized } from "@/lib/errors";
@@ -7,6 +7,11 @@ import { rateLimit } from "@/lib/rate-limit";
 
 // POST /api/billing/cancel
 // Cancels at period end — the bot stays active until the period ends.
+//
+// Writes go through the service-role client: authorization is already
+// enforced above by getSessionUser() + the .eq("id", session.authId) scope,
+// and subscription_status/cancel_at_period_end must never be writable by the
+// tenant's own RLS-scoped session (self-escalation risk).
 export async function POST() {
   const session = await getSessionUser();
   if (!session) return unauthorized();
@@ -15,7 +20,7 @@ export async function POST() {
     return jsonError("יותר מדי בקשות בזמן קצר. נסה שוב בעוד דקה.", 429);
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const subId =
     session.profile?.payment_subscription_id ?? session.profile?.stripe_subscription_id;
 

@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
 import { getPaymentProvider, hasPayment } from "@/lib/payments";
 import { jsonError, unauthorized } from "@/lib/errors";
 import { rateLimit } from "@/lib/rate-limit";
 
 // POST /api/billing/pause
+//
+// Service-role write — see cancel/route.ts for why: subscription_status must
+// never be writable by the tenant's own RLS-scoped session.
 export async function POST() {
   const session = await getSessionUser();
   if (!session) return unauthorized();
@@ -14,7 +17,7 @@ export async function POST() {
     return jsonError("יותר מדי בקשות בזמן קצר. נסה שוב בעוד דקה.", 429);
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const subId =
     session.profile?.payment_subscription_id ?? session.profile?.stripe_subscription_id;
 

@@ -50,6 +50,14 @@ export async function POST(req: Request) {
   if (!parsed.ok) return jsonError(parsed.message);
   const body = parsed.data;
 
+  // A lapsed subscription must not be able to add a fresh bot (with an
+  // instantly-active WhatsApp connection, if verified) — only trial/active
+  // accounts may create new bots.
+  const status = session.profile?.subscription_status;
+  if (status !== "trial" && status !== "active") {
+    return jsonError("המנוי אינו פעיל — יש לחדש אותו כדי להוסיף בוט חדש", 403);
+  }
+
   const supabase = await createClient();
 
   // Enforce plan bot limit

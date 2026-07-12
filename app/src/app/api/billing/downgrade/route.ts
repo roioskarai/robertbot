@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
 import { isPlanId, planLabelHe, PLAN_IDS } from "@/lib/plans";
 import { jsonError, unauthorized } from "@/lib/errors";
@@ -33,7 +33,9 @@ export async function POST(req: Request) {
   const body = input.data;
   if (!isPlanId(body.plan)) return jsonError("מסלול לא חוקי");
 
-  const supabase = await createClient();
+  // Service-role client — subscription_status/plan must never be writable by
+  // the tenant's own RLS-scoped session (see cancel/route.ts).
+  const supabase = createAdminClient();
 
   // Fetch current plan to block free upgrades via this endpoint.
   const { data: user } = await supabase

@@ -19,7 +19,10 @@ export function hebAuthError(msg: string): string {
     return "הקישור פג תוקף — בקש קישור חדש";
   if (m.includes("fetch") || m.includes("network"))
     return "החיבור לשרת נכשל — בדוק את החיבור לאינטרנט ונסה שוב";
-  return `אירעה שגיאה. נסה שוב. (${msg})`;
+  // Unmapped Supabase/auth error: never echo the raw provider message to the
+  // client (may contain internal details) — log server-side, return generic.
+  console.error("[hebAuthError] unmapped auth error:", msg);
+  return "אירעה שגיאה. נסה שוב.";
 }
 
 export function jsonError(message: string, status = 400) {

@@ -1,2 +1,2 @@
 robertbot build marker
-admin enterprise upgrade (batches 1-8) 2026-07-11 commit ef61273
+security: close RLS self-escalation (migration 0012) + QA batch 2026-07-12
