@@ -7,14 +7,15 @@ import {
   LayoutDashboard, Users, Bot, CreditCard,
   Cpu, ShieldCheck, LogOut, ChevronRight, Activity, Menu,
   Palette, LayoutTemplate, Image as ImageIcon, FileText, Megaphone,
-  Brush, BarChart3, History, Code2, UserCog, ScrollText,
+  Brush, BarChart3, History, Code2, UserCog, ScrollText, Search as SearchIcon,
 } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
 import { hasPermission } from "@/lib/site/roles";
 import type { Permission } from "@/lib/site/types";
 import NotificationBell from "@/components/admin/NotificationBell";
+import CommandPalette from "@/components/admin/CommandPalette";
 
-const NAV = [
+export const NAV = [
   { href: "/admin",          label: "סקירה כללית",  icon: LayoutDashboard, exact: true },
   { href: "/admin/users",    label: "משתמשים",      icon: Users },
   { href: "/admin/bots",     label: "בוטים",         icon: Bot },
@@ -25,7 +26,7 @@ const NAV = [
 ];
 
 // Website Builder nav — each item gated by a permission.
-const BUILDER_NAV: { href: string; label: string; icon: typeof Palette; perm: Permission }[] = [
+export const BUILDER_NAV: { href: string; label: string; icon: typeof Palette; perm: Permission }[] = [
   { href: "/admin/site",           label: "עמודים",        icon: LayoutTemplate, perm: "content.read" },
   { href: "/admin/site/design",    label: "עיצוב",         icon: Palette,        perm: "design.write" },
   { href: "/admin/site/themes",    label: "ערכות נושא",    icon: Brush,          perm: "design.write" },
@@ -184,6 +185,14 @@ export default function AdminShell({
             <span className={styles.breadcrumbCurrent}>{currentPage}</span>
           </nav>
           <div className={styles.topbarRight}>
+            <button
+              className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`}
+              onClick={() => window.dispatchEvent(new Event("rb-open-palette"))}
+              title="חיפוש מהיר (Ctrl+K)"
+            >
+              <SearchIcon size={13} strokeWidth={2} /> חיפוש
+              <span className={styles.kbd}>Ctrl+K</span>
+            </button>
             <span className={styles.topbarTime} suppressHydrationWarning>
               {new Date().toLocaleDateString("he-IL", { weekday: "short", day: "numeric", month: "short" })}
             </span>
@@ -196,6 +205,8 @@ export default function AdminShell({
         </header>
         <div className={styles.content}>{children}</div>
       </div>
+
+      <CommandPalette adminRole={adminRole} />
     </div>
   );
 }

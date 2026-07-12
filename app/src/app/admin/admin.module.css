@@ -529,6 +529,51 @@
 .toastOk { border-color: var(--accent-soft); }
 .toastErr { border-color: var(--danger-bg); }
 
+/* ── Command palette (Ctrl+K) ──────────────────────────────── */
+.paletteOverlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.55);
+  z-index: 1100; display: flex; justify-content: center;
+  padding: 12vh 16px 16px; backdrop-filter: blur(2px);
+}
+.paletteBox {
+  width: 100%; max-width: 560px; align-self: flex-start;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0,0,0,.55);
+  animation: fadeUp .15s ease;
+}
+.paletteInputWrap {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+}
+.paletteInput {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--t1); font-size: 14.5px; font-family: inherit;
+}
+.paletteInput::placeholder { color: var(--t4); }
+.paletteList { max-height: 46vh; overflow-y: auto; padding: 6px; }
+.paletteSection {
+  font-size: 11px; font-weight: 700; color: var(--t4);
+  letter-spacing: .4px; padding: 8px 10px 4px;
+}
+.paletteItem {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 9px 10px; border: none; border-radius: 8px;
+  background: none; color: var(--t2); font-size: 13.5px;
+  font-family: inherit; cursor: pointer; text-align: right;
+}
+.paletteItemActive { background: var(--surface-3); color: var(--t1); }
+.paletteHint {
+  display: flex; gap: 16px; padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 11.5px; color: var(--t4);
+}
+.kbd {
+  display: inline-block; padding: 1px 6px; border-radius: 5px;
+  background: var(--surface-3); border: 1px solid var(--border);
+  font-size: 11px; color: var(--t3); font-family: monospace;
+}
+
 /* ── Misc ──────────────────────────────────────────────────── */
 .row { display: flex; gap: 10px; align-items: center; }
 .flex1 { flex: 1; }
