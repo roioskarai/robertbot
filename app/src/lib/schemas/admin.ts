@@ -50,3 +50,8 @@ export const agentActionDecisionSchema = z.object({
   actionIndex: z.number().int().min(0).max(200),
   decision: z.enum(["approve", "dismiss", "apply"]),
 });
+
+/** POST /api/admin/assistant — a natural-language admin question. */
+export const assistantAskSchema = z.object({
+  question: z.string().trim().min(2, "שאלה קצרה מדי").max(500, "השאלה ארוכה מדי"),
+});

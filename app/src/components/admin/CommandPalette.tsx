@@ -96,6 +96,10 @@ export default function CommandPalette({ adminRole = null }: { adminRole?: strin
         section: "actions", run: () => router.push("/admin/audit"),
       },
       {
+        id: "act:assistant", labelHe: "שאל את העוזר AI", keywords: "assistant ai שאלה",
+        section: "actions", run: () => router.push("/admin/assistant"),
+      },
+      {
         id: "act:orchestrator", labelHe: "הרץ את כל הסוכנים (טיוטה)", keywords: "orchestrator dry run agents",
         section: "actions",
         run: () => {
