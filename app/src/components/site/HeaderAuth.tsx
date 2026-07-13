@@ -33,6 +33,7 @@ export default function HeaderAuth({
 }) {
   const Item = as;
   const [state, setState] = useState<"unknown" | "out" | "in">("unknown");
+  const [firstName, setFirstName] = useState<string | null>(null);
 
   useEffect(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -50,7 +51,9 @@ export default function HeaderAuth({
       fetch("/api/auth/me", { cache: "no-store" })
         .then((r) => (r.ok ? r.json() : null))
         .then((d) => {
-          if (!cancelled) setState(d?.authenticated ? "in" : "out");
+          if (cancelled) return;
+          setState(d?.authenticated ? "in" : "out");
+          setFirstName(d?.firstName ?? null);
         })
         .catch(() => {
           if (!cancelled) setState("out");
@@ -86,6 +89,13 @@ export default function HeaderAuth({
   if (state === "in") {
     return (
       <>
+        {firstName ? (
+          <Item>
+            <span className={loginClass} style={{ pointerEvents: "none", opacity: 0.85 }}>
+              שלום {firstName}
+            </span>
+          </Item>
+        ) : null}
         <Item>
           <button type="button" onClick={logout} className={loginClass}>
             התנתק

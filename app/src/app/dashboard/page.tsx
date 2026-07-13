@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import styles from "./dashboard.module.css";
 import { scoped } from "@/lib/cx";
@@ -191,8 +191,12 @@ type PageId =
 
 type EditorTab = "general" | "hours" | "services" | "faq" | "connect" | "knowledge" | "advanced";
 
-export default function DashboardPage() {
+const VALID_PAGES: PageId[] = ["overview", "bots", "inbox", "history", "analytics", "billing", "store", "account", "support"];
+const VALID_TABS: EditorTab[] = ["general", "hours", "services", "faq", "connect", "knowledge", "advanced"];
+
+function DashboardInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast, ToastHost } = useToast();
 
   const [page, setPage] = useState<PageId>("overview");
@@ -263,6 +267,7 @@ export default function DashboardPage() {
   const [storeTab, setStoreTab] = useState<"plans" | "packs">("plans");
   const [planAnnual, setPlanAnnual] = useState(false);
   const [activeConvId, setActiveConvId] = useState<string | null>(DEMO_MODE ? DEMO_CONVS[0].id : null);
+  const [convSearch, setConvSearch] = useState("");
   const [histFilter, setHistFilter] = useState("הכל");
 
   // Real per-conversation message thread (was a hardcoded mock — bug: demo
@@ -359,34 +364,66 @@ export default function DashboardPage() {
     loadData();
   }, [loadData]);
 
-  // #14 — when arriving from onboarding after creating a bot, open that bot's
-  // WhatsApp connect step automatically (the hand-off is set in sessionStorage).
+  // ── URL ⇄ view state ──────────────────────────────────────────────────
+  // The query string is the source of truth for which tab/editor is shown, so
+  // browser Back/Forward, refresh, and shared deep-links all work. This effect
+  // reconciles state to the URL (initial load, popstate, and the onboarding
+  // hand-off ?page=bots&bot=<id>&tab=connect). Field edits to editBot don't
+  // change the URL, so they never trigger or get reverted by this effect.
+  const buildUrl = useCallback((next: { page?: PageId; bot?: string | null; tab?: EditorTab }) => {
+    const sp = new URLSearchParams();
+    if (next.page && next.page !== "overview") sp.set("page", next.page);
+    if (next.bot) {
+      sp.set("bot", next.bot);
+      if (next.tab) sp.set("tab", next.tab);
+    }
+    const qs = sp.toString();
+    return qs ? `/dashboard?${qs}` : "/dashboard";
+  }, []);
+
   useEffect(() => {
-    if (!bots.length) return;
-    let intent: { id?: string; tab?: string } | null = null;
-    try {
-      const raw = sessionStorage.getItem("rb_open_bot");
-      if (raw) intent = JSON.parse(raw) as { id?: string; tab?: string };
-    } catch {
-      /* ignore */
+    const rawPage = searchParams.get("page");
+    const nextPage: PageId = (VALID_PAGES as string[]).includes(rawPage ?? "") ? (rawPage as PageId) : "overview";
+    setPage((p) => (p === nextPage ? p : nextPage));
+
+    const botId = searchParams.get("bot");
+    if (botId) {
+      const rawTab = searchParams.get("tab");
+      const nextTab: EditorTab = (VALID_TABS as string[]).includes(rawTab ?? "") ? (rawTab as EditorTab) : "general";
+      setEditBot((cur) => {
+        if (cur?.id === botId) return cur;                 // already open — keep the in-progress draft
+        const bot = bots.find((b) => b.id === botId);
+        return bot ? { ...bot } : cur;                     // open when found; ignore unknown id
+      });
+      setEditorTab(nextTab);
+    } else {
+      setEditBot((cur) => (cur ? null : cur));             // ?bot dropped → close the editor
     }
-    if (!intent?.id) return;
-    const bot = bots.find((b) => b.id === intent!.id);
-    if (!bot) return;
-    try {
-      sessionStorage.removeItem("rb_open_bot");
-    } catch {
-      /* ignore */
-    }
-    setPage("bots");
-    setEditBot({ ...bot });
-    setEditorTab(intent.tab === "connect" ? "connect" : "general");
-  }, [bots]);
+  }, [searchParams, bots]);
 
   function goPage(id: PageId) {
-    setPage(id);
     setSbOpen(false);
     setEditBot(null);
+    setPage(id);
+    router.push(buildUrl({ page: id }));
+  }
+
+  // Open the bot editor on a given tab (also used for the onboarding deep-link).
+  function openEditor(b: Partial<Bot>, tab: EditorTab) {
+    setPage("bots");
+    setEditBot({ ...b });
+    setEditorTab(tab);
+    if (b.id) router.push(buildUrl({ page: "bots", bot: b.id, tab }));
+  }
+
+  function closeEditor() {
+    setEditBot(null);
+    router.push(buildUrl({ page: "bots" }));
+  }
+
+  function changeEditorTab(tab: EditorTab) {
+    setEditorTab(tab);
+    if (editBot?.id) router.replace(buildUrl({ page: "bots", bot: editBot.id, tab }));
   }
 
   async function logout() {
@@ -440,7 +477,7 @@ export default function DashboardPage() {
     // Demo mode has no real backend — keep the optimistic success.
     if (DEMO_MODE) {
       toast(`הבוט "${editBot.name}" נשמר בהצלחה`);
-      setEditBot(null);
+      closeEditor();
       return;
     }
     const isNew = !editBot.id || String(editBot.id).startsWith("demo");
@@ -452,7 +489,7 @@ export default function DashboardPage() {
       });
       if (res.ok) {
         toast(`הבוט "${editBot.name}" נשמר בהצלחה`);
-        setEditBot(null);
+        closeEditor();
         loadData();
         return;
       }
@@ -471,14 +508,14 @@ export default function DashboardPage() {
     }
     if (DEMO_MODE || String(editBot.id).startsWith("demo")) {
       toast("הבוט נמחק");
-      setEditBot(null);
+      closeEditor();
       return;
     }
     try {
       const res = await fetch(`/api/bots/${editBot.id}`, { method: "DELETE" });
       if (res.ok) {
         toast("הבוט נמחק");
-        setEditBot(null);
+        closeEditor();
         loadData();
         return;
       }
@@ -764,9 +801,8 @@ export default function DashboardPage() {
           <div className={c("tb-right")}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <ThemeToggle />
-              <div className={c("tb-notif")} onClick={() => toast("אין התראות חדשות")}>
+              <div className={c("tb-notif")} onClick={() => toast("אין התראות חדשות")} title="התראות">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-                <div className={c("tb-notif-dot")}></div>
               </div>
               <button className={c("btn btn-sm")} onClick={() => goPage("store")} style={{ background: "linear-gradient(135deg,#1c1f2e,#2d3350)", color: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,.2)" }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15" /></svg>
@@ -781,6 +817,8 @@ export default function DashboardPage() {
         </div>
 
         <div className={c("content")}>
+          {/* Persistent across every dashboard view — trial countdown / locked-state nudge. */}
+          <TrialBanner sub={sub} onChoosePlan={() => goPage("store")} />
           {renderOverview()}
           {renderBots()}
           {renderInbox()}
@@ -805,7 +843,6 @@ export default function DashboardPage() {
     return (
       <div className={pageCls("overview")}>
         <div className={c("ph")}><div><div className={c("ph-title")}>{user.name ? `שלום, ${user.name}` : "שלום"}</div><div className={c("ph-sub")}>הנה מה שקורה אצלך היום</div></div></div>
-        <TrialBanner sub={sub} onChoosePlan={() => goPage("store")} />
         <div className={c("grid-4")} style={{ marginBottom: 16 }}>
           <div className={c("card sc")}>
             <div className={c("sc-label")}>הודעות היום</div>
@@ -882,7 +919,7 @@ export default function DashboardPage() {
             const category = b.business_subtype || b.business_type || null;
             const created = b.created_at ? new Date(b.created_at).toLocaleDateString("he-IL") : null;
             return (
-              <div key={b.id ?? i} className={c("bot-card") + (editBot?.id === b.id ? " " + styles.sel : "")} onClick={() => { setEditBot({ ...b }); setEditorTab("general"); }}>
+              <div key={b.id ?? i} className={c("bot-card") + (editBot?.id === b.id ? " " + styles.sel : "")} onClick={() => openEditor(b, "general")}>
                 <div className={c("bc-top")}>
                   <div className={c("bc-icon")} style={{ background: col.bg, color: col.color }}>{(b.name ?? "?").charAt(0)}</div>
                   <span className={c("badge") + " " + (b.active ? c("badge-green") : c("badge-gray"))}>
@@ -905,7 +942,7 @@ export default function DashboardPage() {
                   </div>
                 )}
                 {!b.whatsapp_number && (
-                  <button className={c("btn btn-outline btn-xs")} style={{ width: "100%", marginTop: 10 }} onClick={(e) => { e.stopPropagation(); setEditBot({ ...b }); setEditorTab("connect"); }}>
+                  <button className={c("btn btn-outline btn-xs")} style={{ width: "100%", marginTop: 10 }} onClick={(e) => { e.stopPropagation(); openEditor(b, "connect"); }}>
                     חבר וואטסאפ
                   </button>
                 )}
@@ -926,10 +963,10 @@ export default function DashboardPage() {
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div className={c("ed-tabs")} style={{ flexWrap: "wrap" }}>
                   {EDITOR_TABS.map((t) => (
-                    <button key={t.key} className={c("etab") + (editorTab === t.key ? " " + styles.act : "")} onClick={() => setEditorTab(t.key)}>{t.label}</button>
+                    <button key={t.key} className={c("etab") + (editorTab === t.key ? " " + styles.act : "")} onClick={() => changeEditorTab(t.key)}>{t.label}</button>
                   ))}
                 </div>
-                <button className={c("ed-close")} onClick={() => setEditBot(null)}>✕</button>
+                <button className={c("ed-close")} onClick={closeEditor}>✕</button>
               </div>
             </div>
             <div className={c("ed-body")}>
@@ -1111,7 +1148,7 @@ export default function DashboardPage() {
                 </div>
               )}
               <div className={c("ed-actions")}>
-                <button className={c("btn btn-outline btn-sm")} onClick={() => setEditBot(null)}>ביטול</button>
+                <button className={c("btn btn-outline btn-sm")} onClick={closeEditor}>ביטול</button>
                 <button className={c("btn btn-primary btn-sm")} onClick={saveBot}>שמור שינויים</button>
               </div>
             </div>
@@ -1127,10 +1164,19 @@ export default function DashboardPage() {
         <div className={c("ph")}><div><div className={c("ph-title")}>Inbox</div><div className={c("ph-sub")}>שיחות הממתינות למענה אנושי</div></div></div>
         <div className={c("inbox-wrap")}>
           <div className={c("inbox-list")}>
-            <div className={c("inbox-search")}><input placeholder="חיפוש שיחה..." /></div>
+            <div className={c("inbox-search")}><input placeholder="חיפוש שיחה..." value={convSearch} onChange={(e) => setConvSearch(e.target.value)} /></div>
             <div className={c("conv-list")}>
-              {convs.length === 0 && <div style={{ padding: 16, fontSize: 13, color: "var(--t4)" }}>אין שיחות ממתינות 🎉</div>}
-              {convs.map((cv, i) => {
+              {(() => {
+                const q = convSearch.trim().toLowerCase();
+                const shown = q
+                  ? convs.filter((cv) =>
+                      [cv.customer_name, cv.customer_phone, cv.preview]
+                        .some((f) => (f ?? "").toLowerCase().includes(q)),
+                    )
+                  : convs;
+                if (convs.length === 0) return <div style={{ padding: 16, fontSize: 13, color: "var(--t4)" }}>אין שיחות ממתינות 🎉</div>;
+                if (shown.length === 0) return <div style={{ padding: 16, fontSize: 13, color: "var(--t4)" }}>לא נמצאו שיחות התואמות לחיפוש</div>;
+                return shown.map((cv, i) => {
                 const col = BOT_COLORS[i % BOT_COLORS.length];
                 return (
                   <div key={cv.id} className={c("conv-item") + (activeConvId === cv.id ? " " + styles.act : "")} onClick={() => setActiveConvId(cv.id)}>
@@ -1145,7 +1191,8 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 );
-              })}
+                });
+              })()}
             </div>
           </div>
           <div className={c("chat-wrap")}>
@@ -1500,4 +1547,13 @@ export default function DashboardPage() {
       toast("שגיאת חיבור");
     }
   }
+}
+
+// useSearchParams() requires a Suspense boundary in the App Router.
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardInner />
+    </Suspense>
+  );
 }

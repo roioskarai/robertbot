@@ -11,7 +11,7 @@
 
 import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual, createHash } from "crypto";
-import { getSessionUser } from "./auth";
+import { getAdminSessionUser } from "./supabase/admin-session";
 import { requiredSecret } from "./env";
 import type { DBUser } from "./types";
 
@@ -65,7 +65,8 @@ export interface AdminSession {
 
 /** Session + admin role, WITHOUT the 2FA requirement (for enrollment/verify). */
 export async function requireAdminPreTotp(): Promise<AdminSession | null> {
-  const session = await getSessionUser();
+  // Reads the ISOLATED admin cookie (rb-admin-auth), never the customer session.
+  const session = await getAdminSessionUser();
   if (!session?.profile) return null;
   const isAdmin =
     session.profile.role === "admin" || (!!ADMIN_EMAIL && session.email === ADMIN_EMAIL);

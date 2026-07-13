@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useRef, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import styles from "./cancel.module.css";
 import { scoped } from "@/lib/cx";
 import { PRICING, PLAN_LIMITS } from "@/lib/plans";
 import type { SubscriptionState } from "@/lib/subscription";
+import { useToast } from "@/components/Toast";
 
 const c = scoped(styles);
 
@@ -28,7 +29,7 @@ const REASONS: { key: Reason; text: string }[] = [
 const OFFER_TITLES: Record<Reason, string> = {
   price: "רגע — חשבת כמה Robert חוסך לך?",
   use: "לא משתמש? עצור את החיוב",
-  hard: "קשה להגדיר? יש סרטון הסבר קצר",
+  hard: "קשה להגדיר? אנחנו נעזור לך",
   missing: "חסר פיצ'ר? ספר לנו",
   competitor: "עברת למתחרה?",
   other: "נצטער לשמוע",
@@ -36,7 +37,7 @@ const OFFER_TITLES: Record<Reason, string> = {
 const ACCEPTED_TITLES: Record<Reason, string> = {
   price: "עברת למסלול בסיסי!",
   use: "החיוב נעצר!",
-  hard: "תודה — צפה בסרטון וחזור אלינו!",
+  hard: "תודה — צוות התמיכה כאן בשבילך!",
   missing: "המשוב נשלח — תודה!",
   competitor: "עברת למסלול בסיסי",
   other: "המשוב נשלח — תודה!",
@@ -50,10 +51,35 @@ const ACCEPTED_SUBS: Record<Reason, string> = {
   other: "אנחנו תמיד שמחים לשמוע.",
 };
 
-export default function CancelPage() {
+function CancelInner() {
   const router = useRouter();
-  const [screen, setScreen] = useState<ScreenId>("s1");
+  const searchParams = useSearchParams();
+  const { toast, ToastHost } = useToast();
+  const [screen, setScreenState] = useState<ScreenId>("s1");
   const [reason, setReason] = useState<Reason | null>(null);
+  const [feedbackText, setFeedbackText] = useState("");
+
+  // Screens the user has legitimately reached — a deep-link / Back can only
+  // land on one of these, never skip ahead to a terminal "done" screen.
+  const reachedRef = useRef<Set<ScreenId>>(new Set<ScreenId>(["s1"]));
+
+  // Navigate a funnel screen AND reflect it in the URL (?s=N) so browser
+  // Back/Forward move between screens instead of leaving the page.
+  function setScreen(id: ScreenId) {
+    reachedRef.current.add(id);
+    setScreenState(id);
+    const sp = new URLSearchParams(searchParams.toString());
+    sp.set("s", id.replace("s", ""));
+    router.push(`/cancel?${sp.toString()}`);
+  }
+
+  // URL → screen (initial load, Back/Forward). Ignores screens not yet reached.
+  useEffect(() => {
+    const raw = searchParams.get("s");
+    const target = (raw ? `s${raw}` : "s1") as ScreenId;
+    const next = reachedRef.current.has(target) ? target : "s1";
+    setScreenState((s) => (s === next ? s : next));
+  }, [searchParams]);
   // Real subscription end date (from /api/analytics) — never a hardcoded date.
   const [endDate, setEndDate] = useState<string | null>(null);
   // Derived subscription state: a trial/cancelled user has nothing to cancel,
@@ -91,10 +117,22 @@ export default function CancelPage() {
 
   function next() {
     if (!reason) {
-      alert("בחר סיבה");
+      toast("בחר סיבה כדי להמשיך");
       return;
     }
     setScreen("s2");
+  }
+
+  // Fire-and-forget: record the free-text feedback without blocking the flow.
+  function submitFeedback() {
+    if (!reason) return;
+    const text = feedbackText.trim();
+    if (!text) return;
+    fetch("/api/billing/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason, text }),
+    }).catch(() => {});
   }
 
   // Single billing call with honest result handling: returns the server's ok
@@ -115,12 +153,15 @@ export default function CancelPage() {
 
   async function acceptOffer() {
     if (!reason || busy) return;
-    // Feedback-only reasons touch no billing — just record and thank.
+    // Feedback-only reasons touch no billing — record the text and thank.
     if (reason === "hard" || reason === "missing" || reason === "other") {
+      submitFeedback();
       setOutcome({ title: ACCEPTED_TITLES[reason], sub: ACCEPTED_SUBS[reason] });
       setScreen("s5");
       return;
     }
+    // competitor carries optional free-text too — capture it before the billing call.
+    if (reason === "competitor") submitFeedback();
     setBusy(true);
     const r = reason === "use"
       ? await callBilling("/api/billing/pause")
@@ -129,7 +170,7 @@ export default function CancelPage() {
     if (!r.ok) {
       // Do NOT advance to a success screen when the server failed — the customer
       // must not believe a change happened that didn't.
-      alert(r.error || "הפעולה נכשלה. נסה שוב או פנה לתמיכה.");
+      toast(r.error || "הפעולה נכשלה. נסה שוב או פנה לתמיכה.");
       return;
     }
     // Show the REAL server message (e.g. Grow cancels rather than pauses).
@@ -143,7 +184,7 @@ export default function CancelPage() {
     const r = await callBilling("/api/billing/cancel");
     setBusy(false);
     if (!r.ok) {
-      alert(r.error || "הביטול נכשל. נסה שוב או פנה לתמיכה.");
+      toast(r.error || "הביטול נכשל. נסה שוב או פנה לתמיכה.");
       return;
     }
     setOutcome({ title: "המנוי בוטל", sub: r.message || `המנוי בוטל. הבוט ימשיך לפעול עד ${untilText}.` });
@@ -179,6 +220,7 @@ export default function CancelPage() {
             <button className={c("btn btn-primary")} onClick={() => router.push("/dashboard")} style={{ marginTop: 8 }}>חזור ל-Dashboard</button>
           </div>
         </div>
+        <ToastHost />
       </div>
     );
   }
@@ -250,13 +292,19 @@ export default function CancelPage() {
           )}
           {reason === "hard" && (
             <div className={c("offer-card")}>
-              <div className={c("offer-badge")}>סרטון הדרכה — 5 דקות</div>
-              <div style={{ background: "#0f172a", borderRadius: 10, height: 120, display: "flex", alignItems: "center", justifyContent: "center", margin: "12px 0" }}>
-                <div style={{ width: 46, height: 46, background: "rgba(255,255,255,.12)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid rgba(255,255,255,.2)" }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+              <div className={c("offer-badge")}>עזרה בהגדרה</div>
+              <Link
+                href="/dashboard?page=support"
+                style={{ display: "block", background: "#0f172a", borderRadius: 10, height: 120, position: "relative", margin: "12px 0", textDecoration: "none" }}
+                aria-label="פתח עזרה והדרכה בהגדרת הבוט"
+              >
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ width: 46, height: 46, background: "rgba(255,255,255,.12)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid rgba(255,255,255,.2)" }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+                  </div>
                 </div>
-              </div>
-              <div className={c("offer-sub")}>הגדרה מלאה — שם עסק, שירותים, שאלות נפוצות וחיבור וואטסאפ.</div>
+              </Link>
+              <div className={c("offer-sub")}>צוות התמיכה יעזור לך להגדיר הכל — שם עסק, שירותים, שאלות נפוצות וחיבור וואטסאפ.</div>
             </div>
           )}
           {reason === "competitor" && (
@@ -266,11 +314,17 @@ export default function CancelPage() {
             </div>
           )}
           {(reason === "missing" || reason === "competitor" || reason === "other") && (
-            <textarea className={c("fta")} placeholder="ספר לנו עוד — נשתמש בזה כדי להשתפר" />
+            <textarea
+              className={c("fta")}
+              placeholder="ספר לנו עוד — נשתמש בזה כדי להשתפר"
+              value={feedbackText}
+              onChange={(e) => setFeedbackText(e.target.value)}
+              maxLength={2000}
+            />
           )}
 
           <button className={c("btn btn-primary")} onClick={acceptOffer} disabled={busy}>
-            {busy ? "רגע…" : reason === "use" ? "עצור את החיוב" : reason === "price" || reason === "competitor" ? "עבור למסלול בסיסי" : reason === "hard" ? "צפה בסרטון וחזור" : "שלח משוב"}
+            {busy ? "רגע…" : reason === "use" ? "עצור את החיוב" : reason === "price" || reason === "competitor" ? "עבור למסלול בסיסי" : reason === "hard" ? "קבל עזרה בהגדרה" : "שלח משוב"}
           </button>
           <button className={c("btn btn-ghost")} style={{ color: "var(--t4)", fontSize: 13, marginTop: 4 }} onClick={() => setScreen("s3")} disabled={busy}>בטל בכל זאת</button>
           <button className={c("btn btn-ghost")} onClick={() => router.push("/dashboard")}>חזור ל-Dashboard</button>
@@ -325,6 +379,16 @@ export default function CancelPage() {
           <button className={c("btn btn-primary")} onClick={() => router.push("/dashboard")} style={{ marginTop: 8 }}>חזור ל-Dashboard</button>
         </div>
       </div>
+      <ToastHost />
     </div>
+  );
+}
+
+// useSearchParams() requires a Suspense boundary in the App Router.
+export default function CancelPage() {
+  return (
+    <Suspense fallback={null}>
+      <CancelInner />
+    </Suspense>
   );
 }

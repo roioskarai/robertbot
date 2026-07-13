@@ -30,9 +30,11 @@ export default function TrialBanner({
   onChoosePlan: () => void;
 }) {
   if (sub.status === "trial") {
+    // Escalate to the red/warning variant in the last 3 days of the trial.
+    const urgent = (sub.trialDaysLeft ?? 99) <= 3;
     return (
-      <div className={c("tb-banner tb-banner-info")}>
-        <div className={c("tb-banner-ic")} style={{ background: "var(--blue)" }}>{ClockIcon}</div>
+      <div className={c(urgent ? "tb-banner tb-banner-warn" : "tb-banner tb-banner-info")}>
+        <div className={c("tb-banner-ic")} style={{ background: urgent ? "var(--red)" : "var(--blue)" }}>{ClockIcon}</div>
         <div className={c("tb-banner-body")}>
           <div className={c("tb-banner-title")}>{sub.headlineHe}</div>
           <div className={c("tb-banner-sub")}>{sub.sublineHe} · בחר מסלול כדי להמשיך ללא הפסקה בשירות בתום הניסיון.</div>

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminServerClient } from "@/lib/supabase/admin-session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { jsonError } from "@/lib/errors";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -16,8 +16,9 @@ export async function POST(req: Request) {
   if (!currentPassword || !newPassword) return jsonError("חסרים שדות");
   if (newPassword.length < 8) return jsonError("הסיסמה החדשה חייבת להכיל לפחות 8 תווים");
 
-  // Verify current password by re-signing in.
-  const supabase = await createClient();
+  // Verify current password by re-signing in — on the isolated admin context,
+  // so this never mints a customer session for the admin.
+  const supabase = await createAdminServerClient();
   const { error: signInErr } = await supabase.auth.signInWithPassword({
     email: session.email, password: currentPassword,
   });

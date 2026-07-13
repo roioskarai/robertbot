@@ -2,10 +2,27 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Search, RefreshCw, ShieldOff, ShieldCheck, Filter, Check } from "lucide-react";
+import { Search, RefreshCw, ShieldOff, ShieldCheck, Check, Download, ArrowUpDown } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
 import { PLAN_IDS, planLabelHe } from "@/lib/plans";
 import DataTable, { type Column } from "@/components/admin/DataTable";
+
+// Server-side category filters (mirror lib/admin-users-query UserFilterKey).
+const FILTERS: { key: string; label: string }[] = [
+  { key: "all", label: "הכל" },
+  { key: "trial", label: "בניסיון" },
+  { key: "trial_expired", label: "ניסיון הסתיים" },
+  { key: "active_paying", label: "משלם פעיל" },
+  { key: "comp", label: "מנוי חינמי" },
+  { key: "cancelled", label: "בוטל" },
+  { key: "paused", label: "מושהה" },
+  { key: "inactive", label: "לא פעיל 30 י׳" },
+];
+const SORTS: { key: string; label: string }[] = [
+  { key: "created_at", label: "תאריך הרשמה" },
+  { key: "last_login_at", label: "פעילות אחרונה" },
+  { key: "trial_ends_at", label: "סיום ניסיון" },
+];
 
 interface User {
   id: string; email: string; full_name: string | null;
@@ -31,9 +48,13 @@ const toDateInput = (iso: string | null | undefined) => (iso ? iso.slice(0, 10) 
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
+  const [counters, setCounters] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [plan, setPlan] = useState("");
+  const [sort, setSort] = useState("created_at");
+  const [dir, setDir] = useState<"asc" | "desc">("desc");
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string|null>(null);
@@ -45,20 +66,31 @@ export default function AdminUsers() {
     timer.current = setTimeout(() => setToast(null), 2500);
   };
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  // Build the shared query string used by BOTH the list fetch and the CSV export.
+  const buildParams = useCallback(() => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
-    // "comp" is a special filter (is_comp = true), not a subscription_status.
-    if (statusFilter === "comp") params.set("comp", "1");
-    else if (statusFilter) params.set("status", statusFilter);
-    const res = await fetch(`/api/admin/users?${params}`);
+    if (filter !== "all") params.set("filter", filter);
+    if (filter === "active_paying" && plan) params.set("plan", plan);
+    params.set("sort", sort);
+    params.set("dir", dir);
+    return params;
+  }, [q, filter, plan, sort, dir]);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const res = await fetch(`/api/admin/users?${buildParams()}`);
     const json = await res.json();
     setUsers(json.users ?? []);
+    setCounters(json.counters ?? {});
     setLoading(false);
-  }, [q, statusFilter]);
+  }, [buildParams]);
 
   useEffect(() => { load(); }, [load]);
+
+  function exportCsv() {
+    window.location.href = `/api/admin/users/export?${buildParams()}`;
+  }
 
   // ── draft helpers ──
   function draftVal<K extends keyof Draft>(u: User, k: K): Draft[K] {
@@ -240,27 +272,63 @@ export default function AdminUsers() {
           </p>
         </div>
         <div className={styles.pageActions}>
+          <button className={`${styles.btn} ${styles.btnGhost}`} onClick={exportCsv} title="ייצוא תוצאות הסינון ל-CSV">
+            <Download size={14} strokeWidth={2} /> ייצוא CSV
+          </button>
           <button className={`${styles.btn} ${styles.btnGhost}`} onClick={load}>
             <RefreshCw size={14} strokeWidth={2} /> רענן
           </button>
         </div>
       </div>
 
+      {/* Counter chips — click to filter */}
+      <div className={styles.row} style={{ gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+        {FILTERS.map((fl) => {
+          const active = filter === fl.key;
+          const count = counters[fl.key];
+          return (
+            <button
+              key={fl.key}
+              onClick={() => setFilter(fl.key)}
+              className={`${styles.badge} ${active ? styles.badgeAdmin : ""}`}
+              style={{
+                cursor: "pointer", border: "1px solid var(--border)",
+                background: active ? "var(--accent-soft)" : "transparent",
+                color: active ? "var(--accent)" : "var(--t3)",
+                padding: "5px 10px", fontWeight: active ? 700 : 500,
+              }}>
+              {fl.label}{typeof count === "number" ? ` · ${count}` : ""}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Toolbar */}
       <div className={styles.toolbar}>
         <div className={styles.searchWrap}>
           <span className={styles.searchIcon}><Search size={14} strokeWidth={2} /></span>
-          <input className={styles.searchInput} placeholder="חיפוש לפי אימייל…"
+          <input className={styles.searchInput} placeholder="חיפוש לפי אימייל או שם…"
             value={q} onChange={e=>setQ(e.target.value)} />
         </div>
-        <Filter size={14} strokeWidth={2} style={{ color: "var(--t4)", flexShrink: 0 }} />
+        {filter === "active_paying" && (
+          <select className={`${styles.input} ${styles.inputSm} ${styles.select}`}
+            style={{ width: "auto", minWidth: 120 }}
+            value={plan} onChange={e=>setPlan(e.target.value)} title="סנן לפי מסלול">
+            <option value="">כל המסלולים</option>
+            {PLAN_IDS.map(p => <option key={p} value={p}>{planLabelHe(p)}</option>)}
+          </select>
+        )}
+        <ArrowUpDown size={14} strokeWidth={2} style={{ color: "var(--t4)", flexShrink: 0 }} />
         <select className={`${styles.input} ${styles.inputSm} ${styles.select}`}
           style={{ width: "auto", minWidth: 130 }}
-          value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}>
-          <option value="">כל הסטטוסים</option>
-          {Object.entries(STATUS_HE).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
-          <option value="comp">מנוי חינמי</option>
+          value={sort} onChange={e=>setSort(e.target.value)} title="מיון">
+          {SORTS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
         </select>
+        <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`}
+          onClick={() => setDir(d => d === "desc" ? "asc" : "desc")}
+          title="הפוך סדר מיון">
+          {dir === "desc" ? "יורד ↓" : "עולה ↑"}
+        </button>
       </div>
 
       <DataTable<User>

@@ -35,6 +35,8 @@ export const AUDIT_ACTION_HE: Record<string, string> = {
   "agent.action_apply": "החלת הצעת סוכן",
   "agent.action_dismiss": "דחיית הצעת סוכן",
   "assistant.ask": "שאלה לעוזר AI",
+  "feedback.cancellation": "משוב ביטול מנוי",
+  "users.export": "ייצוא רשימת משתמשים",
   "security.webhook_signature_failed": "כשל חתימת Webhook",
   "system.maintenance_on": "הפעלת מצב תחזוקה",
   "system.maintenance_off": "כיבוי מצב תחזוקה",

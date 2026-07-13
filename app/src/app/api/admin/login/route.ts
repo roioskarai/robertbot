@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminServerClient } from "@/lib/supabase/admin-session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hebAuthError, jsonError } from "@/lib/errors";
 import { ADMIN_EMAIL } from "@/lib/admin-auth";
@@ -24,7 +24,8 @@ export async function POST(req: Request) {
   const { email, password } = body;
   if (!email || !password) return jsonError("חסר אימייל או סיסמה");
 
-  const supabase = await createClient();
+  // Isolated admin context: writes the rb-admin-auth cookie, never the customer session.
+  const supabase = await createAdminServerClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error || !data.user) {
     // Audit only when the target email belongs to an admin (attack signal,

@@ -7,8 +7,13 @@ import { getSessionUser } from "@/lib/auth";
 // logged-in users seeing "כניסה/הרשמה" instead of "האזור האישי".
 export async function GET() {
   const session = await getSessionUser().catch(() => null);
+  const firstName = session
+    ? (session.profile?.full_name?.trim().split(/\s+/)[0] ||
+       session.email.split("@")[0] ||
+       null)
+    : null;
   return NextResponse.json(
-    { authenticated: !!session },
+    { authenticated: !!session, firstName },
     { headers: { "Cache-Control": "no-store" } },
   );
 }

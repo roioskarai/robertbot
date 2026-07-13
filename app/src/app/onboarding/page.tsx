@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./onboarding.module.css";
@@ -119,6 +119,25 @@ function OnboardingInner() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [curStep, setCurStep] = useState(1);
+  // Highest wizard step the user has legitimately reached — the URL can send us
+  // back to any earlier step (browser Back) but can never skip validation ahead.
+  const maxStepRef = useRef(1);
+
+  // Reflect the wizard step in the URL (?step=N) so browser Back/Forward move
+  // between steps. Only active on the "ob" screen; the auth screens are untouched.
+  const stepUrl = (n: number) => {
+    const sp = new URLSearchParams(searchParams.toString());
+    sp.set("step", String(n));
+    return `/onboarding?${sp.toString()}`;
+  };
+  useEffect(() => {
+    if (screen !== "ob") return;
+    const raw = searchParams.get("step");
+    const n = raw ? parseInt(raw, 10) : 1;
+    if (!Number.isFinite(n)) return;
+    const clamped = Math.min(Math.max(1, n), Math.min(totalSteps, maxStepRef.current));
+    setCurStep((s) => (s === clamped ? s : clamped));
+  }, [searchParams, screen]);
 
   // A saved draft found on mount (offered via a restore banner). `presetCat`
   // wins over a draft — an explicit template choice should start fresh.
@@ -495,15 +514,22 @@ function OnboardingInner() {
       void finish();
       return;
     }
-    setCurStep((s) => Math.min(totalSteps, s + 1));
+    const next = Math.min(totalSteps, curStep + 1);
+    maxStepRef.current = Math.max(maxStepRef.current, next);
+    setCurStep(next);
+    router.push(stepUrl(next));
   }
   function prevStep() {
     setShowStepError(false);
-    setCurStep((s) => Math.max(1, s - 1));
+    const prev = Math.max(1, curStep - 1);
+    setCurStep(prev);
+    router.push(stepUrl(prev));
   }
   function jumpStep(n: number) {
+    if (n > curStep) return; // never skip ahead past validation
     setShowStepError(false);
-    setCurStep((s) => (n <= s ? n : s));
+    setCurStep(n);
+    router.push(stepUrl(n));
   }
 
   function buildWorkingHours(): WorkingHours {
@@ -1473,16 +1499,14 @@ function OnboardingInner() {
               <button
                 className={c("btn btn-primary")}
                 onClick={() => {
-                  // #14 — hand off the new bot so the Dashboard opens straight on
-                  // its WhatsApp connect step (verify + activate from there).
-                  if (newBotId) {
-                    try {
-                      sessionStorage.setItem("rb_open_bot", JSON.stringify({ id: newBotId, tab: "connect" }));
-                    } catch {
-                      /* ignore storage errors */
-                    }
-                  }
-                  router.push("/dashboard");
+                  // #14 — deep-link the Dashboard straight to the new bot's WhatsApp
+                  // connect step (shareable/refresh-safe; replaces the old
+                  // sessionStorage hand-off).
+                  router.push(
+                    newBotId
+                      ? `/dashboard?page=bots&bot=${encodeURIComponent(newBotId)}&tab=connect`
+                      : "/dashboard",
+                  );
                 }}
               >
                 חבר וואטסאפ ב-Dashboard

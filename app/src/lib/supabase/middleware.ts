@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { ADMIN_COOKIE_OPTIONS } from "./admin-cookie";
 
 /** Routes that require an authenticated session. */
 const PROTECTED_PREFIXES = ["/dashboard", "/preview"];
@@ -24,6 +25,18 @@ export async function updateSession(request: NextRequest) {
     return response;
   }
 
+  const path = request.nextUrl.pathname;
+
+  // ── Admin area — ISOLATED auth context ─────────────────────────────────
+  // Admin paths refresh ONLY the admin cookie (rb-admin-auth) and gate on the
+  // DB role server-side. The customer cookie is never read or written here, so
+  // a logged-in customer can never leak into the admin context, and a customer
+  // tab's token refresh can never clobber the admin session.
+  if (path.startsWith("/admin")) {
+    return await handleAdmin(request);
+  }
+
+  // ── Customer area ──────────────────────────────────────────────────────
   let res = response;
 
   const supabase = createServerClient(
@@ -56,17 +69,6 @@ export async function updateSession(request: NextRequest) {
     user = null;
   }
 
-  const path = request.nextUrl.pathname;
-
-  // Admin area — first line of defense (full role + 2FA gate is in the
-  // (panel) layout via requireAdmin). Allow the login page through.
-  const isAdminArea = path.startsWith("/admin") && !path.startsWith("/admin/login");
-  if (isAdminArea && !user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/admin/login";
-    return NextResponse.redirect(url);
-  }
-
   const isProtected = PROTECTED_PREFIXES.some((p) => path.startsWith(p));
   if (isProtected && !user) {
     const url = request.nextUrl.clone();
@@ -75,5 +77,73 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  return res;
+}
+
+/**
+ * Admin middleware branch. Refreshes the isolated admin session and enforces
+ * the admin role in the DB (server-side) as the first line of defense. The
+ * authoritative gate (role + 2FA) remains requireAdmin() in the (panel) layout.
+ */
+async function handleAdmin(request: NextRequest): Promise<NextResponse> {
+  let res = NextResponse.next({ request });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookieOptions: ADMIN_COOKIE_OPTIONS,
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value),
+          );
+          res = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            res.cookies.set(name, value, options),
+          );
+        },
+      },
+    },
+  );
+
+  let user = null;
+  try {
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+  } catch {
+    user = null;
+  }
+
+  const redirectToLogin = () => {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin/login";
+    return NextResponse.redirect(url);
+  };
+
+  // Let the login page render for everyone (including logged-in customers).
+  const needsGate = !request.nextUrl.pathname.startsWith("/admin/login");
+  if (needsGate) {
+    if (!user) return redirectToLogin();
+    // Server-side role check against the DB — never trust "who is logged in".
+    let role: string | null = null;
+    try {
+      const { data } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+      role = (data?.role as string) ?? null;
+    } catch {
+      role = null;
+    }
+    if (role !== "admin") return redirectToLogin();
+  }
+
+  // Never let a shared cache retain the Set-Cookie / admin responses.
+  res.headers.set("Cache-Control", "private, no-store");
   return res;
 }

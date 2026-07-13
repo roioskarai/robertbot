@@ -5,7 +5,6 @@ import { scoped } from "@/lib/cx";
 import type { SubscriptionState } from "@/lib/subscription";
 import type { BillingInfo } from "@/lib/payments/types";
 import SubscriptionTimeline from "./SubscriptionTimeline";
-import TrialBanner from "./TrialBanner";
 
 const c = scoped(styles);
 
@@ -45,8 +44,6 @@ export default function BillingTab({
           <div className={c("ph-sub")}>מצב המנוי, השימוש והתשלומים שלך</div>
         </div>
       </div>
-
-      <TrialBanner sub={sub} onChoosePlan={onUpgrade} />
 
       <div className={c("grid-2")}>
         <div>
