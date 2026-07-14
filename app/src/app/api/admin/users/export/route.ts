@@ -26,7 +26,10 @@ export async function GET(req: Request) {
   ] as const;
 
   const esc = (v: unknown): string => {
-    const s = v === null || v === undefined ? "" : String(v);
+    let s = v === null || v === undefined ? "" : String(v);
+    // Neutralize spreadsheet formula triggers (CSV/DDE injection, CWE-1236) —
+    // full_name is customer-controlled and lands here unmodified.
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
     return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
 
