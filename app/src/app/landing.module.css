@@ -28,6 +28,9 @@
 
 .logo {
   font-size:20px; font-weight:900; letter-spacing:-.5px; color:var(--t1);
+  /* pull the wordmark out of the flex flow and pin it to the nav's centre */
+  position:absolute; left:50%; transform:translateX(-50%);
+  display:inline-flex; align-items:center;
 }
 .logo em { font-style:normal; color:var(--green); }
 
@@ -577,6 +580,9 @@
 @media(max-width:860px){
   .nav { padding:0 18px; height:52px; }
   .nav-links { display:none; }
+  /* no room to centre the logo next to the auth buttons on phones —
+     drop it back into the flow so it sits on its own flank, no overlap */
+  .logo { position:static; transform:none; }
   /* auth buttons stay visible — compact them for narrow screens */
   .nav-right { gap:8px; }
   .nav-auth { gap:6px; }
@@ -644,6 +650,11 @@
 /* nav + cta band */
 :global(html[data-theme="dark"]) .landing .nav { background:rgba(11,16,14,.85); }
 :global(html[data-theme="dark"]) .landing .cta-band { background:#05080f; }
+
+/* logo: swap light/dark wordmark with the nav background above */
+.logo-dark { display:none; }
+:global(html[data-theme="dark"]) .landing .logo-light { display:none; }
+:global(html[data-theme="dark"]) .landing .logo-dark { display:inline-flex; }
 
 /* chat window in dark */
 :global(html[data-theme="dark"]) .landing .cw { background:#161918; border-color:#263029; }

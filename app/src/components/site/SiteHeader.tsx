@@ -3,6 +3,7 @@ import styles from "@/app/landing.module.css";
 import { scoped } from "@/lib/cx";
 import ThemeToggle from "@/components/ThemeToggle";
 import HeaderAuth from "@/components/site/HeaderAuth";
+import Logo from "@/components/logo";
 import type { HeaderConfig } from "@/lib/site/types";
 import { SmartLink } from "@/components/sections/shared";
 
@@ -18,19 +19,21 @@ export default function SiteHeader({ header }: { header: HeaderConfig }) {
           <img src={header.logoImage} alt={header.logoText ?? "logo"} style={{ height: 28 }} />
         ) : (
           <>
-            {header.logoText ?? "Robert"}
-            <em>.</em>
+            <Logo variant="wordmark" theme="light" className={c("logo-light")} style={{ height: 42, width: "auto" }} />
+            <Logo variant="wordmark" theme="dark" className={c("logo-dark")} style={{ height: 42, width: "auto" }} />
           </>
         )}
       </Link>
+      {/* menu links sit on one flank; the centred logo floats between the two
+          flanks (it is position:absolute, so it never pushes either side) */}
+      <ul className={c("nav-links")}>
+        {(header.navItems ?? []).map((item, i) => (
+          <li key={i}>
+            <SmartLink href={item.href}>{item.label}</SmartLink>
+          </li>
+        ))}
+      </ul>
       <div className={c("nav-right")}>
-        <ul className={c("nav-links")}>
-          {(header.navItems ?? []).map((item, i) => (
-            <li key={i}>
-              <SmartLink href={item.href}>{item.label}</SmartLink>
-            </li>
-          ))}
-        </ul>
         {/* auth buttons live OUTSIDE .nav-links so the mobile media query
             (which hides the links) never hides them — always visible,
             auth-aware, on every viewport (owner item #10) */}
