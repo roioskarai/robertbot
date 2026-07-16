@@ -18,9 +18,15 @@ function selectedId(): WhatsAppProviderId {
   return id === "meta" ? "meta" : "twilio";
 }
 
-/** The active WhatsApp provider for this deployment. */
-export function getWhatsAppProvider(): WhatsAppProvider {
-  return PROVIDERS[selectedId()];
+/**
+ * The WhatsApp provider to use. Pass a bot's own `wa_provider` so a
+ * Meta-connected tenant is never routed through the (possibly different)
+ * global default — falls back to the env default when omitted/unset.
+ */
+export function getWhatsAppProvider(botProvider?: string | null): WhatsAppProvider {
+  const id: WhatsAppProviderId =
+    botProvider === "meta" ? "meta" : botProvider === "twilio" ? "twilio" : selectedId();
+  return PROVIDERS[id];
 }
 
 /** True when the active provider has its keys configured (else demo mode). */

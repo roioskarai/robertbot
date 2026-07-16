@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowRight, RefreshCw, Pencil, KeyRound, Trash2, ShieldCheck, ShieldOff,
-  UserRound, CreditCard, Gauge, Clock, Bot as BotIcon, Copy,
+  UserRound, CreditCard, Gauge, Clock, Bot as BotIcon, Copy, Unplug, Send,
 } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
 import DataTable, { type Column } from "@/components/admin/DataTable";
@@ -24,9 +24,16 @@ interface DetailUser {
   last_login_at: string | null; created_at: string;
 }
 
+type WaConnStatus = "disconnected" | "pending_verification" | "connected" | "error";
+
 interface DetailBot {
   id: string; name: string; bot_name: string | null; active: boolean;
   whatsapp_number: string | null; wa_provider: string | null; created_at: string;
+  wa_connection_status?: WaConnStatus; wa_last_error?: string | null;
+}
+
+function waConnStatus(b: DetailBot): WaConnStatus {
+  return b.wa_connection_status ?? (b.whatsapp_number ? "connected" : "disconnected");
 }
 
 const KIND_ICON: Record<TimelineKind, typeof Clock> = {
@@ -79,6 +86,17 @@ export default function AdminUserDetail() {
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteErr, setDeleteErr] = useState<string | null>(null);
+
+  // Reset WhatsApp (per-bot, remote)
+  const [waResetTarget, setWaResetTarget] = useState<DetailBot | null>(null);
+  const [waResetBusy, setWaResetBusy] = useState(false);
+
+  // Message composer
+  const [msgSubject, setMsgSubject] = useState("");
+  const [msgBody, setMsgBody] = useState("");
+  const [msgConfirmOpen, setMsgConfirmOpen] = useState(false);
+  const [msgBusy, setMsgBusy] = useState(false);
+  const [msgErr, setMsgErr] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -168,6 +186,32 @@ export default function AdminUserDetail() {
       return;
     }
     router.push("/admin/users");
+  }
+
+  async function doResetWhatsapp() {
+    if (!waResetTarget) return;
+    setWaResetBusy(true);
+    const res = await fetch(`/api/admin/bots/${waResetTarget.id}/reset-whatsapp`, { method: "POST" });
+    const d = await res.json().catch(() => ({}));
+    setWaResetBusy(false);
+    setWaResetTarget(null);
+    if (!res.ok) { showToast(d.error || "האיפוס נכשל"); return; }
+    await load();
+    showToast("חיבור הוואטסאפ אופס — הלקוח מנותק כעת");
+  }
+
+  async function sendMessage() {
+    setMsgBusy(true); setMsgErr(null);
+    const res = await fetch(`/api/admin/users/${id}/message`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subject: msgSubject.trim(), body: msgBody.trim() }),
+    });
+    const d = await res.json().catch(() => ({}));
+    setMsgBusy(false);
+    if (!res.ok) { setMsgErr(d.error || "השליחה נכשלה"); return; }
+    setMsgConfirmOpen(false);
+    setMsgSubject(""); setMsgBody("");
+    showToast("ההודעה נשלחה למשתמש");
   }
 
   if (notFound) {
@@ -273,7 +317,7 @@ export default function AdminUserDetail() {
                   {planLabelHe(sub.plan)}
                 </span>
                 {sub.priceIls !== null && <span className={styles.muted} style={{ fontSize: 12.5 }}>₪{sub.priceIls}/חודש</span>}
-                {sub.isComp && <span className={`${styles.badge} ${styles.badgeGreen}`}>הענקה</span>}
+                {sub.isComp && <span className={`${styles.badge} ${styles.badgeGreen}`}>הטבה פעילה</span>}
               </div>
             </div>
           )}
@@ -356,13 +400,38 @@ export default function AdminUserDetail() {
             },
             {
               key: "whatsapp_number", label: "וואטסאפ", hideBelow: "md",
-              render: (b) => b.whatsapp_number
-                ? <span style={{ direction: "ltr", fontSize: 12.5 }}>{b.whatsapp_number}</span>
-                : <span className={styles.muted}>לא מחובר</span>,
+              render: (b) => {
+                const st = waConnStatus(b);
+                if (st === "disconnected") return <span className={styles.muted} style={{ fontSize: 12.5 }}>🔴 לא מחובר</span>;
+                if (st === "pending_verification") return <span className={`${styles.badge} ${styles.badgeTrial}`}>🟡 מתחבר</span>;
+                if (st === "error") return (
+                  <span className={`${styles.badge} ${styles.badgeCancelled}`} title={b.wa_last_error || undefined}>
+                    ⚠️ שגיאת חיבור
+                  </span>
+                );
+                return (
+                  <span className={`${styles.badge} ${styles.badgeActive}`} style={{ direction: "ltr" }}>
+                    🟢 {b.whatsapp_number}
+                  </span>
+                );
+              },
             },
             {
               key: "created_at", label: "נוצר", sortable: true, hideBelow: "md",
               render: (b) => <span className={styles.muted} style={{ fontSize: 12 }}>{new Date(b.created_at).toLocaleDateString("he-IL")}</span>,
+            },
+            {
+              key: "actions", label: "פעולות", align: "center",
+              render: (b) => (
+                <button
+                  className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`}
+                  onClick={() => setWaResetTarget(b)}
+                  disabled={waConnStatus(b) === "disconnected"}
+                  title="ניתוק חיבור הוואטסאפ מרחוק"
+                >
+                  <Unplug size={12} strokeWidth={2} /> אפס חיבור
+                </button>
+              ),
             },
           ] as Column<DetailBot>[])}
         />
@@ -398,6 +467,37 @@ export default function AdminUserDetail() {
             })}
           </div>
         )}
+      </div>
+
+      {/* ── Message composer ── */}
+      <div className={styles.card} style={{ marginBottom: 18 }}>
+        <div className={styles.cardTitle}><Send size={14} strokeWidth={2} /> שליחת הודעה למשתמש</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <input
+            className={styles.input}
+            value={msgSubject}
+            maxLength={200}
+            onChange={(e) => setMsgSubject(e.target.value)}
+            placeholder="כותרת ההודעה"
+          />
+          <textarea
+            className={styles.input}
+            rows={4}
+            value={msgBody}
+            maxLength={5000}
+            onChange={(e) => setMsgBody(e.target.value)}
+            placeholder="תוכן ההודעה שתישלח במייל למשתמש…"
+          />
+          <div className={styles.row} style={{ justifyContent: "flex-end" }}>
+            <button
+              className={`${styles.btn} ${styles.btnPrimary}`}
+              disabled={!msgSubject.trim() || !msgBody.trim() || !user}
+              onClick={() => { setMsgErr(null); setMsgConfirmOpen(true); }}
+            >
+              <Send size={13} strokeWidth={2} /> שלח הודעה
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ── Danger zone ── */}
@@ -506,6 +606,47 @@ export default function AdminUserDetail() {
                 disabled={deleteBusy || deleteConfirm.trim().toLowerCase() !== user.email.toLowerCase()}
               >
                 {deleteBusy ? "מוחק…" : "מחק לצמיתות"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Reset-WhatsApp confirm modal ── */}
+      {waResetTarget && (
+        <div style={modalBackdrop} onClick={() => !waResetBusy && setWaResetTarget(null)}>
+          <div style={modalBox} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="איפוס חיבור וואטסאפ">
+            <div className={styles.strong} style={{ fontSize: 15, marginBottom: 10 }}>
+              איפוס חיבור וואטסאפ — {waResetTarget.name}
+            </div>
+            <p className={styles.muted} style={{ fontSize: 12.5, lineHeight: 1.7, marginBottom: 12 }}>
+              הבוט ינותק מיידית מהמספר <strong style={{ direction: "ltr", display: "inline-block" }}>{waResetTarget.whatsapp_number || "—"}</strong> ויכבה.
+              הלקוח יצטרך לחבר מחדש מהדשבורד שלו.
+            </p>
+            <div className={styles.row} style={{ justifyContent: "flex-end", gap: 8 }}>
+              <button className={`${styles.btn} ${styles.btnGhost}`} onClick={() => setWaResetTarget(null)} disabled={waResetBusy}>ביטול</button>
+              <button className={`${styles.btn} ${styles.btnDanger}`} onClick={doResetWhatsapp} disabled={waResetBusy}>
+                {waResetBusy ? "מאפס…" : "אפס חיבור"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Send-message confirm modal ── */}
+      {msgConfirmOpen && user && (
+        <div style={modalBackdrop} onClick={() => !msgBusy && setMsgConfirmOpen(false)}>
+          <div style={modalBox} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="שליחת הודעה">
+            <div className={styles.strong} style={{ fontSize: 15, marginBottom: 10 }}>שליחת הודעה — {user.email}</div>
+            <p className={styles.muted} style={{ fontSize: 12.5, lineHeight: 1.6, marginBottom: 4 }}>כותרת:</p>
+            <p className={styles.strong} style={{ fontSize: 13, marginBottom: 10 }}>{msgSubject}</p>
+            <p className={styles.muted} style={{ fontSize: 12.5, lineHeight: 1.6, marginBottom: 4 }}>תוכן:</p>
+            <p style={{ fontSize: 12.5, lineHeight: 1.6, marginBottom: 14, whiteSpace: "pre-wrap" }}>{msgBody}</p>
+            {msgErr && <div style={{ color: "var(--danger)", fontSize: 12.5, marginBottom: 10 }} role="alert">{msgErr}</div>}
+            <div className={styles.row} style={{ justifyContent: "flex-end", gap: 8 }}>
+              <button className={`${styles.btn} ${styles.btnGhost}`} onClick={() => setMsgConfirmOpen(false)} disabled={msgBusy}>ביטול</button>
+              <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={sendMessage} disabled={msgBusy}>
+                {msgBusy ? "שולח…" : "שלח"}
               </button>
             </div>
           </div>

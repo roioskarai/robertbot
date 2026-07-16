@@ -161,6 +161,17 @@ export function passwordResetEmail(opts: { name: string; link: string }): {
   return { subject: "איפוס סיסמה ל-Robert", html: shell("איפוס סיסמה", body) };
 }
 
+export function adminMessageEmail(opts: { name: string; subject: string; body: string }): {
+  subject: string;
+  html: string;
+} {
+  const body =
+    hi(`היי ${opts.name}`) +
+    text(opts.body.replace(/\n/g, "<br>")) +
+    `<div style="font-size:12.5px;color:#94a3b8;margin-top:8px;">הודעה זו נשלחה אליך על ידי צוות Robert.</div>`;
+  return { subject: opts.subject, html: shell("הודעה מהצוות", body) };
+}
+
 // Hebrew labels for the agent registry names.
 const AGENT_HE: Record<string, string> = {
   "conversation-analyst": "מנתח שיחות",

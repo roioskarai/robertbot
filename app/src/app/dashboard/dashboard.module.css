@@ -295,6 +295,8 @@
 .conn-ic { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .conn-ic-on { background:var(--green-pale); }
 .conn-ic-off { background:var(--bdr); }
+.conn-ic-pending { background:var(--amber-pale); }
+.conn-ic-error { background:var(--red-pale); }
 .conn-ic svg { width:18px; height:18px; }
 
 /* manual WhatsApp connect wizard (#12) — step badges + inline errors + success screen */

@@ -87,6 +87,11 @@ export interface Bot {
   meta_waba_id: string | null;
   meta_phone_number_id: string | null;
   wa_access_token: string | null;
+  // Connection status surfaced to the UI (migration 0014) — optional so rows
+  // read before the migration runs still type-check.
+  wa_connection_status?: "disconnected" | "pending_verification" | "connected" | "error";
+  wa_last_error?: string | null;
+  wa_connected_at?: string | null;
   active: boolean;
   system_prompt: string | null;
   message_templates: Record<string, unknown> | null;

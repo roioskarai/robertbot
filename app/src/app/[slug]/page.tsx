@@ -14,6 +14,7 @@ import SitePopups from "@/components/site/SitePopups";
 import WhatsAppWidget from "@/components/site/WhatsAppWidget";
 import CustomCode from "@/components/site/CustomCode";
 import Tracker from "@/components/site/Tracker";
+import { guardPublicMaintenance } from "@/lib/system-settings";
 
 // Reserved top-level segments are real routes; this dynamic route only catches
 // builder-created pages/posts. (Next prioritizes static segments over [slug].)
@@ -32,6 +33,7 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
 }
 
 export default async function DynamicPage(props: { params: Promise<{ slug: string }> }) {
+  await guardPublicMaintenance();
   const params = await props.params;
   const { isEnabled } = await draftMode();
   const [{ theme, settings }, page, banners] = await Promise.all([

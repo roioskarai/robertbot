@@ -29,6 +29,21 @@ const DEMO_MODE =
   !process.env.NEXT_PUBLIC_SUPABASE_URL ||
   process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder");
 
+type WaConnStatus = "disconnected" | "pending_verification" | "connected" | "error";
+
+// Honest 4-state connection status. Falls back to deriving from
+// whatsapp_number for bot rows read before migration 0014 adds the column.
+function waConnStatus(bot: { whatsapp_number?: string | null; wa_connection_status?: WaConnStatus }): WaConnStatus {
+  return bot.wa_connection_status ?? (bot.whatsapp_number ? "connected" : "disconnected");
+}
+
+const WA_STATUS_META: Record<WaConnStatus, { icon: string; cls: string; title: string }> = {
+  connected: { icon: "🟢", cls: "conn-ic-on", title: "מחובר" },
+  pending_verification: { icon: "🟡", cls: "conn-ic-pending", title: "מתחבר" },
+  disconnected: { icon: "🔴", cls: "conn-ic-off", title: "לא מחובר" },
+  error: { icon: "⚠️", cls: "conn-ic-error", title: "שגיאת חיבור" },
+};
+
 // ── demo fallback data (used when not signed in / no Supabase) ──
 const DEMO_BOTS: Partial<Bot>[] = [
   {
@@ -545,6 +560,7 @@ function DashboardInner() {
       if (!res.ok) { setManualError(d.error || "שליחת הקוד נכשלה — נסה שוב"); setManualConfigIssue(!!d.configIssue); return; }
       setManualStep("sent");
       setManualCode("");
+      setEditBot((eb) => (eb ? { ...eb, wa_connection_status: "pending_verification" } : eb));
       toast(d.demo ? "מצב הדגמה — הזן קוד כלשהו" : "קוד אימות נשלח לוואטסאפ של המספר");
     } catch {
       setManualError("אין חיבור לשרת — נסה שוב");
@@ -572,7 +588,7 @@ function DashboardInner() {
     setManualError(null);
     if (manualCode.trim().length < 4) { setManualError("הזן את הקוד שקיבלת"); return; }
     if (DEMO_MODE) {
-      setEditBot((eb) => (eb ? { ...eb, whatsapp_number: manualPhone.trim(), active: true } : eb));
+      setEditBot((eb) => (eb ? { ...eb, whatsapp_number: manualPhone.trim(), active: true, wa_connection_status: "connected" } : eb));
       setManualStep("success");
       setManualCode("");
       return;
@@ -587,7 +603,7 @@ function DashboardInner() {
       const d = await res.json().catch(() => ({}));
       if (!res.ok) { setManualError(d.error || "אימות הקוד נכשל — בדוק את הקוד ונסה שוב"); setManualConfigIssue(!!d.configIssue); return; }
       setManualPhone(d.bot?.whatsapp_number ?? manualPhone.trim());
-      setEditBot((eb) => (eb ? { ...eb, whatsapp_number: d.bot?.whatsapp_number ?? manualPhone.trim(), active: true } : eb));
+      setEditBot((eb) => (eb ? { ...eb, whatsapp_number: d.bot?.whatsapp_number ?? manualPhone.trim(), active: true, wa_connection_status: "connected" } : eb));
       setManualStep("success");
       setManualCode("");
       loadData();
@@ -625,7 +641,7 @@ function DashboardInner() {
     if (!editBot) return;
     // Bot not persisted yet → just clear local state.
     if (!editBot.id || DEMO_MODE || String(editBot.id).startsWith("demo")) {
-      setEditBot((eb) => (eb ? { ...eb, whatsapp_number: null, active: false } : eb));
+      setEditBot((eb) => (eb ? { ...eb, whatsapp_number: null, active: false, wa_connection_status: "disconnected" } : eb));
       toast(DEMO_MODE ? "המספר נותק (הדגמה)" : "המספר נותק");
       return;
     }
@@ -635,7 +651,7 @@ function DashboardInner() {
       const res = await fetch(`/api/bots/${editBot.id}/disconnect`, { method: "POST" });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) { toast(d.error || "הניתוק נכשל"); return; }
-      setEditBot((eb) => (eb ? { ...eb, whatsapp_number: null, active: false } : eb));
+      setEditBot((eb) => (eb ? { ...eb, whatsapp_number: null, active: false, wa_connection_status: "disconnected" } : eb));
       toast("המספר נותק");
       loadData();
     } catch {
@@ -930,9 +946,18 @@ function DashboardInner() {
                 {category && <div style={{ fontSize: 11.5, color: "var(--t4)", fontWeight: 600, marginTop: -2, marginBottom: 4 }}>{category}</div>}
                 <div className={c("bc-desc")}>{b.description || "—"}</div>
                 <div style={{ display: "flex", gap: 6, alignItems: "center", margin: "8px 0", flexWrap: "wrap" }}>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11.5, fontWeight: 600, padding: "3px 9px", borderRadius: 100, background: b.whatsapp_number ? "var(--green-pale)" : "var(--bg)", color: b.whatsapp_number ? "var(--green-text)" : "var(--t4)" }}>
-                    {b.whatsapp_number ? `וואטסאפ ${b.whatsapp_number}` : "וואטסאפ לא מחובר"}
-                  </span>
+                  {(() => {
+                    const status = waConnStatus(b);
+                    const meta = WA_STATUS_META[status];
+                    const pillBg = status === "connected" ? "var(--green-pale)" : status === "pending_verification" ? "var(--amber-pale)" : status === "error" ? "var(--red-pale)" : "var(--bg)";
+                    const pillColor = status === "connected" ? "var(--green-text)" : status === "pending_verification" ? "var(--amber)" : status === "error" ? "var(--red)" : "var(--t4)";
+                    const label = status === "connected" ? `וואטסאפ ${b.whatsapp_number}` : `וואטסאפ · ${meta.title}`;
+                    return (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11.5, fontWeight: 600, padding: "3px 9px", borderRadius: 100, background: pillBg, color: pillColor }}>
+                        {meta.icon} {label}
+                      </span>
+                    );
+                  })()}
                 </div>
                 {(stats || created) && (
                   <div style={{ display: "flex", gap: 14, borderTop: "1px solid var(--bdr)", paddingTop: 10, marginTop: 2 }}>
@@ -1051,23 +1076,33 @@ function DashboardInner() {
               )}
               {editorTab === "connect" && (
                 <div className={c("etab-pane") + " " + styles.act}>
-                  {manualStep !== "success" && (
-                    <div className={c("conn-box")}>
-                      <div className={c("conn-row")}>
-                        <div className={c("conn-ic") + " " + (editBot.whatsapp_number ? c("conn-ic-on") : c("conn-ic-off"))}>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={editBot.whatsapp_number ? "var(--green-d)" : "var(--t4)"} strokeWidth="2"><polyline points="20 6 9 17 4 12" /></svg>
+                  {manualStep !== "success" && (() => {
+                    const status = waConnStatus(editBot);
+                    const meta = WA_STATUS_META[status];
+                    const subText =
+                      status === "connected" ? "הבוט פעיל ועונה על הודעות"
+                      : status === "pending_verification" ? "ממתין לאימות קוד ה-OTP"
+                      : status === "error" ? (editBot.wa_last_error || "שליחת הודעות נכשלה — נסה לנתק ולחבר מחדש")
+                      : "חבר מספר כדי להפעיל";
+                    const titleText = status === "connected" && editBot.whatsapp_number ? `מחובר — ${editBot.whatsapp_number}` : meta.title;
+                    return (
+                      <div className={c("conn-box")}>
+                        <div className={c("conn-row")}>
+                          <div className={c("conn-ic") + " " + c(meta.cls)} style={{ fontSize: 16 }}>
+                            {meta.icon}
+                          </div>
+                          <div style={{ flex: "1 1 auto", minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 700 }}>{titleText}</div><div style={{ fontSize: 12, color: "var(--t3)", marginTop: 2 }}>{subText}</div></div>
                         </div>
-                        <div style={{ flex: "1 1 auto", minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 700 }}>{editBot.whatsapp_number ? `מחובר — ${editBot.whatsapp_number}` : "לא מחובר"}</div><div style={{ fontSize: 12, color: "var(--t3)", marginTop: 2 }}>{editBot.whatsapp_number ? "הבוט פעיל ועונה על הודעות" : "חבר מספר כדי להפעיל"}</div></div>
+                        {editBot.whatsapp_number && <button className={c("btn btn-outline btn-sm")} onClick={disconnectNumber} disabled={manualBusy}>נתק מספר</button>}
                       </div>
-                      {editBot.whatsapp_number && <button className={c("btn btn-outline btn-sm")} onClick={disconnectNumber} disabled={manualBusy}>נתק מספר</button>}
-                    </div>
-                  )}
+                    );
+                  })()}
                   {!editBot.whatsapp_number && editBot.id && (
                     <div style={{ marginTop: 16 }}>
                       <p style={{ fontSize: 13, fontWeight: 600, color: "var(--t2)", marginBottom: 10 }}>חיבור אוטומטי (מומלץ)</p>
                       <ConnectWhatsApp
                         botId={editBot.id}
-                        onConnected={(b) => setEditBot({ ...editBot, whatsapp_number: b.whatsapp_number ?? null, active: true })}
+                        onConnected={(b) => setEditBot({ ...editBot, whatsapp_number: b.whatsapp_number ?? null, active: true, wa_connection_status: "connected" })}
                       />
                     </div>
                   )}

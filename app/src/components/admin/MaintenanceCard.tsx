@@ -46,8 +46,12 @@ export default function MaintenanceCard() {
         setMsg({ text: json.error || "השמירה נכשלה", ok: false });
         return;
       }
-      setEnabled(nextEnabled);
-      setMsg({ text: nextEnabled ? "✓ מצב תחזוקה הופעל" : "✓ מצב תחזוקה כובה", ok: true });
+      // Reflect the server's response, not the optimistic request — keeps the
+      // UI honest about what's actually persisted in the DB.
+      setEnabled(Boolean(json.enabled));
+      setMessage(json.message ?? "");
+      setEtaText(json.etaText ?? "");
+      setMsg({ text: json.enabled ? "✓ מצב תחזוקה הופעל" : "✓ מצב תחזוקה כובה", ok: true });
     } catch {
       setMsg({ text: "השמירה נכשלה", ok: false });
     } finally {

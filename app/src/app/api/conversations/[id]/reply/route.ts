@@ -72,9 +72,21 @@ export async function POST(req: Request, props: Ctx) {
       .maybeSingle();
     if (bot) {
       try {
-        await getWhatsAppProvider().sendMessage(bot as Bot, conv.customer_phone, text);
-      } catch {
-        /* delivery failure shouldn't drop the saved message */
+        await getWhatsAppProvider((bot as Bot).wa_provider).sendMessage(bot as Bot, conv.customer_phone, text);
+      } catch (e) {
+        // Delivery failure shouldn't drop the saved message, but it should
+        // stop the UI from lying about connection health — same decoupled,
+        // best-effort status write used by the inbound pipeline.
+        const errMsg = e instanceof Error ? e.message : String(e);
+        console.error(`[reply] send failed for bot ${(bot as Bot).id}:`, errMsg);
+        try {
+          await supabase
+            .from("bots")
+            .update({ wa_connection_status: "error", wa_last_error: errMsg.slice(0, 500) })
+            .eq("id", (bot as Bot).id);
+        } catch {
+          /* status tracking only */
+        }
       }
     }
   }

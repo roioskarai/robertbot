@@ -121,6 +121,17 @@ export async function POST(req: Request, props: Ctx) {
       return jsonError(error.message, 500);
     }
 
+    // Best-effort status update, decoupled from the critical write above.
+    try {
+      await supabase
+        .from("bots")
+        .update({ wa_connection_status: "connected", wa_connected_at: new Date().toISOString(), wa_last_error: null })
+        .eq("id", params.id)
+        .eq("user_id", session.authId);
+    } catch {
+      /* status tracking only */
+    }
+
     return NextResponse.json({ ok: true, bot: data });
   } catch (e) {
     return jsonError(e instanceof Error ? e.message : "חיבור הוואטסאפ נכשל", 502);

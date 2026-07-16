@@ -69,7 +69,8 @@ describe("deriveSubscriptionState — the critical trial-vs-paid fix", () => {
     expect(s.isComp).toBe(true);
     expect(s.isPaying).toBe(false);
     expect(s.priceIls).toBeNull();
-    expect(s.headlineHe).toContain("הענקה");
+    expect(s.headlineHe).not.toContain("הענקה");
+    expect(s.headlineHe).toContain("מסלול");
   });
 
   it("paused and cancelled never show a price", () => {

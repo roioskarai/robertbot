@@ -45,5 +45,8 @@ export async function POST(req: Request) {
     },
   });
 
-  return NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json(
+    { ok: true, enabled: parsed.data.enabled, message: parsed.data.message ?? "", etaText: parsed.data.etaText ?? "" },
+    { headers: { "Cache-Control": "no-store" } },
+  );
 }

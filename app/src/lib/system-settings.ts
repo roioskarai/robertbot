@@ -15,6 +15,7 @@ import { isDemoMode } from "@/lib/env";
 import { isMissingTableError } from "@/lib/admin-audit-core";
 import { parseMaintenanceValue, coerceFlagMap } from "@/lib/system-settings-core";
 import { getSessionUser } from "@/lib/auth";
+import { getAdminSessionUser } from "@/lib/supabase/admin-session";
 
 export const SYSTEM_TAG = "system-settings";
 
@@ -153,6 +154,16 @@ export async function setFlagOverrides(
 export async function guardPublicMaintenance(): Promise<void> {
   const m = await getMaintenance();
   if (!m.enabled) return;
+  // Check the isolated admin-panel session first (rb-admin-auth cookie) —
+  // an admin browsing only the panel has no customer session and must not
+  // be bounced to /maintenance. Then fall back to the customer session, so
+  // an admin logged in as a regular customer also passes through.
+  try {
+    const admin = await getAdminSessionUser();
+    if (admin?.profile?.role === "admin") return;
+  } catch {
+    // lookup failed → fall through to the next check
+  }
   try {
     const session = await getSessionUser();
     if (session?.profile?.role === "admin") return;

@@ -28,7 +28,7 @@ export default function SubscriptionTimeline({
 }) {
   const chip =
     sub.status === "active" || sub.status === "cancel_scheduled"
-      ? { cls: "tl-chip tl-chip-active", text: sub.isComp ? "הענקה" : "פעיל" }
+      ? { cls: "tl-chip tl-chip-active", text: sub.isComp ? "הטבה פעילה" : "פעיל" }
       : sub.status === "trial"
         ? { cls: "tl-chip tl-chip-trial", text: "ניסיון חינם" }
         : sub.status === "trial_expired" || sub.status === "cancelled"

@@ -68,3 +68,9 @@ export const featureFlagSchema = z.object({
   key: z.string().trim().min(1).max(64),
   enabled: z.boolean(),
 });
+
+/** POST /api/admin/users/[id]/message — free-text email from an admin to a user. */
+export const adminUserMessageSchema = z.object({
+  subject: z.string().trim().min(1, "חסרה כותרת").max(200, "הכותרת ארוכה מדי"),
+  body: z.string().trim().min(1, "חסר תוכן ההודעה").max(5000, "ההודעה ארוכה מדי"),
+});

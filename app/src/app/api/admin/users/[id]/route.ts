@@ -16,7 +16,20 @@ export async function GET(_req: Request, props: Ctx) {
 
   const { data: user } = await db.from("users").select("*").eq("id", params.id).maybeSingle();
   if (!user) return jsonError("המשתמש לא נמצא", 404);
-  const { data: bots } = await db.from("bots").select("id, name, bot_name, active, whatsapp_number, wa_provider, created_at").eq("user_id", params.id);
+  // wa_connection_status/wa_last_error land with migration 0014 — select them
+  // best-effort and fall back to the base columns so this route keeps working
+  // before the migration is applied (mirrors the decoupled write pattern).
+  let bots: Record<string, unknown>[] | null = null;
+  ({ data: bots } = await db
+    .from("bots")
+    .select("id, name, bot_name, active, whatsapp_number, wa_provider, wa_connection_status, wa_last_error, created_at")
+    .eq("user_id", params.id));
+  if (!bots) {
+    ({ data: bots } = await db
+      .from("bots")
+      .select("id, name, bot_name, active, whatsapp_number, wa_provider, created_at")
+      .eq("user_id", params.id));
+  }
   const period = new Date().toISOString().slice(0, 7);
   const { data: usage } = await db.from("usage_logs").select("message_count").eq("user_id", params.id).eq("period", period);
   const used = (usage ?? []).reduce((s, r) => s + (r.message_count ?? 0), 0);

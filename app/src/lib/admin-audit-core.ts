@@ -25,6 +25,8 @@ export const AUDIT_ACTION_HE: Record<string, string> = {
   "user.role_change": "שינוי תפקיד",
   "user.delete": "מחיקת משתמש",
   "user.password_reset_sent": "שליחת איפוס סיסמה",
+  "user.message_sent": "הודעה נשלחה למשתמש",
+  "bot.whatsapp_reset": "איפוס חיבור וואטסאפ",
   "auth.login": "כניסת אדמין",
   "auth.login_failed": "נסיון כניסה כושל",
   "auth.password_change": "שינוי סיסמת אדמין",

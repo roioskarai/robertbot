@@ -121,13 +121,10 @@ export function deriveSubscriptionState(
       sublineHe = "הבוטים הושבתו — בחר מסלול כדי להפעיל מחדש";
       break;
     case "active":
-      if (isComp) {
-        headlineHe = `מסלול ${label} · הענקה`;
-        sublineHe = periodEndsAt ? `בתוקף עד ${heDate(periodEndsAt)}` : "מנוי הענקה פעיל";
-      } else {
-        headlineHe = `מסלול ${label}`;
-        sublineHe = periodEndsAt ? `חידוש אוטומטי · ${heDate(periodEndsAt)}` : "מנוי פעיל";
-      }
+      headlineHe = `מסלול ${label}`;
+      sublineHe = isComp
+        ? (periodEndsAt ? `בתוקף עד ${heDate(periodEndsAt)}` : "מנוי פעיל")
+        : (periodEndsAt ? `חידוש אוטומטי · ${heDate(periodEndsAt)}` : "מנוי פעיל");
       break;
     case "cancel_scheduled":
       headlineHe = `מסלול ${label}`;

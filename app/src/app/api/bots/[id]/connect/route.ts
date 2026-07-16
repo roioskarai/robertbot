@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, unauthorized } from "@/lib/errors";
+import { enforceActiveBotLimit } from "@/lib/bot-limit";
 import { parseBody, connectSchema } from "@/lib/schemas";
 import { sendOtp, checkOtp } from "@/lib/wa-verify-service";
 import { e164ToLocalIL } from "@/lib/validation";
@@ -52,6 +53,18 @@ export async function POST(req: Request, props: Ctx) {
         { status: r.status ?? 400 },
       );
     }
+    // Best-effort status update, decoupled from the critical write below —
+    // wa_connection_status (migration 0014) is a pure no-op until that
+    // migration is applied, so a failure here must never block OTP send.
+    try {
+      await supabase
+        .from("bots")
+        .update({ wa_connection_status: "pending_verification" })
+        .eq("id", params.id)
+        .eq("user_id", session.authId);
+    } catch {
+      /* status tracking only */
+    }
     return NextResponse.json({ sent: true, demo: r.demo });
   }
 
@@ -73,10 +86,15 @@ export async function POST(req: Request, props: Ctx) {
     .maybeSingle();
   if (taken) return jsonError("מספר זה כבר מחובר לבוט אחר במערכת");
 
+  // This route auto-activates the bot — enforce the same plan limit
+  // connect-meta/activate use, before doing any write.
+  const limitErr = await enforceActiveBotLimit(supabase, session.authId, params.id);
+  if (limitErr) return limitErr;
+
   // active:true set server-side (was client-only — asymmetry vs connect-meta).
   const { data, error } = await supabase
     .from("bots")
-    .update({ whatsapp_number: e164, active: true })
+    .update({ whatsapp_number: e164, active: true, wa_provider: "twilio" })
     .eq("id", params.id)
     .eq("user_id", session.authId)
     .select("*")
@@ -88,6 +106,17 @@ export async function POST(req: Request, props: Ctx) {
     }
     console.error("[connect] update failed:", error.message);
     return jsonError("חיבור המספר נכשל. נסה שוב.", 500);
+  }
+
+  // Best-effort status update, decoupled from the critical write above.
+  try {
+    await supabase
+      .from("bots")
+      .update({ wa_connection_status: "connected", wa_connected_at: new Date().toISOString(), wa_last_error: null })
+      .eq("id", params.id)
+      .eq("user_id", session.authId);
+  } catch {
+    /* status tracking only */
   }
 
   return NextResponse.json({ ok: true, bot: data });

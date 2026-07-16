@@ -139,15 +139,27 @@ export async function processInboundMessage(msg: InboundMessage): Promise<void> 
       .eq("id", conversationId);
   }
 
-  const wa = getWhatsAppProvider();
+  const wa = getWhatsAppProvider(bot.wa_provider);
   const outText = wa.formatButtons(reply.text, reply.buttons);
 
   // Deliver FROM this bot's own sender (tenant isolation).
   if (hasWhatsApp()) {
     try {
       await wa.sendMessage(bot, msg.customerPhone, outText);
-    } catch {
-      /* keep going — message is still recorded */
+    } catch (e) {
+      // Message is still recorded below — don't fail the pipeline — but a
+      // silent send failure is exactly what made "connected" dishonest, so
+      // log it and surface it as a decoupled, best-effort status write.
+      const errMsg = e instanceof Error ? e.message : String(e);
+      console.error(`[inbound] send failed for bot ${bot.id}:`, errMsg);
+      try {
+        await supabase
+          .from("bots")
+          .update({ wa_connection_status: "error", wa_last_error: errMsg.slice(0, 500) })
+          .eq("id", bot.id);
+      } catch {
+        /* status tracking only */
+      }
     }
   }
 
