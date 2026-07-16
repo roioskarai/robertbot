@@ -55,6 +55,12 @@ export function mapTwilioError(err: unknown, op: "send" | "check"): MappedTwilio
       return { userMessageHe: "בקשה קודמת עדיין בטיפול — המתן רגע ונסה שוב", httpStatus: 429, kind: "rate", twilioCode: code };
     case 60605: // Verify delivery blocked by geo-permissions (suspected prod root cause)
       return { userMessageHe: "שליחת SMS למספר חסומה זמנית בהגדרות ספק ההודעות. פנה לתמיכה ונטפל מיד.", httpStatus: 503, kind: "config", twilioCode: code };
+    case 21608: // trial account — can only send to verified caller-IDs
+      return { userMessageHe: "שירות שליחת הקודים עדיין במצב ניסיון ולכן חסום. פנה לתמיכה ונשלים את ההגדרה.", httpStatus: 503, kind: "config", twilioCode: code };
+    case 60410: // Verify delivery temporarily blocked (carrier/fraud filtering)
+      return { userMessageHe: "שליחת ה-SMS נחסמה זמנית אצל חברת הסלולר. נסה שוב בעוד מספר דקות.", httpStatus: 429, kind: "rate", twilioCode: code };
+    case 63038: // account exceeded the daily message limit
+      return { userMessageHe: "נחרגה מכסת ההודעות היומית אצל ספק ההודעות. נסה מחר או פנה לתמיכה.", httpStatus: 429, kind: "config", twilioCode: code };
     case 20429: // Twilio-side rate limit
       return { userMessageHe: "יותר מדי ניסיונות מול ספק ההודעות. נסה שוב בעוד כמה דקות.", httpStatus: 429, kind: "rate", twilioCode: code };
   }

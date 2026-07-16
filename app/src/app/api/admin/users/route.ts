@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { jsonError } from "@/lib/errors";
 import { requireAdmin } from "@/lib/admin-auth";
-import { parseUserQuery, buildUserListQuery, countUsersByFilter } from "@/lib/admin-users-query";
+import { parseUserQuery, buildUserListQuery, countUsersByFilter, resolveBotSegment } from "@/lib/admin-users-query";
 
 // GET /api/admin/users?filter=&plan=&q=&sort=&dir=&inactiveDays=
 // Server-side filtered user list + per-category counters + bot counts.
@@ -11,6 +11,9 @@ export async function GET(req: Request) {
   if (!(await requireAdmin())) return jsonError("אין הרשאת אדמין", 403);
   const db = createAdminClient();
   const f = parseUserQuery(new URL(req.url).searchParams);
+  // Cross-table filters (bot_no_number / no_bot) need their id set resolved
+  // before the list query runs; no-op for every other filter.
+  f.segmentIds = await resolveBotSegment(db, f.filter);
 
   const [{ data: users, error }, counters] = await Promise.all([
     buildUserListQuery(db, f),

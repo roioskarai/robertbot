@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { buildSystemPrompt } from "@/lib/claude";
 import { jsonError, unauthorized } from "@/lib/errors";
-import { enforceActiveBotLimit } from "@/lib/bot-limit";
+import { enforceActiveBotLimit, botHasConnection } from "@/lib/bot-limit";
 import { rateLimit } from "@/lib/rate-limit";
 import { parseBody, botUpdateSchema } from "@/lib/schemas";
 import type { Bot } from "@/lib/types";
@@ -68,10 +68,14 @@ export async function PUT(req: Request, props: Ctx) {
 
   const merged = { ...(existing as Bot), ...body } as Bot;
 
-  // A PUT can flip the bot to active too — enforce the same plan limit the
-  // dedicated activate route uses, but only on a genuine off→on transition so
-  // saving an already-active bot isn't blocked.
+  // A PUT can flip the bot to active too — enforce the same guards the dedicated
+  // activate route uses, but only on a genuine off→on transition so saving an
+  // already-active bot isn't blocked. `existing` is the persisted row, so the
+  // connection check reads the real number, not anything the body could fake.
   if (merged.active === true && (existing as Bot).active !== true) {
+    if (!botHasConnection(existing as Bot)) {
+      return jsonError("אי אפשר להפעיל בוט ללא מספר וואטסאפ מחובר — חבר מספר קודם", 400);
+    }
     const limitErr = await enforceActiveBotLimit(supabase, session.authId, params.id);
     if (limitErr) return limitErr;
   }

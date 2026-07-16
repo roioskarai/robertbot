@@ -8,6 +8,8 @@ import { hasTwilioCreds, hasVerifyCreds, startVerification, checkVerification } 
 import { normalizePhoneE164 } from "./validation";
 import { rateLimit, cooldownRemaining, armCooldown } from "./rate-limit";
 import { mapTwilioError, maskPhone, type WaErrorKind } from "./twilio-errors";
+import { createAdminClient } from "./supabase/admin";
+import { isDemoMode } from "./env";
 
 export type OtpScope = "onboarding" | "bot-connect";
 
@@ -36,11 +38,12 @@ export interface OtpCheckResult {
 // The friendly 503 for a half-configured Twilio (creds without a Verify service).
 const NOT_READY = "חיבור וואטסאפ ידני עדיין לא זמין במערכת. נסה שוב בקרוב או פנה לתמיכה.";
 
-function logFailure(
+async function logFailure(
   op: "send" | "check",
+  scope: OtpScope | "check",
   userId: string,
   number: string,
-  info: { twilioCode?: number; httpStatus: number; kind: WaErrorKind; moreInfo?: string },
+  info: { twilioCode?: number; httpStatus: number; kind: WaErrorKind; moreInfo?: string; userMessageHe?: string },
 ) {
   console.error(
     "[wa-verify]",
@@ -51,6 +54,24 @@ function logFailure(
     console.error(
       "[wa-verify] CONFIG ISSUE — בדוק Twilio Console: Verify Service → SMS channel enabled; Messaging → Geo-Permissions → Israel enabled.",
     );
+  }
+  // Best-effort diagnostic capture for the admin /admin/insights screen. Never
+  // let a logging failure (or a missing wa_connection_events table before
+  // migration 0015) affect the connect flow — swallow everything.
+  if (isDemoMode()) return;
+  try {
+    await createAdminClient()
+      .from("wa_connection_events")
+      .insert({
+        user_id: userId,
+        scope,
+        twilio_code: info.twilioCode ?? null,
+        kind: info.kind,
+        phone_masked: maskPhone(number),
+        message_he: info.userMessageHe ?? null,
+      });
+  } catch {
+    /* diagnostics only */
   }
 }
 
@@ -88,7 +109,7 @@ export async function sendOtp(userId: string, rawNumber: string, scope: OtpScope
     return { ok: true, number };
   } catch (e) {
     const m = mapTwilioError(e, "send");
-    logFailure("send", userId, number, m);
+    await logFailure("send", scope, userId, number, m);
     return { ok: false, number, status: m.httpStatus, error: m.userMessageHe, configIssue: m.kind === "config" };
   }
 }
@@ -117,7 +138,7 @@ export async function checkOtp(userId: string, rawNumber: string, code: string):
     return { ok: true, number };
   } catch (e) {
     const m = mapTwilioError(e, "check");
-    logFailure("check", userId, number, m);
+    await logFailure("check", "check", userId, number, m);
     return { ok: false, number, status: m.httpStatus, error: m.userMessageHe, configIssue: m.kind === "config" };
   }
 }

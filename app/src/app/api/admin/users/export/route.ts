@@ -1,7 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { jsonError } from "@/lib/errors";
 import { requireAdmin } from "@/lib/admin-auth";
-import { parseUserQuery, buildUserListQuery } from "@/lib/admin-users-query";
+import { parseUserQuery, buildUserListQuery, resolveBotSegment } from "@/lib/admin-users-query";
 import { logAdminAudit } from "@/lib/admin-audit";
 
 // GET /api/admin/users/export?<same params as the list> → CSV download.
@@ -12,6 +12,7 @@ export async function GET(req: Request) {
 
   const db = createAdminClient();
   const f = parseUserQuery(new URL(req.url).searchParams);
+  f.segmentIds = await resolveBotSegment(db, f.filter);
 
   const { data: users, error } = await buildUserListQuery(db, f);
   if (error) {

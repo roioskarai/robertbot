@@ -34,3 +34,33 @@ export async function enforceActiveBotLimit(
   }
   return null;
 }
+
+/** A bot counts as "connected" once it has a Twilio number OR a Meta phone id. */
+export function botHasConnection(bot: {
+  whatsapp_number?: string | null;
+  meta_phone_number_id?: string | null;
+}): boolean {
+  return Boolean(bot.whatsapp_number || bot.meta_phone_number_id);
+}
+
+const NO_NUMBER_MSG =
+  "אי אפשר להפעיל בוט ללא מספר וואטסאפ מחובר — חבר מספר קודם";
+
+// A bot must never be active without a connected number: an "active" bot with no
+// sender can't actually answer anyone, which is exactly the confusing state the
+// dashboard used to allow. Callers that flip a bot on enforce this on the
+// off→on transition. Fetches only the two connection columns (RLS-scoped).
+export async function requireConnectedNumber(
+  supabase: ServerClient,
+  authId: string,
+  botId: string,
+) {
+  const { data: bot } = await supabase
+    .from("bots")
+    .select("whatsapp_number, meta_phone_number_id")
+    .eq("id", botId)
+    .eq("user_id", authId)
+    .maybeSingle();
+  if (!bot || !botHasConnection(bot)) return jsonError(NO_NUMBER_MSG, 400);
+  return null;
+}

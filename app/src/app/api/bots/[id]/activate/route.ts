@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, unauthorized } from "@/lib/errors";
-import { enforceActiveBotLimit } from "@/lib/bot-limit";
+import { enforceActiveBotLimit, requireConnectedNumber } from "@/lib/bot-limit";
 import { rateLimit } from "@/lib/rate-limit";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -27,8 +27,10 @@ export async function POST(req: Request, props: Ctx) {
 
   const supabase = await createClient();
 
-  // Enforce plan bot limit when activating.
+  // Enforce plan bot limit + a connected number when activating.
   if (active) {
+    const numberErr = await requireConnectedNumber(supabase, session.authId, params.id);
+    if (numberErr) return numberErr;
     const limitErr = await enforceActiveBotLimit(supabase, session.authId, params.id);
     if (limitErr) return limitErr;
   }

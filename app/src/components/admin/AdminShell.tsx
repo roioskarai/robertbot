@@ -45,6 +45,7 @@ export const NAV_GROUPS: NavGroup[] = [
   ] },
   { label: "AI ובוטים", items: [
     { href: "/admin/bots", label: "בוטים", icon: Bot },
+    { href: "/admin/insights", label: "תובנות ואבחון", icon: Activity },
     { href: "/admin/agents", label: "סוכני AI", icon: Cpu },
     { href: "/admin/assistant", label: "עוזר AI", icon: Sparkles },
   ] },
@@ -72,6 +73,7 @@ const PAGE_NAMES: Record<string, string> = {
   "/admin":           "סקירה כללית",
   "/admin/users":     "משתמשים",
   "/admin/bots":      "בוטים",
+  "/admin/insights":  "תובנות ואבחון",
   "/admin/billing":   "כספים",
   "/admin/agents":    "סוכני AI",
   "/admin/assistant": "עוזר AI",

@@ -1436,6 +1436,12 @@ function OnboardingInner() {
                 <Link href="/login" style={{ color: "inherit", fontWeight: 700, textDecoration: "underline" }}>לכניסה</Link>
               </>
             )}
+            {finishError.includes("מגבלת הבוטים") && (
+              <>
+                {" "}
+                <Link href="/dashboard?page=billing" style={{ color: "inherit", fontWeight: 700, textDecoration: "underline" }}>לשדרוג המסלול</Link>
+              </>
+            )}
           </div>
         )}
 

@@ -16,7 +16,7 @@ import StoreTab from "@/components/dashboard/StoreTab";
 import TrialBanner from "@/components/dashboard/TrialBanner";
 import type { Bot, Service, WorkingHours } from "@/lib/types";
 import { DAY_KEYS, DAYS_HE } from "@/app/onboarding/subcats";
-import { planLabelHe, type PlanId } from "@/lib/plans";
+import { planLabelHe, PLAN_LIMITS, type PlanId } from "@/lib/plans";
 import { deriveSubscriptionState, type SubscriptionState } from "@/lib/subscription";
 import { isValidPhoneIL } from "@/lib/validation";
 import type { BillingInfo } from "@/lib/payments/types";
@@ -282,6 +282,9 @@ function DashboardInner() {
   // store / inbox / history
   const [storeTab, setStoreTab] = useState<"plans" | "packs">("plans");
   const [planAnnual, setPlanAnnual] = useState(false);
+  // Bot-limit upsell modal (opened when the user tries to add a bot past the cap).
+  const [quotaModal, setQuotaModal] = useState(false);
+  const [togglingBotId, setTogglingBotId] = useState<string | null>(null);
   const [activeConvId, setActiveConvId] = useState<string | null>(DEMO_MODE ? DEMO_CONVS[0].id : null);
   const [convSearch, setConvSearch] = useState("");
   const [histFilter, setHistFilter] = useState("הכל");
@@ -435,6 +438,47 @@ function DashboardInner() {
   function closeEditor() {
     setEditBot(null);
     router.push(buildUrl({ page: "bots" }));
+  }
+
+  // "Add bot" gate: below the plan cap → go to onboarding; at/over → upsell modal
+  // (the server enforces the same limit, this is just a friendlier front door).
+  function requestNewBot() {
+    const limit = PLAN_LIMITS[analytics.subscription.plan].bots;
+    if (bots.length >= limit) { setQuotaModal(true); return; }
+    router.push("/onboarding?new=1");
+  }
+
+  // Card on/off toggle. A bot can never go active without a connected number, so
+  // block that client-side (matches the server guard) and steer to the connect tab.
+  async function toggleBotActive(b: Partial<Bot>, e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!b.id || togglingBotId) return;
+    const turningOn = !b.active;
+    if (turningOn && !b.whatsapp_number && !b.meta_phone_number_id) {
+      toast("חבר מספר וואטסאפ כדי להפעיל את הבוט");
+      openEditor(b, "connect");
+      return;
+    }
+    setTogglingBotId(b.id);
+    setBots((prev) => prev.map((x) => (x.id === b.id ? { ...x, active: turningOn } : x)));
+    try {
+      const res = await fetch(`/api/bots/${b.id}/activate`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: turningOn }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setBots((prev) => prev.map((x) => (x.id === b.id ? { ...x, active: !turningOn } : x)));
+        toast(d.error || "העדכון נכשל");
+        return;
+      }
+      toast(turningOn ? "הבוט הופעל" : "הבוט כובה");
+    } catch {
+      setBots((prev) => prev.map((x) => (x.id === b.id ? { ...x, active: !turningOn } : x)));
+      toast("שגיאת חיבור");
+    } finally {
+      setTogglingBotId(null);
+    }
   }
 
   function changeEditorTab(tab: EditorTab) {
@@ -733,6 +777,41 @@ function DashboardInner() {
     <div className={styles.dash}>
       <ToastHost />
 
+      {/* Bot-limit upsell modal */}
+      {quotaModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+          onClick={() => setQuotaModal(false)}
+        >
+          <div
+            className={c("card")}
+            style={{ maxWidth: 420, width: "100%", padding: 26, textAlign: "center" }}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog" aria-modal="true" aria-label="הגעת למגבלת הבוטים"
+          >
+            <div style={{ fontSize: 40, marginBottom: 8 }}>🚀</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: "var(--t1)", marginBottom: 8 }}>
+              הגעת למגבלת הבוטים במסלול {planLabelHe(sub.plan)}
+            </div>
+            <div style={{ fontSize: 13.5, color: "var(--t3)", lineHeight: 1.7, marginBottom: 20 }}>
+              המסלול הנוכחי כולל עד {PLAN_LIMITS[sub.plan].bots} {PLAN_LIMITS[sub.plan].bots === 1 ? "בוט" : "בוטים"}, וכבר יש לך {bots.length}.
+              שדרג מסלול כדי להוסיף עוד בוטים — או כבה בוט קיים כדי לפנות מקום.
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+              <button
+                className={c("btn btn-primary btn-sm")}
+                onClick={() => { setQuotaModal(false); setStoreTab("plans"); goPage("store"); }}
+              >
+                שדרג מסלול
+              </button>
+              <button className={c("btn btn-outline btn-sm")} onClick={() => setQuotaModal(false)}>
+                לא עכשיו
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* SIDEBAR */}
       <aside className={c("sb") + (sbOpen ? " " + styles.open : "")}>
         <Link href="/" className={c("sb-logo")} style={{ textDecoration: "none" }}>
@@ -826,7 +905,7 @@ function DashboardInner() {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15" /></svg>
                 שדרג
               </button>
-              <button className={c("btn btn-primary btn-sm")} onClick={() => router.push("/onboarding?new=1")}>
+              <button className={c("btn btn-primary btn-sm")} onClick={requestNewBot}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
                 בוט חדש
               </button>
@@ -940,9 +1019,15 @@ function DashboardInner() {
               <div key={b.id ?? i} className={c("bot-card") + (editBot?.id === b.id ? " " + styles.sel : "")} onClick={() => openEditor(b, "general")}>
                 <div className={c("bc-top")}>
                   <div className={c("bc-icon")} style={{ background: col.bg, color: col.color }}>{(b.name ?? "?").charAt(0)}</div>
-                  <span className={c("badge") + " " + (b.active ? c("badge-green") : c("badge-gray"))}>
+                  <button
+                    type="button"
+                    className={c("badge") + " " + (b.active ? c("badge-green") : c("badge-gray"))}
+                    style={{ cursor: togglingBotId === b.id ? "wait" : "pointer", border: "none", opacity: togglingBotId === b.id ? 0.6 : 1 }}
+                    title={b.active ? "לחץ לכיבוי הבוט" : "לחץ להפעלת הבוט"}
+                    onClick={(e) => toggleBotActive(b, e)}
+                  >
                     <span className={c("sdot") + " " + (b.active ? c("sdot-on") : c("sdot-off"))}></span>{b.active ? "פעיל" : "כבוי"}
-                  </span>
+                  </button>
                 </div>
                 <div className={c("bc-name")}>{b.name}</div>
                 {category && <div style={{ fontSize: 11.5, color: "var(--t4)", fontWeight: 600, marginTop: -2, marginBottom: 4 }}>{category}</div>}
@@ -976,7 +1061,7 @@ function DashboardInner() {
               </div>
             );
           })}
-          <div className={c("add-card")} onClick={() => router.push("/onboarding?new=1")}>
+          <div className={c("add-card")} onClick={requestNewBot}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" /></svg>
             <span>הוסף בוט חדש</span>
           </div>
@@ -1100,8 +1185,11 @@ function DashboardInner() {
                     );
                   })()}
                   {!editBot.whatsapp_number && editBot.id && (
-                    <div style={{ marginTop: 16 }}>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: "var(--t2)", marginBottom: 10 }}>חיבור אוטומטי (מומלץ)</p>
+                    <div style={{ marginTop: 22 }}>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: "var(--t1)", marginBottom: 4 }}>חיבור וואטסאפ — מומלץ (דקה)</p>
+                      <p style={{ fontSize: 12.5, color: "var(--t3)", marginBottom: 12, lineHeight: 1.6 }}>
+                        חיבור רשמי דרך Meta. המספר נשאר בבעלותך המלאה, וההודעות באמת יוצאות ונכנסות מרגע החיבור.
+                      </p>
                       <ConnectWhatsApp
                         botId={editBot.id}
                         onConnected={(b) => setEditBot({ ...editBot, whatsapp_number: b.whatsapp_number ?? null, active: true, wa_connection_status: "connected" })}
@@ -1114,9 +1202,21 @@ function DashboardInner() {
                     </div>
                   )}
                   {(!editBot.whatsapp_number || manualStep === "success") && editBot.id && manualAvailable && (
-                    <div style={{ marginTop: 16 }}>
+                    <div style={{ marginTop: 22 }}>
                       {manualStep !== "success" && (
-                        <p style={{ fontSize: 13, fontWeight: 600, color: "var(--t2)", marginBottom: 10 }}>חיבור מספר ידני</p>
+                        <>
+                          {!editBot.whatsapp_number && (
+                            <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0 14px", color: "var(--t4)" }}>
+                              <div style={{ flex: 1, height: 1, background: "var(--bdr)" }} />
+                              <span style={{ fontSize: 11.5, fontWeight: 600 }}>או חיבור ידני זמני</span>
+                              <div style={{ flex: 1, height: 1, background: "var(--bdr)" }} />
+                            </div>
+                          )}
+                          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--t2)", marginBottom: 4 }}>חיבור מספר ידני</p>
+                          <p style={{ fontSize: 12, color: "var(--t3)", marginBottom: 12, lineHeight: 1.6 }}>
+                            מקשר את המספר לניתוב הודעות. לשליחה אמינה ומלאה — מומלץ להשלים את החיבור הרשמי דרך Meta למעלה.
+                          </p>
+                        </>
                       )}
 
                       <ManualConnectWizard

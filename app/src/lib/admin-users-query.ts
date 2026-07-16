@@ -9,11 +9,16 @@ type Db = ReturnType<typeof createAdminClient>;
 
 export type UserFilterKey =
   | "all" | "trial" | "trial_expired" | "active_paying"
-  | "comp" | "cancelled" | "paused" | "inactive";
+  | "comp" | "cancelled" | "paused" | "inactive"
+  | "bot_no_number" | "no_bot";
 
 export const USER_FILTER_KEYS: UserFilterKey[] = [
   "all", "trial", "trial_expired", "active_paying", "comp", "cancelled", "paused", "inactive",
+  "bot_no_number", "no_bot",
 ];
+
+/** Filters that need a cross-table lookup against `bots` (resolved to an id set). */
+export const BOT_SEGMENT_KEYS: UserFilterKey[] = ["bot_no_number", "no_bot"];
 
 const SORT_COLUMNS = ["created_at", "last_login_at", "trial_ends_at"] as const;
 export type SortColumn = (typeof SORT_COLUMNS)[number];
@@ -25,6 +30,8 @@ export interface UserQuery {
   sort: SortColumn;
   dir: "asc" | "desc";
   inactiveDays: number;
+  /** Pre-resolved user-id set for a BOT_SEGMENT_KEYS filter (see resolveBotSegment). */
+  segmentIds: string[] | null;
 }
 
 export const USER_SELECT =
@@ -73,7 +80,33 @@ export function parseUserQuery(sp: URLSearchParams): UserQuery {
     sort,
     dir,
     inactiveDays,
+    segmentIds: null,
   };
+}
+
+/**
+ * Resolve the user-id set for a cross-table bot segment. Small tables (admin
+ * scale) so we read them whole and intersect in JS. Returns null for filters
+ * that don't need it, so the caller only pays for bot queries when relevant.
+ *  - bot_no_number: users who created ≥1 bot but connected NONE of them.
+ *  - no_bot: users with zero bots at all.
+ */
+export async function resolveBotSegment(db: Db, filter: UserFilterKey): Promise<string[] | null> {
+  if (!BOT_SEGMENT_KEYS.includes(filter)) return null;
+  const { data: bots } = await db.from("bots").select("user_id, whatsapp_number, meta_phone_number_id");
+  const hasBot = new Set<string>();
+  const hasConnected = new Set<string>();
+  for (const b of bots ?? []) {
+    if (!b.user_id) continue;
+    hasBot.add(b.user_id);
+    if (b.whatsapp_number || b.meta_phone_number_id) hasConnected.add(b.user_id);
+  }
+  if (filter === "bot_no_number") {
+    return [...hasBot].filter((id) => !hasConnected.has(id));
+  }
+  // no_bot — every user not present in the bots table.
+  const { data: allUsers } = await db.from("users").select("id");
+  return (allUsers ?? []).map((u) => u.id).filter((id) => !hasBot.has(id));
 }
 
 /**
@@ -105,6 +138,10 @@ function applyFilter(query: any, f: UserQuery): any {
       const cutoff = new Date(Date.now() - f.inactiveDays * 86_400_000).toISOString();
       return query.or(`last_login_at.is.null,last_login_at.lt.${cutoff}`);
     }
+    case "bot_no_number":
+    case "no_bot":
+      // Constrain to the pre-resolved id set. Empty set → matches nothing.
+      return query.in("id", f.segmentIds ?? []);
     default:
       return query;
   }
@@ -125,7 +162,13 @@ function buildUserListQueryRaw(db: Db) {
 export async function countUsersByFilter(db: Db, inactiveDays = 30): Promise<Record<UserFilterKey, number>> {
   const entries = await Promise.all(
     USER_FILTER_KEYS.map(async (key) => {
-      const base: UserQuery = { filter: key, plan: null, q: "", sort: "created_at", dir: "desc", inactiveDays };
+      // Bot segments are defined purely by their resolved id set — the count is
+      // just its size (no head query, and applyFilter's .in needs the ids anyway).
+      if (BOT_SEGMENT_KEYS.includes(key)) {
+        const ids = (await resolveBotSegment(db, key)) ?? [];
+        return [key, ids.length] as const;
+      }
+      const base: UserQuery = { filter: key, plan: null, q: "", sort: "created_at", dir: "desc", inactiveDays, segmentIds: null };
       const { count } = await applyFilter(
         db.from("users").select("id", { count: "exact", head: true }),
         base,

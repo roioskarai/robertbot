@@ -17,6 +17,8 @@ const FILTERS: { key: string; label: string }[] = [
   { key: "cancelled", label: "בוטל" },
   { key: "paused", label: "מושהה" },
   { key: "inactive", label: "לא פעיל 30 י׳" },
+  { key: "bot_no_number", label: "בוט בלי מספר" },
+  { key: "no_bot", label: "בלי בוט" },
 ];
 const SORTS: { key: string; label: string }[] = [
   { key: "created_at", label: "תאריך הרשמה" },
