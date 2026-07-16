@@ -1,2 +1,2 @@
 ﻿robertbot build marker
-prelaunch readiness: honest whatsapp status, maintenance gate fix, admin whatsapp reset+messaging, subscription label fix 2026-07-16
+meta-first whatsapp connect, bot on/off toggle, connected-number guard, bot-quota modal, admin insights + cross-table filters 2026-07-16b
