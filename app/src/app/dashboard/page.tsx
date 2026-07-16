@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import ConnectWhatsApp from "@/components/ConnectWhatsApp";
 import ManualConnectWizard from "@/components/ManualConnectWizard";
 import ThemeToggle from "@/components/ThemeToggle";
+import Logo, { LogoInk } from "@/components/logo";
 import BillingTab from "@/components/dashboard/BillingTab";
 import StoreTab from "@/components/dashboard/StoreTab";
 import TrialBanner from "@/components/dashboard/TrialBanner";
@@ -735,7 +736,8 @@ function DashboardInner() {
       {/* SIDEBAR */}
       <aside className={c("sb") + (sbOpen ? " " + styles.open : "")}>
         <Link href="/" className={c("sb-logo")} style={{ textDecoration: "none" }}>
-          <div className={c("sb-logo-name")}>Robert<span>.</span></div>
+          {/* sidebar is always dark — use the light-on-dark wordmark */}
+          <Logo variant="wordmark" theme="dark" style={{ height: 24, width: "auto" }} />
         </Link>
         <div className={c("sb-scroll")}>
           <div className={c("sb-group")}>
@@ -810,8 +812,8 @@ function DashboardInner() {
             <button className={c("hamburger-btn")} onClick={() => setSbOpen((o) => !o)}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
             </button>
-            <Link href="/" className={c("tb-logo")} style={{ textDecoration: "none" }}>
-              <span className={c("tb-logo-name")}>Robert<em>.</em></span>
+            <Link href="/" className={c("tb-logo")} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+              <LogoInk variant="wordmark" style={{ height: 24, width: "auto", color: "var(--t1)" }} />
             </Link>
           </div>
           <div className={c("tb-right")}>

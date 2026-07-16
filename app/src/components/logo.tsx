@@ -86,3 +86,66 @@ export default function Logo({
     </svg>
   );
 }
+
+/**
+ * Ink logo: the R + wordmark inherit `currentColor` (as a subtle gradient),
+ * the check stays brand-green. Drop this on ANY surface and set `color` to the
+ * same token that surface uses for its text (var(--t1), var(--ink), #fff …) —
+ * it then matches the surface's contrast whether or not the page follows the
+ * dark theme, sidestepping the light/dark artwork toggle entirely.
+ */
+export function LogoInk({
+  variant,
+  className,
+  style,
+}: {
+  variant: LogoVariant;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  const uid = useId().replace(/:/g, "");
+  const inkId = `${uid}-ink`;
+  const checkId = `${uid}-inkchk`;
+
+  const defs = (
+    <defs>
+      {/* subtle gradient in the inherited colour (keeps the wordmark's depth) */}
+      <linearGradient id={inkId} x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="currentColor" />
+        <stop offset="1" stopColor="currentColor" stopOpacity="0.66" />
+      </linearGradient>
+      <linearGradient id={checkId} x1="0" y1="0" x2="1" y2="0.7">
+        <stop offset="0" stopColor="#5C8267" />
+        <stop offset="0.45" stopColor="#5FA36A" />
+        <stop offset="1" stopColor="#7BC787" />
+      </linearGradient>
+    </defs>
+  );
+
+  const mark = (
+    <>
+      <g stroke={`url(#${inkId})`} strokeWidth={6.5} strokeLinecap="round" strokeLinejoin="round" fill="none">
+        <path d="M20 18 V 46" />
+        <path d="M20 18 h 8 a 8.5 8.5 0 0 1 0 17 h -8" />
+      </g>
+      <path d="M28 35 L 35 46 L 51 26" stroke={`url(#${checkId})`} strokeWidth={6.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </>
+  );
+
+  if (variant === "mark") {
+    return (
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" className={className} style={style} role="img" aria-label="Robert">
+        {defs}
+        {mark}
+      </svg>
+    );
+  }
+
+  return (
+    <svg width="212" height="82" viewBox="0 0 212 82" className={className} style={style} role="img" aria-label="Robert">
+      {defs}
+      <g transform="translate(2,9)">{mark}</g>
+      <path d={WORDMARK_PATH} fill={`url(#${inkId})`} />
+    </svg>
+  );
+}

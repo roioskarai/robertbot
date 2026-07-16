@@ -6,6 +6,7 @@ import styles from "./pricing.module.css";
 import { scoped } from "@/lib/cx";
 import PricingPlans from "@/components/PricingPlans";
 import HeaderAuth from "@/components/site/HeaderAuth";
+import { LogoInk } from "@/components/logo";
 import { PRICING, PLAN_LIMITS } from "@/lib/plans";
 
 const c = scoped(styles);
@@ -47,8 +48,8 @@ export default function PricingPage() {
       {/* NAV */}
       <nav className={c("nav")}>
         <div className={c("wrap nav-inner")}>
-          <Link href="/" className={c("nav-logo")}>
-            <div className={c("logo-name")}>Robert<em>.</em></div>
+          <Link href="/" className={c("nav-logo")} style={{ display: "inline-flex", alignItems: "center" }}>
+            <LogoInk variant="wordmark" style={{ height: 26, width: "auto", color: "var(--ink)" }} />
           </Link>
           <div className={c("nav-btns")}>
             <HeaderAuth

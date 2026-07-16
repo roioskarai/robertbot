@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { Button, Card, LogoMark } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
+import { LogoInk } from "@/components/logo";
 
 /**
  * Root error boundary — friendly Hebrew recovery screen.
@@ -32,7 +33,7 @@ export default function Error({
         background: "var(--bg)",
       }}
     >
-      <LogoMark size={36} />
+      <LogoInk variant="wordmark" style={{ height: 32, width: "auto", color: "var(--t1)" }} />
       <Card pad style={{ maxWidth: 460, width: "100%", textAlign: "center" }}>
         <div style={{ fontSize: "var(--display-xs)", fontWeight: 700, marginBottom: 8 }}>
           משהו השתבש

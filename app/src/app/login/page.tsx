@@ -8,6 +8,7 @@ import { scoped } from "@/lib/cx";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/Toast";
 import ThemeToggle from "@/components/ThemeToggle";
+import { LogoInk } from "@/components/logo";
 
 const c = scoped(styles);
 
@@ -105,10 +106,8 @@ function LoginInner() {
 
       <div className={c("lg-wrap")}>
         <form className={c("lg-card")} onSubmit={doLogin}>
-          <Link href="/" className={c("lg-logo")} style={{ textDecoration: "none" }}>
-            <div className={c("lg-logo-name")}>
-              Robert<span>.</span>
-            </div>
+          <Link href="/" className={c("lg-logo")} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+            <LogoInk variant="wordmark" style={{ height: 30, width: "auto", color: "var(--t1)" }} />
           </Link>
 
           <div className={c("lg-title")}>ברוך שובך 👋</div>

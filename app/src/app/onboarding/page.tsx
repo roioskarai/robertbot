@@ -8,6 +8,7 @@ import { scoped } from "@/lib/cx";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/Toast";
 import ThemeToggle from "@/components/ThemeToggle";
+import { LogoInk } from "@/components/logo";
 import ManualConnectWizard from "@/components/ManualConnectWizard";
 import {
   MAIN_CATEGORIES,
@@ -718,9 +719,7 @@ function OnboardingInner() {
         <div className={c("signup-wrap")}>
           <div className={c("signup-card")}>
             <Link href="/" className={c("signup-logo")} style={{ textDecoration: "none" }}>
-              <div className={c("signup-logo-name")}>
-                Robert<span>.</span>
-              </div>
+              <LogoInk variant="wordmark" style={{ height: 28, width: "auto", color: "var(--t1)" }} />
             </Link>
             <div className={c("signup-title")}>התחל 7 ימים חינם</div>
             <div className={c("signup-sub")}>ללא כרטיס אשראי. מבטל מתי שרוצה.</div>
@@ -873,9 +872,7 @@ function OnboardingInner() {
         <div className={c("signup-wrap")}>
           <div className={c("signup-card")}>
             <Link href="/" className={c("signup-logo")} style={{ textDecoration: "none" }}>
-              <div className={c("signup-logo-name")}>
-                Robert<span>.</span>
-              </div>
+              <LogoInk variant="wordmark" style={{ height: 28, width: "auto", color: "var(--t1)" }} />
             </Link>
             <div className={c("signup-title")}>אמת את כתובת המייל</div>
             {emailFailed ? (
@@ -965,9 +962,7 @@ function OnboardingInner() {
         <div className={c("ob-header")}>
           <div className={c("ob-inner")} style={{ justifyContent: "space-between" }}>
             <Link href="/" className={c("ob-logo")} style={{ textDecoration: "none" }}>
-              <div className={c("ob-logo-name")}>
-                Robert<span>.</span>
-              </div>
+              <LogoInk variant="wordmark" style={{ height: 24, width: "auto", color: "var(--t1)" }} />
             </Link>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               {startOnWizard && (

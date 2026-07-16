@@ -1,6 +1,7 @@
 import Link from "next/link";
 import styles from "./not-found.module.css";
 import { scoped } from "@/lib/cx";
+import { LogoInk } from "@/components/logo";
 
 const c = scoped(styles);
 
@@ -8,8 +9,8 @@ export default function NotFound() {
   return (
     <div className={styles.nf}>
       <nav className={c("nav")}>
-        <Link href="/" className={c("nav-logo")}>
-          <div className={c("nav-logo-name")}>Robert<em>.</em></div>
+        <Link href="/" className={c("nav-logo")} style={{ display: "inline-flex", alignItems: "center" }}>
+          <LogoInk variant="wordmark" style={{ height: 26, width: "auto", color: "var(--t1)" }} />
         </Link>
         <div className={c("nav-links")}>
           <Link href="/" className={c("btn btn-outline")} style={{ padding: "7px 16px", fontSize: 13 }}>דף הבית</Link>

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./preview.module.css";
 import { scoped } from "@/lib/cx";
+import { LogoInk } from "@/components/logo";
 import type { Bot } from "@/lib/types";
 
 const c = scoped(styles);
@@ -270,7 +271,9 @@ export default function PreviewPage() {
       {/* TOP BAR */}
       <div className={c("topbar")}>
         <div className={c("topbar-right")}>
-          <div className={c("tb-logo")}>Robert<em>.</em></div>
+          <div className={c("tb-logo")} style={{ display: "inline-flex", alignItems: "center" }}>
+            <LogoInk variant="wordmark" style={{ height: 22, width: "auto", color: "var(--t1)" }} />
+          </div>
           <div className={c("tb-title")}>תצוגה מקדימה</div>
         </div>
         <div className={c("preview-badge")}>

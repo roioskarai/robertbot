@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getMaintenance } from "@/lib/system-settings";
+import Logo from "@/components/logo";
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +66,10 @@ export default async function MaintenancePage() {
             <strong style={{ color: "#039855" }}>זמן חזרה משוער:</strong> {m.etaText}
           </p>
         )}
-        <div style={{ marginTop: 28, fontSize: 13, color: "#98a2b3" }}>Robert</div>
+        {/* card is always a white surface — use the dark-on-light wordmark */}
+        <div style={{ marginTop: 28, display: "flex", justifyContent: "center" }}>
+          <Logo variant="wordmark" theme="light" style={{ height: 20, width: "auto", opacity: 0.7 }} />
+        </div>
       </div>
     </main>
   );

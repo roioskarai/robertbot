@@ -32,11 +32,17 @@ export const metadata: Metadata = {
     title: "Robert — בוט וואטסאפ חכם לעסק שלך",
     description: SITE_DESCRIPTION,
   },
-  // ?v=2 busts cached copies of the old "R" favicon across browsers/CDN.
+  // ?v=3 busts cached copies of the old waveform favicon across browsers/CDN.
+  // SVG for modern browsers; .ico + sized PNGs for legacy/Windows/Safari.
   icons: {
-    icon: [{ url: "/favicon.svg?v=2", type: "image/svg+xml" }],
-    shortcut: "/favicon.svg?v=2",
-    apple: "/favicon.svg?v=2",
+    icon: [
+      { url: "/favicon.svg?v=3", type: "image/svg+xml" },
+      { url: "/favicon.ico?v=3", sizes: "any" },
+      { url: "/favicon-32.png?v=3", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-16.png?v=3", type: "image/png", sizes: "16x16" },
+    ],
+    shortcut: "/favicon.ico?v=3",
+    apple: "/apple-touch-icon.png?v=3",
   },
   manifest: "/site.webmanifest",
 };

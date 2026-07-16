@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import styles from "./cancel.module.css";
 import { scoped } from "@/lib/cx";
+import { LogoInk } from "@/components/logo";
 import { PRICING, PLAN_LIMITS } from "@/lib/plans";
 import type { SubscriptionState } from "@/lib/subscription";
 import { useToast } from "@/components/Toast";
@@ -193,8 +194,8 @@ function CancelInner() {
 
   const Nav = (
     <nav className={c("nav")}>
-      <Link href="/" className={c("nav-logo")}>
-        <div className={c("nln")}>Robert<em>.</em></div>
+      <Link href="/" className={c("nav-logo")} style={{ display: "inline-flex", alignItems: "center" }}>
+        <LogoInk variant="wordmark" style={{ height: 24, width: "auto", color: "var(--t1)" }} />
       </Link>
       <Link href="/dashboard" style={{ fontSize: 13, color: "#64748b", textDecoration: "none" }}>חזור ל-Dashboard</Link>
     </nav>

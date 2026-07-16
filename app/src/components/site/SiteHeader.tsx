@@ -17,6 +17,12 @@ export default function SiteHeader({ header }: { header: HeaderConfig }) {
         {header.logoImage ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img src={header.logoImage} alt={header.logoText ?? "logo"} style={{ height: 28 }} />
+        ) : header.logoText && header.logoText !== "Robert" ? (
+          /* a tenant that customised their site name keeps its text wordmark */
+          <>
+            {header.logoText}
+            <em>.</em>
+          </>
         ) : (
           <>
             <Logo variant="wordmark" theme="light" className={c("logo-light")} style={{ height: 42, width: "auto" }} />
