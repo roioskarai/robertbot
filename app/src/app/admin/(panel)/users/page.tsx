@@ -216,7 +216,18 @@ export default function AdminUsers() {
           className={`${styles.input} ${styles.inputSm}`}
           style={{ width: "auto", minWidth: 140, fontVariantNumeric: "tabular-nums" }}
           value={toDateInput(draftVal(u, "subscription_ends_at") as string | null)}
-          onChange={e => setDraft(u, { subscription_ends_at: e.target.value ? new Date(e.target.value).toISOString() : null })}
+          onChange={e => {
+            const iso = e.target.value ? new Date(e.target.value).toISOString() : null;
+            const status = draftVal(u, "subscription_status");
+            // A future end-date is invisible to the customer while status stays
+            // trial/cancelled (deriveSubscriptionState ignores subscription_ends_at
+            // for those statuses) — auto-promote so the date the admin just set
+            // actually takes effect, instead of silently saving a no-op.
+            const patch: Draft = (iso && (status === "trial" || status === "cancelled"))
+              ? { subscription_ends_at: iso, subscription_status: "active" }
+              : { subscription_ends_at: iso };
+            setDraft(u, patch);
+          }}
           title="לחץ לבחירת תאריך תוקף"
         />
       ),
