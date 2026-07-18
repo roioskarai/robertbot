@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { jsonError } from "@/lib/errors";
 import { requireAdmin } from "@/lib/admin-auth";
-import { resolveBotSegment } from "@/lib/admin-users-query";
+import { computeBotSegments } from "@/lib/admin-users-query";
 
 // GET /api/admin/insights — read-only diagnostics for the WhatsApp connection
 // funnel: recent connection failures (Twilio code + Hebrew reason) and the
@@ -25,9 +25,8 @@ export async function GET() {
     /* table not migrated yet */
   }
 
-  // Users who created ≥1 bot but connected none of them.
-  const noNumberIds = (await resolveBotSegment(db, "bot_no_number")) ?? [];
-  const noBotIds = (await resolveBotSegment(db, "no_bot")) ?? [];
+  // Users who created ≥1 bot but connected none of them — both segments from one read.
+  const { botNoNumber: noNumberIds, noBot: noBotIds } = await computeBotSegments(db);
 
   let botNoNumberUsers: Record<string, unknown>[] = [];
   if (noNumberIds.length) {

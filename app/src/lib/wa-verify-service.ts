@@ -109,7 +109,9 @@ export async function sendOtp(userId: string, rawNumber: string, scope: OtpScope
     return { ok: true, number };
   } catch (e) {
     const m = mapTwilioError(e, "send");
-    await logFailure("send", scope, userId, number, m);
+    // Fire-and-forget: the diagnostic write must never delay the user's error
+    // response, and its own try/catch swallows any failure.
+    void logFailure("send", scope, userId, number, m);
     return { ok: false, number, status: m.httpStatus, error: m.userMessageHe, configIssue: m.kind === "config" };
   }
 }
@@ -138,7 +140,7 @@ export async function checkOtp(userId: string, rawNumber: string, code: string):
     return { ok: true, number };
   } catch (e) {
     const m = mapTwilioError(e, "check");
-    await logFailure("check", "check", userId, number, m);
+    void logFailure("check", "check", userId, number, m);
     return { ok: false, number, status: m.httpStatus, error: m.userMessageHe, configIssue: m.kind === "config" };
   }
 }

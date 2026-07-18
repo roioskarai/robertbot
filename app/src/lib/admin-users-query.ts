@@ -20,6 +20,9 @@ export const USER_FILTER_KEYS: UserFilterKey[] = [
 /** Filters that need a cross-table lookup against `bots` (resolved to an id set). */
 export const BOT_SEGMENT_KEYS: UserFilterKey[] = ["bot_no_number", "no_bot"];
 
+/** Max ids fed into a bot-segment `.in()` list filter — guards GET URL length. */
+const SEGMENT_LIST_CAP = 250;
+
 const SORT_COLUMNS = ["created_at", "last_login_at", "trial_ends_at"] as const;
 export type SortColumn = (typeof SORT_COLUMNS)[number];
 
@@ -84,29 +87,65 @@ export function parseUserQuery(sp: URLSearchParams): UserQuery {
   };
 }
 
+// Supabase caps a single select at its `max-rows` (1000 by default), so a plain
+// `.select()` silently truncates once a table passes that many rows. These
+// cross-table segments must see EVERY row to classify users correctly, so we
+// page explicitly with `.range()` until a short page ends the scan.
+const PAGE = 1000;
+const READ_SAFETY_CAP = 500_000; // stop runaway loops on absurd table sizes
+
+async function pagedColumn(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  makeQuery: (from: number, to: number) => any,
+): Promise<Record<string, unknown>[]> {
+  const out: Record<string, unknown>[] = [];
+  for (let from = 0; from < READ_SAFETY_CAP; from += PAGE) {
+    const { data } = await makeQuery(from, from + PAGE - 1);
+    if (!data || data.length === 0) break;
+    out.push(...data);
+    if (data.length < PAGE) break;
+  }
+  return out;
+}
+
+export interface BotSegments {
+  /** Users who created ≥1 bot but connected NONE of them. */
+  botNoNumber: string[];
+  /** Users with zero bots at all. */
+  noBot: string[];
+}
+
 /**
- * Resolve the user-id set for a cross-table bot segment. Small tables (admin
- * scale) so we read them whole and intersect in JS. Returns null for filters
- * that don't need it, so the caller only pays for bot queries when relevant.
- *  - bot_no_number: users who created ≥1 bot but connected NONE of them.
- *  - no_bot: users with zero bots at all.
+ * Compute both cross-table bot segments in ONE pass: a single paged read of
+ * `bots` plus (only when needed) a paged read of `users`. Callers that need
+ * both counts reuse this instead of resolving each segment separately.
+ */
+export async function computeBotSegments(db: Db): Promise<BotSegments> {
+  const bots = await pagedColumn((from, to) =>
+    db.from("bots").select("user_id, whatsapp_number, meta_phone_number_id").range(from, to));
+  const hasBot = new Set<string>();
+  const hasConnected = new Set<string>();
+  for (const b of bots) {
+    const uid = b.user_id as string | null;
+    if (!uid) continue;
+    hasBot.add(uid);
+    if (b.whatsapp_number || b.meta_phone_number_id) hasConnected.add(uid);
+  }
+  const botNoNumber = [...hasBot].filter((id) => !hasConnected.has(id));
+  const users = await pagedColumn((from, to) => db.from("users").select("id").range(from, to));
+  const noBot = users.map((u) => u.id as string).filter((id) => !hasBot.has(id));
+  return { botNoNumber, noBot };
+}
+
+/**
+ * Resolve the user-id set for a cross-table bot segment, or null for filters
+ * that don't need it (so the caller only pays for the bot/user reads when a
+ * bot segment is actually requested).
  */
 export async function resolveBotSegment(db: Db, filter: UserFilterKey): Promise<string[] | null> {
   if (!BOT_SEGMENT_KEYS.includes(filter)) return null;
-  const { data: bots } = await db.from("bots").select("user_id, whatsapp_number, meta_phone_number_id");
-  const hasBot = new Set<string>();
-  const hasConnected = new Set<string>();
-  for (const b of bots ?? []) {
-    if (!b.user_id) continue;
-    hasBot.add(b.user_id);
-    if (b.whatsapp_number || b.meta_phone_number_id) hasConnected.add(b.user_id);
-  }
-  if (filter === "bot_no_number") {
-    return [...hasBot].filter((id) => !hasConnected.has(id));
-  }
-  // no_bot — every user not present in the bots table.
-  const { data: allUsers } = await db.from("users").select("id");
-  return (allUsers ?? []).map((u) => u.id).filter((id) => !hasBot.has(id));
+  const seg = await computeBotSegments(db);
+  return filter === "no_bot" ? seg.noBot : seg.botNoNumber;
 }
 
 /**
@@ -140,8 +179,11 @@ function applyFilter(query: any, f: UserQuery): any {
     }
     case "bot_no_number":
     case "no_bot":
-      // Constrain to the pre-resolved id set. Empty set → matches nothing.
-      return query.in("id", f.segmentIds ?? []);
+      // Constrain to the pre-resolved id set. Cap the ids fed into `.in()` so a
+      // large segment can't build a GET URL past the server's request-line limit
+      // — the list is a triage view (already capped to 500 rows) while the
+      // counter chip still shows the true total. Empty set → matches nothing.
+      return query.in("id", (f.segmentIds ?? []).slice(0, SEGMENT_LIST_CAP));
     default:
       return query;
   }
@@ -160,14 +202,13 @@ function buildUserListQueryRaw(db: Db) {
 
 /** Per-category counts (head-only). Ignores free-text so the chips are stable totals. */
 export async function countUsersByFilter(db: Db, inactiveDays = 30): Promise<Record<UserFilterKey, number>> {
+  // Both bot segments come from ONE computation (a single bots + users read),
+  // instead of a full-table scan per bot key.
+  const seg = await computeBotSegments(db);
   const entries = await Promise.all(
     USER_FILTER_KEYS.map(async (key) => {
-      // Bot segments are defined purely by their resolved id set — the count is
-      // just its size (no head query, and applyFilter's .in needs the ids anyway).
-      if (BOT_SEGMENT_KEYS.includes(key)) {
-        const ids = (await resolveBotSegment(db, key)) ?? [];
-        return [key, ids.length] as const;
-      }
+      if (key === "bot_no_number") return [key, seg.botNoNumber.length] as const;
+      if (key === "no_bot") return [key, seg.noBot.length] as const;
       const base: UserQuery = { filter: key, plan: null, q: "", sort: "created_at", dir: "desc", inactiveDays, segmentIds: null };
       const { count } = await applyFilter(
         db.from("users").select("id", { count: "exact", head: true }),
