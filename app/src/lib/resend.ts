@@ -36,7 +36,7 @@ function shell(tagline: string, bodyHtml: string): string {
 <body style="margin:0;padding:24px 16px;background:#f0f2f8;font-family:'Rubik',Arial,sans-serif;direction:rtl;">
   <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.09);border:1px solid #e2e8f0;">
     <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:28px 32px 24px;text-align:center;">
-      <div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:-.3px;">Robert<span style="color:#039855;">.</span></div>
+      <img src="${APP_URL}/brand/wordmark-email.png" alt="Robert" width="140" height="54" style="display:inline-block;border:0;outline:none;height:54px;width:auto;" />
       <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px;">${tagline}</div>
     </div>
     <div style="padding:32px;">${bodyHtml}</div>

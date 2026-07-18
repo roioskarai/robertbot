@@ -16,6 +16,7 @@ import { visibleNavGroups } from "@/lib/admin-nav-core";
 import type { Permission } from "@/lib/site/types";
 import TopbarStatus from "@/components/admin/TopbarStatus";
 import CommandPalette from "@/components/admin/CommandPalette";
+import { LogoInk } from "@/components/logo";
 
 export interface NavEntry {
   href: string;
@@ -135,9 +136,8 @@ export default function AdminShell({
       <aside className={`${styles.sidebar} ${navOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.sideTop}>
           <div className={styles.brand}>
-            <div className={styles.brandIcon}>
-              <Activity size={16} color="#0a1a10" strokeWidth={2.5} />
-            </div>
+            {/* the brand mark (R + check), adaptive via currentColor */}
+            <LogoInk variant="mark" style={{ width: 32, height: 32, color: "var(--t1)" }} />
             <div>
               <div className={styles.brandLabel}>Robert</div>
               <div className={styles.brandSub}>Admin Panel</div>
