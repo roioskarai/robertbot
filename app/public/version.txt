@@ -1,2 +1,2 @@
 ﻿robertbot build marker
-meta-first whatsapp connect, bot on/off toggle, connected-number guard, bot-quota modal, admin insights + cross-table filters 2026-07-16b
+code-review fixes (scale-safe bot segments, non-blocking OTP diagnostics) + new logo rollout 2026-07-19
